@@ -172,6 +172,19 @@ export function connectWithToken(apiToken: string, wantsWrite: boolean): void {
   saveCredential({ kind: 'token', apiToken, wantsWrite });
 }
 
+/**
+ * Flip editing on a personal-token credential in place (the token's real
+ * permissions were chosen in Capacities; this only gates the UI).
+ * Returns false for OAuth credentials — those change scope by
+ * reconnecting, so the consent screen always reflects the grant.
+ */
+export function setTokenEditing(on: boolean): boolean {
+  const credential = loadCredential();
+  if (credential?.kind !== 'token') return false;
+  saveCredential({ ...credential, wantsWrite: on });
+  return true;
+}
+
 /** A 403 that means "this connection was never granted write access". */
 export function isScopeInsufficiency(err: unknown): boolean {
   return err instanceof CapacitiesApiError && err.code === 'cap_scope_insufficient';

@@ -3,6 +3,7 @@ import { resolveSchema, type ResolvedSchema } from '../engine/resolve';
 import type { SpaceInfo, StructureDef, TagDef } from '../engine/provider';
 import type { FarviewConfig, LocalDate } from '../engine/types';
 import { loadStoredConfig, saveStoredConfig } from './configStore';
+import { useEditActions, type EditActions } from './edits';
 import { Icon } from './components/Icon';
 import { HASH_FOR, useView, type View } from './router';
 import {
@@ -86,6 +87,7 @@ function ConnectedApp(props: { session: Session }) {
   );
 
   const data = useTimelineData(session, config, resolved);
+  const edit = useEditActions(session, resolved, data);
 
   const updateConfig = (next: FarviewConfig): void => {
     setConfig(next);
@@ -163,6 +165,7 @@ function ConnectedApp(props: { session: Session }) {
               today={today}
               view={view}
               data={data}
+              edit={edit}
               onConfig={updateConfig}
             />
           )}
@@ -195,6 +198,7 @@ function ViewBody(props: {
   today: LocalDate;
   view: View;
   data: TimelineData;
+  edit: EditActions | null;
   onConfig: (config: FarviewConfig) => void;
 }) {
   if (props.view === 'settings') {
@@ -223,6 +227,7 @@ function ViewBody(props: {
           resolved={props.resolved}
           today={props.today}
           data={props.data}
+          edit={props.edit}
           loadMilestones={props.data.loadMilestones}
         />
       );
@@ -234,6 +239,7 @@ function ViewBody(props: {
           resolved={props.resolved}
           today={props.today}
           data={props.data}
+          edit={props.edit}
           loadMilestones={props.data.loadMilestones}
         />
       );

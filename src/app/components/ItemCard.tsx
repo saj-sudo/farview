@@ -1,5 +1,6 @@
 import { useState } from 'preact/hooks';
-import { diffDays, formatLocalDate } from '../../engine/dates';
+import { diffDays, formatLocalDate, isLocalDate } from '../../engine/dates';
+import type { DateChange } from '../../engine/editor';
 import type { LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
 
 /**
@@ -16,6 +17,10 @@ export interface ItemCardProps {
   milestonesEnabled: boolean;
   onLoadMilestones: (item: TimelineItem) => void;
   onClose: () => void;
+  /** Present only when the user connected with editing. */
+  onDateChange?: ((item: TimelineItem, change: DateChange) => Promise<boolean>) | null;
+  /** Whether each date can be edited (mapped + writable property). */
+  editableDates?: { start: boolean; target: boolean };
 }
 
 function elapsedSentence(item: TimelineItem, today: LocalDate): string | null {
@@ -79,6 +84,37 @@ export function ItemCard(props: ItemCardProps) {
           The target date is before the start date — worth checking in
           Capacities.
         </p>
+      )}
+
+      {props.onDateChange && (
+        <div class="tl-card-edit">
+          {item.kind !== 'goal' && props.editableDates?.start && (
+            <label class="field">
+              <span>Start</span>
+              <input
+                type="date"
+                value={item.start ?? ''}
+                onChange={(e) => {
+                  const v = (e.target as HTMLInputElement).value;
+                  void props.onDateChange!(item, { start: isLocalDate(v) ? (v as LocalDate) : null });
+                }}
+              />
+            </label>
+          )}
+          {props.editableDates?.target && (
+            <label class="field">
+              <span>Target</span>
+              <input
+                type="date"
+                value={item.target ?? ''}
+                onChange={(e) => {
+                  const v = (e.target as HTMLInputElement).value;
+                  void props.onDateChange!(item, { target: isLocalDate(v) ? (v as LocalDate) : null });
+                }}
+              />
+            </label>
+          )}
+        </div>
       )}
 
       {props.milestonesEnabled && item.milestoneIds.length > 0 && (

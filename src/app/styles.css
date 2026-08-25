@@ -1131,3 +1131,81 @@ a:hover {
     min-height: 0;
   }
 }
+
+/* ---------- editing: dialog, card fields ---------- */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 30, 0.35);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+  padding: 1rem;
+}
+
+.dialog {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.1rem 1.3rem;
+  width: 26rem;
+  max-width: 100%;
+  box-shadow: 0 12px 40px rgba(20, 20, 30, 0.25);
+}
+
+.dialog h3 {
+  margin: 0 0 0.5rem;
+}
+
+.tl-card-edit {
+  display: flex;
+  gap: 0.75rem;
+  border-top: 1px solid var(--line);
+  margin-top: 0.6rem;
+  padding-top: 0.35rem;
+}
+
+.tl-card-edit .field {
+  min-width: 0;
+  flex: 1;
+}
+
+.tl-card-edit input[type='date'] {
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.25rem 0.4rem;
+  max-width: 100%;
+}
+
+.tl-zoom-chip.tl-new {
+  margin-left: 0.4rem;
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.hz-add {
+  margin-left: auto;
+  text-decoration: none;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.3rem;
+}
+
+/* Drag editing cursors and ghost */
+.tl-item.editable {
+  cursor: grab;
+}
+
+.tl-item.dragging {
+  opacity: 0.9;
+}
+
+.tl-handle {
+  fill: transparent;
+  cursor: ew-resize;
+}

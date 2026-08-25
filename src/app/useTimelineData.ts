@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ResolvedSchema } from '../engine/resolve';
 import type { FarviewConfig, TimelineItem } from '../engine/types';
+import { extractItem } from '../engine/extract';
+import type { FullObject } from '../engine/provider';
 import type { MilestoneItem } from '../engine/types';
 import { memoryCache, openIdbCache, type ObjectCache } from '../pipeline/cache';
 import { loadMilestones, loadTimelineData } from '../pipeline/load';
@@ -24,6 +26,14 @@ export interface TimelineData {
   loadMore: () => void;
   loadMilestones: (ids: string[]) => Promise<MilestoneItem[]>;
   clearCache: () => Promise<void>;
+  /** Replace one item locally (optimistic edits and reverts). */
+  upsertItem: (item: TimelineItem) => void;
+  /** Fold a server-confirmed object into items and cache (write-through). */
+  applyObject: (
+    obj: FullObject,
+    kind: 'project' | 'goal',
+    keep?: { group: string | null; tags: string[] },
+  ) => TimelineItem | null;
 }
 
 export function useTimelineData(
@@ -150,6 +160,21 @@ export function useTimelineData(
           { provider: session.provider, cache: cacheRef.current, config, resolved },
           ids,
         );
+      },
+      upsertItem: (item: TimelineItem) => {
+        setItemMap((prev) => new Map(prev).set(item.id, item));
+      },
+      applyObject: (obj, kind, keep) => {
+        if (!config || !resolved) return null;
+        // Tag membership is unknown for a fresh extraction, so an edited
+        // item keeps its lane rather than jumping to Ungrouped.
+        const extracted = extractItem(obj, kind, config, resolved, () => keep?.tags ?? []);
+        const item = keep ? { ...extracted, group: keep.group, tags: keep.tags } : extracted;
+        setItemMap((prev) => new Map(prev).set(item.id, item));
+        void cacheRef.current
+          ?.put([{ id: obj.id, fetchedAt: Date.now(), object: obj }])
+          .catch(() => {});
+        return item;
       },
       clearCache: async () => {
         await cacheRef.current?.clear();

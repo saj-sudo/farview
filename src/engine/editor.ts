@@ -1,6 +1,6 @@
 import type { ResolvedSchema } from './resolve';
 import type { FullObject } from './provider';
-import type { LocalDate } from './types';
+import type { LocalDate, TimelineItem } from './types';
 
 /**
  * The write seam — deliberately narrow. Farview is read-only by
@@ -35,6 +35,24 @@ export interface Editor {
 }
 
 export class EditNotPossibleError extends Error {}
+
+/**
+ * The optimistic local view of a date change: same item, new dates,
+ * flags recomputed — what the UI shows while the PATCH is in flight.
+ */
+export function applyDateChange(item: TimelineItem, change: DateChange): TimelineItem {
+  const start = change.start === undefined ? item.start : change.start;
+  const target = change.target === undefined ? item.target : change.target;
+  return {
+    ...item,
+    start,
+    target,
+    flags: {
+      ...item.flags,
+      targetBeforeStart: start !== null && target !== null && target < start,
+    },
+  };
+}
 
 /**
  * Which resolved property carries each date, per kind. Shared by both

@@ -17,7 +17,7 @@ import { isBasicStructure } from '../../providers/capacities/constants';
 import type { Boot } from '../App';
 import { TimelineSvg } from '../components/TimelineSvg';
 import { HASH_FOR } from '../router';
-import { disconnect, endDemo, type Session } from '../session';
+import { connect, disconnect, endDemo, setTokenEditing, type Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
 
 /**
@@ -516,6 +516,48 @@ export function Settings(props: {
       )}
 
       <h3>Connection</h3>
+      {props.session.kind === 'live' && (
+        <div class="field">
+          {props.session.editingRequested ? (
+            <>
+              <p class="fineprint">
+                Editing is on: this connection can create goals and change
+                dates, always through your own explicit actions — never in
+                the background.
+              </p>
+              <div class="settings-actions">
+                <button
+                  onClick={() => {
+                    if (setTokenEditing(false)) location.reload();
+                    else void connect({ editing: false });
+                  }}
+                >
+                  Switch back to read-only
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p class="fineprint">
+                This connection is read-only — Farview cannot change anything
+                in your space. Enabling editing lets you add goals and adjust
+                dates from the timeline; with OAuth this reconnects so the
+                consent screen shows the wider grant.
+              </p>
+              <div class="settings-actions">
+                <button
+                  onClick={() => {
+                    if (setTokenEditing(true)) location.reload();
+                    else void connect({ editing: true });
+                  }}
+                >
+                  Enable editing
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
       <div class="settings-actions">
         {props.session.kind === 'live' ? (
           <button

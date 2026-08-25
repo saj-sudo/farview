@@ -13,11 +13,14 @@ import {
   type ViewState,
 } from '../../engine/timeline/scale';
 import type { FarviewConfig, LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
+import { addDays } from '../../engine/dates';
+import type { EditActions } from '../edits';
 import { focusParam } from '../router';
 import type { Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
 import { AgendaList } from '../components/AgendaList';
 import { ItemCard } from '../components/ItemCard';
+import { NewItemDialog } from '../components/NewItemDialog';
 import { RefreshBar } from '../components/RefreshBar';
 import { SomedayTray } from '../components/SomedayTray';
 import { TimelineSvg } from '../components/TimelineSvg';
@@ -55,6 +58,7 @@ export function Timeline(props: {
   resolved: ResolvedSchema;
   today: LocalDate;
   data: TimelineData;
+  edit: EditActions | null;
   loadMilestones: (ids: string[]) => Promise<MilestoneItem[]>;
 }) {
   const todayDay = dayNumber(props.today);
@@ -66,6 +70,7 @@ export function Timeline(props: {
     anchor: { x: number; y: number } | null;
   } | null>(null);
   const [milestones, setMilestones] = useState<Map<string, MilestoneItem[]>>(new Map());
+  const [creating, setCreating] = useState(false);
   const [narrow, setNarrow] = useState(
     () => typeof matchMedia !== 'undefined' && matchMedia('(max-width: 720px)').matches,
   );
@@ -311,6 +316,43 @@ export function Timeline(props: {
     });
   };
 
+  /* ---------------- editing ---------------- */
+
+  // The card always shows the LIVE item — an optimistic date change or
+  // server confirmation must not leave a stale snapshot on screen.
+  const liveSelected = selected
+    ? (props.data.items.find((i) => i.id === selected.item.id) ?? selected.item)
+    : null;
+
+  const editableDates = (item: TimelineItem): { start: boolean; target: boolean } =>
+    item.kind === 'goal'
+      ? {
+          start: false,
+          target: props.resolved.properties.goalTarget?.property.writable === true,
+        }
+      : {
+          start: props.resolved.properties.projectStart?.property.writable === true,
+          target: props.resolved.properties.projectTarget?.property.writable === true,
+        };
+
+  const canCreate =
+    props.edit !== null &&
+    (props.resolved.types.goal !== undefined || props.resolved.types.project !== undefined);
+
+  const cardFor = (item: TimelineItem) => (
+    <ItemCard
+      item={item}
+      today={props.today}
+      deepLink={props.session.provider.deepLink(item.id)}
+      milestones={milestones.get(item.id) ?? null}
+      milestonesEnabled={props.resolved.properties.projectMilestones !== undefined}
+      onLoadMilestones={requestMilestones}
+      onClose={() => setSelected(null)}
+      onDateChange={props.edit ? props.edit.updateDates : null}
+      editableDates={editableDates(item)}
+    />
+  );
+
   /* ---------------- empty states (§9.4) ---------------- */
 
   const nothingLoaded = !props.data.loading && props.data.items.length === 0;
@@ -326,21 +368,32 @@ export function Timeline(props: {
     return (
       <section class="timeline-view">
         <RefreshBar data={props.data} itemNoun="items" />
+        {props.edit?.notice && (
+          <p class="notice">
+            {props.edit.notice}{' '}
+            <button class="subtle" onClick={props.edit.dismissNotice}>
+              dismiss
+            </button>
+          </p>
+        )}
+        {canCreate && (
+          <p>
+            <button onClick={() => setCreating(true)}>+ New</button>
+          </p>
+        )}
         {nothingLoaded && <EmptyNote targetName={targetName} kind="none" />}
         <AgendaList items={visible} today={props.today} onSelect={centerOn} />
         <SomedayTray items={someday} onSelect={(i) => setSelected({ item: i, anchor: null })} />
-        {selected && (
-          <div class="tl-card-holder narrow">
-            <ItemCard
-              item={selected.item}
-              today={props.today}
-              deepLink={props.session.provider.deepLink(selected.item.id)}
-              milestones={milestones.get(selected.item.id) ?? null}
-              milestonesEnabled={props.resolved.properties.projectMilestones !== undefined}
-              onLoadMilestones={requestMilestones}
-              onClose={() => setSelected(null)}
-            />
-          </div>
+        {liveSelected && <div class="tl-card-holder narrow">{cardFor(liveSelected)}</div>}
+        {creating && props.edit && (
+          <NewItemDialog
+            resolved={props.resolved}
+            config={props.config}
+            defaultKind={props.resolved.types.goal ? 'goal' : 'project'}
+            defaultTarget={addDays(props.today, 30)}
+            onCreate={async (spec) => (await props.edit!.createItem(spec)) !== null}
+            onClose={() => setCreating(false)}
+          />
         )}
       </section>
     );
@@ -363,6 +416,11 @@ export function Timeline(props: {
           <button class="tl-zoom-chip today" onClick={goToToday}>
             Today
           </button>
+          {canCreate && (
+            <button class="tl-zoom-chip tl-new" onClick={() => setCreating(true)}>
+              + New
+            </button>
+          )}
         </div>
       </div>
 
@@ -371,6 +429,14 @@ export function Timeline(props: {
           {w}
         </p>
       ))}
+      {props.edit?.notice && (
+        <p class="notice">
+          {props.edit.notice}{' '}
+          <button class="subtle" onClick={props.edit.dismissNotice}>
+            dismiss
+          </button>
+        </p>
+      )}
 
       {nothingLoaded ? (
         <EmptyNote targetName={targetName} kind="none" />
@@ -410,7 +476,7 @@ export function Timeline(props: {
           selectedId={selected?.item.id ?? null}
           onSelect={select}
         />
-        {selected && (
+        {liveSelected && selected && (
           <div
             class="tl-card-holder"
             onPointerDown={(e) => e.stopPropagation()}
@@ -423,20 +489,23 @@ export function Timeline(props: {
               top: `${(selected.anchor?.y ?? 80) + 10}px`,
             }}
           >
-            <ItemCard
-              item={selected.item}
-              today={props.today}
-              deepLink={props.session.provider.deepLink(selected.item.id)}
-              milestones={milestones.get(selected.item.id) ?? null}
-              milestonesEnabled={props.resolved.properties.projectMilestones !== undefined}
-              onLoadMilestones={requestMilestones}
-              onClose={() => setSelected(null)}
-            />
+            {cardFor(liveSelected)}
           </div>
         )}
       </div>
 
       <SomedayTray items={someday} onSelect={centerOn} />
+
+      {creating && props.edit && (
+        <NewItemDialog
+          resolved={props.resolved}
+          config={props.config}
+          defaultKind={props.resolved.types.goal ? 'goal' : 'project'}
+          defaultTarget={addDays(props.today, 30)}
+          onCreate={async (spec) => (await props.edit!.createItem(spec)) !== null}
+          onClose={() => setCreating(false)}
+        />
+      )}
     </section>
   );
 }

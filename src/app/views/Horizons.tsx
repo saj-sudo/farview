@@ -1,9 +1,11 @@
 import { useState } from 'preact/hooks';
-import { formatLocalDate } from '../../engine/dates';
+import { addDays, formatLocalDate } from '../../engine/dates';
 import { buildHorizonColumns, SOMEDAY_LABEL } from '../../engine/horizons';
 import type { ResolvedSchema } from '../../engine/resolve';
 import type { FarviewConfig, LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
+import type { EditActions } from '../edits';
 import { ItemCard } from '../components/ItemCard';
+import { NewItemDialog } from '../components/NewItemDialog';
 import { RefreshBar } from '../components/RefreshBar';
 import type { Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
@@ -21,16 +23,36 @@ export function Horizons(props: {
   resolved: ResolvedSchema;
   today: LocalDate;
   data: TimelineData;
+  edit: EditActions | null;
   loadMilestones: (ids: string[]) => Promise<MilestoneItem[]>;
 }) {
   const [selected, setSelected] = useState<TimelineItem | null>(null);
   const [milestones, setMilestones] = useState<Map<string, MilestoneItem[]>>(new Map());
+  const [creatingTarget, setCreatingTarget] = useState<LocalDate | null | 'closed'>('closed');
 
   const visible = props.data.items.filter(
     (i) => props.config.display.showCompleted || i.status !== 'done',
   );
   const columns = buildHorizonColumns(visible, props.today, props.config, props.resolved);
   const total = visible.length;
+
+  const liveSelected = selected
+    ? (props.data.items.find((i) => i.id === selected.id) ?? selected)
+    : null;
+
+  const canCreate =
+    props.edit !== null &&
+    (props.resolved.types.goal !== undefined || props.resolved.types.project !== undefined);
+
+  // A column's "+" pre-fills a target that lands inside that bucket.
+  const targetForColumn = (label: string): LocalDate | null => {
+    if (label === SOMEDAY_LABEL) return null;
+    if (props.config.horizons.mode === 'derived') {
+      const bucket = props.config.horizons.buckets.find((b) => b.label === label);
+      return addDays(props.today, bucket?.maxDays ?? 548);
+    }
+    return addDays(props.today, 30);
+  };
 
   const requestMilestones = (item: TimelineItem): void => {
     if (milestones.has(item.id)) return;
@@ -65,6 +87,14 @@ export function Horizons(props: {
           {w}
         </p>
       ))}
+      {props.edit?.notice && (
+        <p class="notice">
+          {props.edit.notice}{' '}
+          <button class="subtle" onClick={props.edit.dismissNotice}>
+            dismiss
+          </button>
+        </p>
+      )}
       {total === 0 && !props.data.loading ? (
         <div class="setup-card">
           <h3>Nothing to sort into horizons yet</h3>
@@ -86,6 +116,15 @@ export function Horizons(props: {
                 {column.items.length +
                   column.goalGroups.reduce((n, g) => n + g.items.length + 1, 0)}
               </span>
+              {canCreate && (
+                <button
+                  class="subtle hz-add"
+                  aria-label={`New item in ${column.label}`}
+                  onClick={() => setCreatingTarget(targetForColumn(column.label))}
+                >
+                  +
+                </button>
+              )}
             </h3>
             {column.goalGroups.map((group) => (
               <div key={group.goal.id} class="hz-goal-group">
@@ -104,18 +143,42 @@ export function Horizons(props: {
         ))}
       </div>
 
-      {selected && (
+      {liveSelected && (
         <div class="tl-card-holder narrow">
           <ItemCard
-            item={selected}
+            item={liveSelected}
             today={props.today}
-            deepLink={props.session.provider.deepLink(selected.id)}
-            milestones={milestones.get(selected.id) ?? null}
+            deepLink={props.session.provider.deepLink(liveSelected.id)}
+            milestones={milestones.get(liveSelected.id) ?? null}
             milestonesEnabled={props.resolved.properties.projectMilestones !== undefined}
             onLoadMilestones={requestMilestones}
             onClose={() => setSelected(null)}
+            onDateChange={props.edit ? props.edit.updateDates : null}
+            editableDates={
+              liveSelected.kind === 'goal'
+                ? {
+                    start: false,
+                    target: props.resolved.properties.goalTarget?.property.writable === true,
+                  }
+                : {
+                    start: props.resolved.properties.projectStart?.property.writable === true,
+                    target:
+                      props.resolved.properties.projectTarget?.property.writable === true,
+                  }
+            }
           />
         </div>
+      )}
+
+      {creatingTarget !== 'closed' && props.edit && (
+        <NewItemDialog
+          resolved={props.resolved}
+          config={props.config}
+          defaultKind={props.resolved.types.goal ? 'goal' : 'project'}
+          defaultTarget={creatingTarget}
+          onCreate={async (spec) => (await props.edit!.createItem(spec)) !== null}
+          onClose={() => setCreatingTarget('closed')}
+        />
       )}
     </section>
   );
