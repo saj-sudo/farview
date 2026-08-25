@@ -14,7 +14,10 @@ import {
 } from '../../engine/timeline/scale';
 import type { FarviewConfig, LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
 import { addDays } from '../../engine/dates';
+import { applyDateChange, type DateChange } from '../../engine/editor';
+import type { BarGeometry } from '../../engine/timeline/layout';
 import type { EditActions } from '../edits';
+import type { DragMode } from '../components/TimelineSvg';
 import { focusParam } from '../router';
 import type { Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
@@ -76,6 +79,22 @@ export function Timeline(props: {
   );
   const animRef = useRef<number | null>(null);
   const dragRef = useRef<{ x: number; moved: boolean } | null>(null);
+  const itemDragRef = useRef<{
+    item: TimelineItem;
+    mode: DragMode;
+    startX: number;
+    moved: boolean;
+  } | null>(null);
+  const [dragChange, setDragChange] = useState<{ id: string; change: DateChange } | null>(
+    null,
+  );
+  const suppressClickRef = useRef(false);
+  const [focusedBarId, setFocusedBarId] = useState<string | null>(null);
+  const nudgeRef = useRef<{
+    origItem: TimelineItem;
+    change: DateChange;
+    timer: number;
+  } | null>(null);
 
   const reducedMotion =
     typeof matchMedia !== 'undefined' &&
@@ -140,16 +159,28 @@ export function Timeline(props: {
   const clamped = useMemo(() => clampView(view, extent), [view, extent]);
   const pxPerDay = width / clamped.daysVisible;
 
+  // A live drag substitutes its ghost dates before layout, so the bar
+  // (and everything packing around it) previews the drop in place.
+  const layoutItems = useMemo(
+    () =>
+      dragChange
+        ? dated.map((i) =>
+            i.id === dragChange.id ? applyDateChange(i, dragChange.change) : i,
+          )
+        : dated,
+    [dated, dragChange],
+  );
+
   const layout = useMemo(
     () =>
-      layoutTimeline(dated, {
+      layoutTimeline(layoutItems, {
         view: clamped,
         width,
         today: props.today,
         groupOrder: props.config.grouping.values,
         ...(pxPerDay < 0.35 ? { maxRowsPerLane: 6 } : {}),
       }),
-    [dated, clamped, width, props.today, props.config.grouping.values, pxPerDay],
+    [layoutItems, clamped, width, props.today, props.config.grouping.values, pxPerDay],
   );
 
   /* ---------------- zoom + pan ---------------- */
@@ -204,12 +235,55 @@ export function Timeline(props: {
     if (next !== undefined) zoomPreset(next);
   };
 
-  /* ---------------- pointer ---------------- */
+  /* ---------------- pointer: pan, and item drags when editing ---------------- */
+
+  const dragChangeFor = (
+    item: TimelineItem,
+    mode: DragMode,
+    deltaDays: number,
+  ): DateChange => {
+    if (mode === 'move') {
+      const change: DateChange = {};
+      if (item.start !== null) change.start = addDays(item.start, deltaDays);
+      if (item.target !== null) change.target = addDays(item.target, deltaDays);
+      return change;
+    }
+    if (mode === 'start') {
+      let next = addDays(item.start!, deltaDays);
+      if (item.target !== null && next > item.target) next = item.target;
+      return { start: next };
+    }
+    let next = addDays(item.target!, deltaDays);
+    if (item.start !== null && next < item.start) next = item.start;
+    return { target: next };
+  };
+
+  const onBarDragStart = (bar: BarGeometry, mode: DragMode, e: PointerEvent): void => {
+    e.stopPropagation(); // the chart must not pan underneath an item drag
+    itemDragRef.current = { item: bar.item, mode, startX: e.clientX, moved: false };
+  };
 
   const onPointerDown = (e: PointerEvent): void => {
     dragRef.current = { x: e.clientX, moved: false };
   };
   const onPointerMove = (e: PointerEvent): void => {
+    const itemDrag = itemDragRef.current;
+    if (itemDrag && props.edit) {
+      const dx = e.clientX - itemDrag.startX;
+      if (!itemDrag.moved && Math.abs(dx) > 4) {
+        itemDrag.moved = true;
+        suppressClickRef.current = true;
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      }
+      if (itemDrag.moved) {
+        const deltaDays = Math.round(dx / pxPerDay); // day-snapped
+        setDragChange({
+          id: itemDrag.item.id,
+          change: dragChangeFor(itemDrag.item, itemDrag.mode, deltaDays),
+        });
+      }
+      return;
+    }
     const drag = dragRef.current;
     if (!drag) return;
     const dx = e.clientX - drag.x;
@@ -225,6 +299,20 @@ export function Timeline(props: {
     }
   };
   const onPointerUp = (): void => {
+    const itemDrag = itemDragRef.current;
+    if (itemDrag) {
+      itemDragRef.current = null;
+      const pending = dragChange;
+      setDragChange(null);
+      if (itemDrag.moved && pending && props.edit) {
+        // The optimistic apply inside updateDates replaces the ghost.
+        void props.edit.updateDates(itemDrag.item, pending.change);
+      }
+      setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
+      return;
+    }
     const drag = dragRef.current;
     dragRef.current = null;
     if (drag && !drag.moved) setSelected(null); // plain click on empty space
@@ -279,16 +367,59 @@ export function Timeline(props: {
         e.preventDefault();
         break;
       case 'Escape':
-        setSelected(null);
+        if (itemDragRef.current) {
+          // Cancel the drag: the ghost vanishes, nothing is written.
+          itemDragRef.current = null;
+          setDragChange(null);
+        } else {
+          setSelected(null);
+        }
+        break;
+      case '[':
+      case ']':
+        if (props.edit && focusedBarId) {
+          const item = props.data.items.find((i) => i.id === focusedBarId);
+          if (item) {
+            const delta = (e.key === ']' ? 1 : -1) * (e.shiftKey ? 7 : 1);
+            nudge(item, e.altKey ? 'start' : 'target', delta);
+            e.preventDefault();
+          }
+        }
         break;
       default:
         break;
     }
   };
 
+  /* ---------------- keyboard nudges (debounced commit) ---------------- */
+
+  const commitNudge = (): void => {
+    const pending = nudgeRef.current;
+    if (!pending) return;
+    nudgeRef.current = null;
+    clearTimeout(pending.timer);
+    if (props.edit) void props.edit.updateDates(pending.origItem, pending.change);
+  };
+
+  const nudge = (item: TimelineItem, field: 'start' | 'target', deltaDays: number): void => {
+    if (nudgeRef.current && nudgeRef.current.origItem.id !== item.id) commitNudge();
+    const base = nudgeRef.current ?? { origItem: item, change: {} as DateChange, timer: 0 };
+    const current =
+      base.change[field] !== undefined ? base.change[field] : base.origItem[field];
+    if (current == null) return; // a missing date is set from the card, not nudged
+    base.change = { ...base.change, [field]: addDays(current, deltaDays) };
+    props.data.upsertItem(applyDateChange(base.origItem, base.change));
+    clearTimeout(base.timer);
+    base.timer = window.setTimeout(commitNudge, 800);
+    nudgeRef.current = base;
+  };
+
+  useEffect(() => commitNudge, []); // flush a pending nudge on unmount
+
   /* ---------------- selection + deep links ---------------- */
 
   const select = (item: TimelineItem | null, anchor: { x: number; y: number } | null): void => {
+    if (suppressClickRef.current) return; // the click that ends a drag is not a click
     setSelected(item ? { item, anchor } : null);
   };
 
@@ -449,7 +580,11 @@ export function Timeline(props: {
         ref={wrapRef}
         tabIndex={0}
         role="application"
-        aria-label="Timeline. Arrow keys pan, plus and minus zoom, T jumps to today, Tab walks the items."
+        aria-label={
+          props.edit
+            ? 'Timeline. Arrow keys pan, plus and minus zoom, T jumps to today, Tab walks the items. With an item focused, square brackets nudge its target date and Alt with brackets nudges the start; drag bars to move or resize.'
+            : 'Timeline. Arrow keys pan, plus and minus zoom, T jumps to today, Tab walks the items.'
+        }
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -475,6 +610,9 @@ export function Timeline(props: {
           milestones={milestones}
           selectedId={selected?.item.id ?? null}
           onSelect={select}
+          editable={props.edit !== null}
+          onBarDragStart={onBarDragStart}
+          onFocusBar={setFocusedBarId}
         />
         {liveSelected && selected && (
           <div

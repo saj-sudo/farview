@@ -11,12 +11,18 @@ import type { LocalDate, MilestoneItem, TimelineItem } from '../../engine/types'
  * (gridlines included) recedes together.
  */
 
+export type DragMode = 'move' | 'start' | 'end';
+
 export interface TimelineSvgProps {
   layout: TimelineLayout;
   today: LocalDate;
   milestones: ReadonlyMap<string, MilestoneItem[]>;
   selectedId: string | null;
   onSelect: (item: TimelineItem | null, anchor: { x: number; y: number } | null) => void;
+  /** Editing hooks; absent in read-only sessions. */
+  editable?: boolean;
+  onBarDragStart?: (bar: BarGeometry, mode: DragMode, e: PointerEvent) => void;
+  onFocusBar?: (id: string | null) => void;
 }
 
 function barAria(bar: BarGeometry): string {
@@ -125,6 +131,9 @@ export function TimelineSvg(props: TimelineSvgProps) {
           layout={layout}
           selected={props.selectedId === bar.item.id}
           onSelect={props.onSelect}
+          editable={props.editable === true}
+          {...(props.onBarDragStart ? { onDragStart: props.onBarDragStart } : {})}
+          {...(props.onFocusBar ? { onFocusBar: props.onFocusBar } : {})}
         />
       ))}
 
@@ -182,17 +191,32 @@ function Bar(props: {
   layout: TimelineLayout;
   selected: boolean;
   onSelect: TimelineSvgProps['onSelect'];
+  editable: boolean;
+  onDragStart?: (bar: BarGeometry, mode: DragMode, e: PointerEvent) => void;
+  onFocusBar?: (id: string | null) => void;
 }) {
   const { bar, layout } = props;
   const cy = bar.y + bar.h / 2;
   const activate = (): void =>
     props.onSelect(bar.item, { x: bar.x + Math.min(bar.w, 240) / 2, y: bar.y + bar.h });
 
+  // What dragging the body means for this shape: spans shift whole,
+  // single-date marks move that one date.
+  const bodyMode: DragMode =
+    bar.kind === 'point'
+      ? bar.item.target !== null
+        ? 'end'
+        : 'start'
+      : 'move';
+
+  const canDrag = props.editable && !bar.done && props.onDragStart !== undefined;
+
   const classes = [
     'tl-item',
     bar.done ? 'is-done' : '',
     bar.overdue ? 'is-overdue' : '',
     props.selected ? 'is-selected' : '',
+    canDrag ? 'editable' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -207,6 +231,11 @@ function Bar(props: {
         e.stopPropagation();
         activate();
       }}
+      onPointerDown={(e) => {
+        if (canDrag) props.onDragStart!(bar, bodyMode, e);
+      }}
+      onFocus={() => props.onFocusBar?.(bar.item.id)}
+      onBlur={() => props.onFocusBar?.(null)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -315,6 +344,38 @@ function Bar(props: {
           rx={9}
           class="tl-focus-ring"
         />
+      )}
+
+      {/* Resize handles: start and target edges, 8px hit zones. */}
+      {canDrag && (bar.kind === 'bar' || bar.kind === 'openEnded') && bar.w > 24 && (
+        <>
+          {bar.item.start !== null && !bar.clampedLeft && (
+            <rect
+              x={bar.x - 2}
+              y={bar.y}
+              width={8}
+              height={bar.h}
+              class="tl-handle"
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                props.onDragStart!(bar, 'start', e);
+              }}
+            />
+          )}
+          {bar.item.target !== null && !bar.clampedRight && (
+            <rect
+              x={bar.x + bar.w - 6}
+              y={bar.y}
+              width={8}
+              height={bar.h}
+              class="tl-handle"
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                props.onDragStart!(bar, 'end', e);
+              }}
+            />
+          )}
+        </>
       )}
     </g>
   );
