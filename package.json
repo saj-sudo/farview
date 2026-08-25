@@ -1,0 +1,40 @@
+{
+  "name": "farview",
+  "version": "0.1.0",
+  "description": "Farview: see your goals across time, in Capacities. A read-only visual timeline of your goals and projects across planning horizons. Disclaimer: Farview is an independent community tool. It is not affiliated with, endorsed by, or sponsored by Capacities. Capacities is a trademark of its respective owners.",
+  "keywords": [
+    "capacities",
+    "timeline",
+    "goals",
+    "planning",
+    "horizons",
+    "pkm",
+    "visualization"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/saj-sudo/farview"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@capacities/api": "^1.1.3",
+    "preact": "^10.24.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9.0",
+    "@types/node": "^26.3.0",
+    "typescript": "^5.6.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.0.0"
+  }
+}

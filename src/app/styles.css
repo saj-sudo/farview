@@ -1,0 +1,574 @@
+/* Farview — designed to feel at home next to Capacities: quiet neutral
+   surfaces, a blue-violet accent, soft-bordered cards, an app-like sans
+   stack, and first-class dark mode. Shares its visual language with its
+   sibling, Yesteryear: the past is quiet, the future gets the color. */
+
+:root {
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --line: #e4e4e7;
+  --ink: #1a1a1e;
+  --ink-soft: #6e6e78;
+  --accent: #5b67e8;
+  --accent-soft: #eceefc;
+  --focus: rgba(91, 103, 232, 0.55);
+  --shadow: 0 1px 2px rgba(20, 20, 30, 0.05);
+}
+
+:root {
+  --teal: #2ab3a6;
+  --teal-soft: #e2f5f3;
+  --amber: #d99a2b;
+  --amber-soft: #faf1de;
+  --rose: #e06a8f;
+  --grad: linear-gradient(135deg, #2ab3a6 0%, #5b67e8 55%, #9a6ae8 100%);
+
+  /* Timeline furniture: alternating calendar bands and the past veil. */
+  --band: rgba(26, 26, 30, 0.03);
+  --veil: rgba(247, 247, 248, 0.42);
+
+  /* Group hues, assigned deterministically to timeline lanes. */
+  --g1: #5b67e8;
+  --g2: #2ab3a6;
+  --g3: #d99a2b;
+  --g4: #e06a8f;
+  --g5: #9a6ae8;
+  --g6: #64748b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161619;
+    --surface: #1f1f24;
+    --line: #2c2c33;
+    --ink: #e8e8ec;
+    --ink-soft: #9a9aa5;
+    --accent: #8b93f8;
+    --accent-soft: #26283c;
+    --focus: rgba(139, 147, 248, 0.6);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --teal: #4fd0c3;
+    --teal-soft: #16332f;
+    --amber: #e8b45c;
+    --amber-soft: #33290f;
+    --rose: #f08bab;
+    --band: rgba(232, 232, 236, 0.04);
+    --veil: rgba(22, 22, 25, 0.5);
+    --g1: #8b93f8;
+    --g2: #4fd0c3;
+    --g3: #e8b45c;
+    --g4: #f08bab;
+    --g5: #b38df2;
+    --g6: #94a3b8;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 15px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+    Roboto, sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1rem; }
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ---------- shared ---------- */
+
+button {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.45rem 0.95rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 500;
+  padding: 0.55rem 1.3rem;
+}
+
+button.subtle {
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  padding: 0.2rem 0.4rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.fineprint {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.notice {
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+
+.loading,
+.empty-note {
+  color: var(--ink-soft);
+}
+
+.chip {
+  display: inline-block;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* ---------- connect ---------- */
+
+.connect {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 4.5rem 1.25rem;
+}
+
+.connect .tagline {
+  color: var(--ink-soft);
+  margin-top: -0.5rem;
+}
+
+.readonly-note {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  background: var(--teal-soft);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  margin: 1.25rem 0;
+  font-size: 0.92rem;
+}
+
+.readonly-note .lock {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+.demo-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.advanced {
+  margin-top: 2rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+
+.advanced summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.token-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.token-row input {
+  flex: 1;
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.45rem 0.7rem;
+}
+
+/* ---------- app shell: sidebar + content ---------- */
+
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  flex: 0 0 13rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.1rem 0.9rem;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar .brand {
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 1.05rem;
+  padding: 0.2rem 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.brand-mark {
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  background: var(--grad);
+  flex: 0 0 auto;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.sidebar nav a {
+  color: var(--ink-soft);
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.sidebar nav a .icon {
+  flex: 0 0 auto;
+  opacity: 0.75;
+}
+
+.sidebar nav a:hover {
+  background: var(--bg);
+  text-decoration: none;
+}
+
+.sidebar nav a.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.sidebar-foot {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0 0.6rem;
+}
+
+.demo-badge {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.space-name {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.demo-banner {
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  padding: 0.5rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.app-main {
+  padding: 1.5rem;
+  max-width: 78rem;
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .app {
+    flex-direction: column;
+  }
+  .sidebar {
+    flex: none;
+    height: auto;
+    position: static;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    padding: 0.6rem 0.9rem;
+  }
+  .sidebar nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 0.2rem;
+  }
+  .sidebar nav a {
+    white-space: nowrap;
+  }
+  .sidebar-foot {
+    display: none;
+  }
+}
+
+/* ---------- view heads, setup cards ---------- */
+
+.view-head {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  max-width: 46rem;
+  margin-bottom: 1.25rem;
+}
+
+.view-head h2 {
+  margin: 0 0 0.25rem;
+}
+
+.setup-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.1rem 1.3rem;
+  max-width: 40rem;
+  margin: 1rem 0 1.5rem;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.setup-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--grad);
+}
+
+.setup-card h3 {
+  margin: 0.1rem 0 0.4rem;
+}
+
+.setup-card p {
+  margin: 0.3rem 0 0.8rem;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+/* ---------- settings + onboarding forms ---------- */
+
+.settings {
+  max-width: 46rem;
+}
+
+.settings h3 {
+  margin: 1.75rem 0 0.5rem;
+}
+
+.field-row {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0.4rem 0;
+  min-width: 12rem;
+}
+
+.field.checkbox {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.field select,
+.field input[type='text'],
+.field input[type='number'] {
+  font: inherit;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.35rem 0.55rem;
+  max-width: 16rem;
+}
+
+.field small {
+  color: var(--ink-soft);
+}
+
+.tag-grid {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0;
+}
+
+.tag-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.15rem 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.9rem;
+  background: var(--surface);
+}
+
+.tag-chip.on {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tag-chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.transfer textarea {
+  width: 100%;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.8rem;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 0.6rem;
+  padding: 0.5rem;
+}
+
+/* ---------- landing + callback ---------- */
+
+.landing,
+.callback-status {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem;
+}
+
+.landing img {
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow);
+}
+
+.landing .tagline {
+  color: var(--ink-soft);
+  margin-top: -0.5rem;
+  font-size: 1.1rem;
+}
+
+.landing .cta {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 1.4rem;
+  margin-right: 0.9rem;
+  font-weight: 500;
+}
+
+.landing .cta:hover {
+  text-decoration: none;
+  opacity: 0.92;
+}
+
+.landing .cta-secondary {
+  color: var(--accent);
+}
+
+.landing footer {
+  margin-top: 3rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}

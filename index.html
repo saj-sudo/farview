@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://api.capacities.io; img-src 'self' data:; base-uri 'none'; form-action 'none'"
+    />
+    <title>Farview — see your goals across time, in Capacities</title>
+    <meta
+      name="description"
+      content="A read-only timeline of your Capacities goals and projects across quarters, years, and decades. No backend, no accounts, no tracking."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/app/styles.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/landing/main.tsx"></script>
+  </body>
+</html>
