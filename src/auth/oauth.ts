@@ -7,14 +7,17 @@ import { challengeS256, generateState, generateVerifier } from './pkce';
  * is unreachable. There is no client secret — this is a public client —
  * and the token exchange sends no Authorization header.
  *
- * The scope is `api:read` and nothing else (spec §0b). Farview never
- * writes: the read-only consent screen is the product's main trust
- * asset, and no future feature may widen this. `offline_access` only
- * adds the refresh token so users are not asked to reauthorize daily.
+ * Scopes: read-only is the DEFAULT and the trust story — a plain
+ * connect grants `api:read` and nothing else. Editing is an explicit,
+ * separate opt-in that requests `api:write` too, and the consent
+ * screen shows the difference. No code path may silently widen a
+ * read-only connection. `offline_access` only adds the refresh token
+ * so users are not asked to reauthorize daily.
  */
 
 export const API_BASE = 'https://api.capacities.io';
-export const OAUTH_SCOPE = 'api:read offline_access';
+export const READ_SCOPE = 'api:read offline_access';
+export const WRITE_SCOPE = 'api:read api:write offline_access';
 
 export interface ServerMetadata {
   authorization_endpoint: string;
@@ -71,18 +74,21 @@ export async function beginAuthorization(opts: {
   clientId: string;
   redirectUri: string;
   storage: KV;
+  /** Explicit opt-in only; defaults to the read-only scope. */
+  editing?: boolean;
   fetchFn?: Fetch;
 }): Promise<string> {
   const metadata = await fetchServerMetadata(opts.fetchFn);
   const verifier = generateVerifier();
   const state = generateState();
-  opts.storage.set(PENDING_KEY, JSON.stringify({ verifier, state }));
+  const editing = opts.editing === true;
+  opts.storage.set(PENDING_KEY, JSON.stringify({ verifier, state, editing }));
 
   const url = new URL(metadata.authorization_endpoint);
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('client_id', opts.clientId);
   url.searchParams.set('redirect_uri', opts.redirectUri);
-  url.searchParams.set('scope', OAUTH_SCOPE);
+  url.searchParams.set('scope', editing ? WRITE_SCOPE : READ_SCOPE);
   url.searchParams.set('resource', API_BASE);
   url.searchParams.set('code_challenge', await challengeS256(verifier));
   url.searchParams.set('code_challenge_method', 'S256');
@@ -102,7 +108,7 @@ export async function completeAuthorization(opts: {
   redirectUri: string;
   storage: KV;
   fetchFn?: Fetch;
-}): Promise<StoredTokens> {
+}): Promise<StoredTokens & { editing: boolean }> {
   const fetchFn = opts.fetchFn ?? globalThis.fetch;
   const err = opts.params.get('error');
   if (err) {
@@ -119,7 +125,7 @@ export async function completeAuthorization(opts: {
   const pendingRaw = opts.storage.get(PENDING_KEY);
   opts.storage.remove(PENDING_KEY);
   const pending = pendingRaw
-    ? (JSON.parse(pendingRaw) as { verifier: string; state: string })
+    ? (JSON.parse(pendingRaw) as { verifier: string; state: string; editing?: boolean })
     : null;
   if (!pending || pending.state !== state) {
     throw new OAuthCallbackError(
@@ -158,6 +164,7 @@ export async function completeAuthorization(opts: {
   return {
     accessToken: body.access_token,
     refreshToken: body.refresh_token,
+    editing: pending.editing === true,
     ...(body.expires_in
       ? { expiresAt: Math.floor(Date.now() / 1000) + body.expires_in }
       : {}),

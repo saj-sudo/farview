@@ -33,8 +33,8 @@ if (!clientId) {
       remove: (k) => sessionStorage.removeItem(k),
     },
   })
-    .then((tokens) => {
-      saveCredential({ kind: 'oauth', ...tokens });
+    .then(({ editing, ...tokens }) => {
+      saveCredential({ kind: 'oauth', wantsWrite: editing, ...tokens });
       location.replace('/app/');
     })
     .catch((err: unknown) => {

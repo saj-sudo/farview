@@ -3,6 +3,11 @@ import {
   CapacitiesClient,
   type GetObjectResponse,
 } from '@capacities/api';
+import {
+  buildCreateProperties,
+  buildDatePatch,
+  type Editor,
+} from '../../engine/editor';
 import type {
   FullObject,
   ObjectSummary,
@@ -12,6 +17,7 @@ import type {
   StructureDef,
   TagDef,
 } from '../../engine/provider';
+import type { ResolvedSchema } from '../../engine/resolve';
 import { APP_BASE, TAG_STRUCTURE_ID } from './constants';
 import { withBackoff } from './rateLimit';
 
@@ -50,7 +56,9 @@ export class CapacitiesAdapter implements Provider {
         id: p.id,
         name: p.name,
         type: p.type,
+        writable: p.writable,
         labelNames: (p.labelSet ?? []).map((l) => l.name),
+        labelSet: (p.labelSet ?? []).map((l) => ({ id: l.id, name: l.name })),
       })),
     }));
   }
@@ -103,12 +111,7 @@ export class CapacitiesAdapter implements Provider {
       }
       throw err;
     }
-    return {
-      id: res.id,
-      structureId: res.structureId,
-      title: titleOf(res),
-      properties: simplifyProperties(res.properties),
-    };
+    return toFullObject(res);
   }
 
   deepLink(objectId: string): string {
@@ -118,7 +121,56 @@ export class CapacitiesAdapter implements Provider {
   }
 }
 
+/**
+ * The write side of the seam, created ONLY when the user connected with
+ * editing (spec change: read-only by default, writes behind explicit
+ * opt-in). Each call is one POST/PATCH carrying every changed property
+ * at once — the rate limit is ~30 req/min, so writes stay single-shot.
+ * A missing scope surfaces as CapacitiesApiError 'cap_scope_insufficient'
+ * and the UI downgrades rather than retrying.
+ */
+export function createCapacitiesEditor(
+  client: CapacitiesClient,
+  resolved: ResolvedSchema,
+): Editor {
+  return {
+    async createItem(spec) {
+      const { structureId, properties } = buildCreateProperties(resolved, spec);
+      const res = await withBackoff(() =>
+        client.object.create({
+          structureId,
+          properties: properties as Parameters<
+            typeof client.object.create
+          >[0]['properties'],
+        }),
+      );
+      return toFullObject(res);
+    },
+    async updateDates(id, kind, change) {
+      const properties = buildDatePatch(resolved, kind, change);
+      const res = await withBackoff(() =>
+        client.object.update({
+          id,
+          properties: properties as Parameters<
+            typeof client.object.update
+          >[0]['properties'],
+        }),
+      );
+      return toFullObject(res);
+    },
+  };
+}
+
 /* ------------------------------------------------------------------ */
+
+function toFullObject(res: GetObjectResponse): FullObject {
+  return {
+    id: res.id,
+    structureId: res.structureId,
+    title: titleOf(res),
+    properties: simplifyProperties(res.properties),
+  };
+}
 
 /** Full objects carry no top-level title; it hides in the properties map. */
 function titleOf(res: GetObjectResponse): string {

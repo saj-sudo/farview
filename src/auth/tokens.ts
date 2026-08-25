@@ -19,8 +19,8 @@ import type { StoredTokens } from './oauth';
  */
 
 export type StoredCredential =
-  | ({ kind: 'oauth' } & StoredTokens)
-  | { kind: 'token'; apiToken: string };
+  | ({ kind: 'oauth'; wantsWrite?: boolean } & StoredTokens)
+  | { kind: 'token'; apiToken: string; wantsWrite?: boolean };
 
 const TOKEN_KEY = 'farview.credential';
 
@@ -29,8 +29,11 @@ export function loadCredential(): StoredCredential | null {
     const raw = localStorage.getItem(TOKEN_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Record<string, unknown>;
+    // wantsWrite records what the user explicitly opted into; absence
+    // (older stored credentials included) means read-only.
+    const wantsWrite = parsed['wantsWrite'] === true;
     if (parsed['kind'] === 'token' && typeof parsed['apiToken'] === 'string') {
-      return { kind: 'token', apiToken: parsed['apiToken'] };
+      return { kind: 'token', apiToken: parsed['apiToken'], wantsWrite };
     }
     if (
       parsed['kind'] === 'oauth' &&
@@ -41,6 +44,7 @@ export function loadCredential(): StoredCredential | null {
         kind: 'oauth',
         accessToken: parsed['accessToken'],
         refreshToken: parsed['refreshToken'],
+        wantsWrite,
         ...(typeof parsed['expiresAt'] === 'number'
           ? { expiresAt: parsed['expiresAt'] }
           : {}),

@@ -1,6 +1,6 @@
 import { addDays } from '../../engine/dates';
 import type { LocalDate } from '../../engine/types';
-import type { FixtureSpace } from './types';
+import { propDef, type FixtureSpace } from './types';
 
 /**
  * The minimal fixture (spec §12): one custom type, one date property,
@@ -20,7 +20,8 @@ export function buildMinimalSpace(today: LocalDate): FixtureSpace {
         title: 'Undertaking',
         pluralName: 'Undertakings',
         properties: [
-          { id: 'p-bywhen', name: 'By When', type: 'date', labelNames: [] },
+          propDef('p-min-title', 'Name', 'title'),
+          propDef('p-bywhen', 'By When', 'date'),
         ],
       },
     ],

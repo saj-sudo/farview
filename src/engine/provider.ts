@@ -12,10 +12,14 @@
 export interface PropertyDef {
   id: string;
   name: string;
-  /** API property type: 'date', 'label', 'text', 'entity', … */
+  /** API property type: 'date', 'label', 'text', 'entity', 'title', … */
   type: string;
+  /** Whether the API allows writing this property (editing gates on it). */
+  writable: boolean;
   /** For label properties: the value names this space actually uses. */
   labelNames: string[];
+  /** For label properties: the stable option ids writes must reference. */
+  labelSet: { id: string; name: string }[];
 }
 
 export interface StructureDef {

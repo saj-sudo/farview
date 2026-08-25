@@ -19,6 +19,7 @@ export function Connect(props: {
   onConnected: () => void;
 }) {
   const [token, setToken] = useState('');
+  const [tokenWrite, setTokenWrite] = useState(false);
 
   const demo = (flavor: DemoFlavor) => () => {
     startDemo(flavor);
@@ -28,7 +29,7 @@ export function Connect(props: {
   const useToken = (): void => {
     const trimmed = token.trim();
     if (!trimmed) return;
-    connectWithToken(trimmed);
+    connectWithToken(trimmed, tokenWrite);
     props.onConnected();
   };
 
@@ -44,11 +45,12 @@ export function Connect(props: {
       </p>
 
       <p class="readonly-note">
-        <span class="lock">Read-only.</span>
+        <span class="lock">Read-only by default.</span>
         <span>
-          Farview asks for read access and nothing else. It literally cannot
-          create, change, or delete anything in your space — the consent
-          screen will show it.
+          A plain connect asks for read access and nothing else — it cannot
+          create, change, or delete anything, and the consent screen will
+          show it. Editing (adding goals, adjusting dates) is a separate,
+          explicit opt-in below.
         </span>
       </p>
 
@@ -61,6 +63,14 @@ export function Connect(props: {
             You choose which space to share on the Capacities side. You can
             revoke access at any time in Capacities under Settings&nbsp;→
             Capacities API&nbsp;→ Connections — nothing here can stop you.
+          </p>
+          <p class="fineprint">
+            Want to add goals and drag dates from the timeline?{' '}
+            <button class="subtle" onClick={() => void connect({ editing: true })}>
+              Connect with editing
+            </button>{' '}
+            — this asks for write access too, and the consent screen will say
+            so. You can switch back to read-only from Settings any time.
           </p>
         </>
       ) : (
@@ -86,10 +96,21 @@ export function Connect(props: {
         <summary>Advanced: connect with a personal API token</summary>
         <p class="fineprint">
           In the Capacities app: Settings → Capacities API → create a token —
-          read access is all Farview needs — then paste it here. The token
+          read access is enough for viewing — then paste it here. The token
           stays in this browser’s storage; treat it like a password, and
           revoke it in the same settings screen whenever you like.
         </p>
+        <label class="field checkbox">
+          <input
+            type="checkbox"
+            checked={tokenWrite}
+            onChange={() => setTokenWrite((v) => !v)}
+          />
+          <span class="fineprint">
+            My token has write access — enable editing (adding goals,
+            adjusting dates).
+          </span>
+        </label>
         <div class="token-row">
           <input
             type="password"

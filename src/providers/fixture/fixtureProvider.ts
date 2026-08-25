@@ -1,10 +1,13 @@
+import { buildCreateProperties, buildDatePatch, type Editor } from '../../engine/editor';
 import type {
   FullObject,
   ObjectSummary,
+  PropertyValue,
   Provider,
   StructureDef,
   TagDef,
 } from '../../engine/provider';
+import type { ResolvedSchema } from '../../engine/resolve';
 import type { FixtureSpace } from './types';
 
 /**
@@ -88,4 +91,93 @@ export class FixtureProvider implements Provider {
     const i = this.space.objects.findIndex((x) => x.id === id);
     if (i >= 0) this.space.objects.splice(i, 1);
   }
+
+  /* ---------------- editor support ---------------- */
+
+  /** Test hook: the next write rejects (exercises optimistic revert). */
+  failNextWrite = false;
+  private createdCount = 0;
+
+  insertObject(obj: FullObject): void {
+    this.space.objects.push(structuredClone(obj));
+  }
+
+  nextCreatedId(): string {
+    this.createdCount += 1;
+    return `created-${this.createdCount}`;
+  }
+
+  patchObject(id: string, mutate: (obj: FullObject) => void): FullObject {
+    const obj = this.space.objects.find((x) => x.id === id);
+    if (!obj) throw new Error(`fixture: no object ${id}`);
+    mutate(obj);
+    return structuredClone(obj);
+  }
+
+  private takeWriteFailure(): boolean {
+    if (this.failNextWrite) {
+      this.failNextWrite = false;
+      return true;
+    }
+    return false;
+  }
+
+  writeFails(): Promise<never> | null {
+    return this.takeWriteFailure()
+      ? Promise.reject(new Error('fixture: simulated write failure'))
+      : null;
+  }
+}
+
+/**
+ * In-memory Editor over a FixtureProvider — powers editing in the demo
+ * and the tests. It consumes the SAME payloads the real adapter sends
+ * (via buildCreateProperties/buildDatePatch), converted back to the
+ * simplified property shapes, so the pure builders get end-to-end
+ * coverage without HTTP.
+ */
+export function createFixtureEditor(
+  provider: FixtureProvider,
+  resolved: ResolvedSchema,
+): Editor {
+  const simplify = (payload: unknown): PropertyValue => {
+    const p = payload as
+      | { type: 'date'; date: { start: string | null } }
+      | { type: 'label'; label: { id: string; name: string }[] }
+      | { type: 'title'; title: { value: string } };
+    if (p.type === 'date') return { type: 'date', start: p.date.start, end: null };
+    if (p.type === 'label') return { type: 'label', names: p.label.map((l) => l.name) };
+    return { type: 'text', value: p.title.value };
+  };
+
+  return {
+    createItem(spec) {
+      const failure = provider.writeFails();
+      if (failure) return failure;
+      const { structureId, properties } = buildCreateProperties(resolved, spec);
+      const obj: FullObject = {
+        id: provider.nextCreatedId(),
+        structureId,
+        title: spec.title,
+        properties: Object.fromEntries(
+          Object.entries(properties)
+            .map(([id, payload]) => [id, simplify(payload)] as const)
+            .filter(([, value]) => value.type !== 'text'), // title lives top-level here
+        ),
+      };
+      provider.insertObject(obj);
+      return Promise.resolve(structuredClone(obj));
+    },
+    updateDates(id, kind, change) {
+      const failure = provider.writeFails();
+      if (failure) return failure;
+      const patch = buildDatePatch(resolved, kind, change);
+      const updated = provider.patchObject(id, (obj) => {
+        for (const [propId, payload] of Object.entries(patch)) {
+          obj.properties[propId] = simplify(payload);
+        }
+      });
+      return Promise.resolve(updated);
+    },
+  };
 }

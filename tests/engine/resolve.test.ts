@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeConfig } from '../../src/engine/config';
 import type { StructureDef, TagDef } from '../../src/engine/provider';
 import { hasProjectType, resolveSchema } from '../../src/engine/resolve';
+import { propDef } from '../../src/providers/fixture/types';
 
 // A schema deliberately unlike the defaults: the no-hardcoded-schema
 // rule (spec §4) means all of this must resolve purely by config names.
@@ -12,15 +13,12 @@ const structures: StructureDef[] = [
     title: 'Refit',
     pluralName: 'Refits',
     properties: [
-      { id: 'p-laid', name: 'Laid Down', type: 'date', labelNames: [] },
-      { id: 'p-launch', name: 'Launch Day', type: 'date', labelNames: [] },
-      {
-        id: 'p-berth',
-        name: 'Berth',
-        type: 'label',
-        labelNames: ['Drafting', 'In the Shed', 'Rigging', 'Launched', 'Scuttled'],
-      },
-      { id: 'p-waypoints', name: 'Waypoints', type: 'entity', labelNames: [] },
+      propDef('p-laid', 'Laid Down', 'date'),
+      propDef('p-launch', 'Launch Day', 'date'),
+      propDef('p-berth', 'Berth', 'label', [
+        'Drafting', 'In the Shed', 'Rigging', 'Launched', 'Scuttled',
+      ]),
+      propDef('p-waypoints', 'Waypoints', 'entity'),
     ],
   },
   {
@@ -28,13 +26,10 @@ const structures: StructureDef[] = [
     title: 'Voyage',
     pluralName: 'Voyages',
     properties: [
-      { id: 'p-landfall', name: 'Landfall', type: 'date', labelNames: [] },
-      {
-        id: 'p-reach',
-        name: 'Reach',
-        type: 'label',
-        labelNames: ['This Tide', 'This Season', 'This Year', 'Beyond the Chart'],
-      },
+      propDef('p-landfall', 'Landfall', 'date'),
+      propDef('p-reach', 'Reach', 'label', [
+        'This Tide', 'This Season', 'This Year', 'Beyond the Chart',
+      ]),
     ],
   },
 ];

@@ -3,11 +3,19 @@ import { beginAuthorization } from '../auth/oauth';
 import { clearCredential, loadCredential, saveCredential } from '../auth/tokens';
 import { normalizeConfig } from '../engine/config';
 import { todayInZone } from '../engine/dates';
+import type { Editor } from '../engine/editor';
 import type { Provider } from '../engine/provider';
+import type { ResolvedSchema } from '../engine/resolve';
 import type { FarviewConfig, LocalDate } from '../engine/types';
-import { CapacitiesAdapter } from '../providers/capacities/adapter';
+import {
+  CapacitiesAdapter,
+  createCapacitiesEditor,
+} from '../providers/capacities/adapter';
 import { buildEmptySpace } from '../providers/fixture/emptySpace';
-import { FixtureProvider } from '../providers/fixture/fixtureProvider';
+import {
+  createFixtureEditor,
+  FixtureProvider,
+} from '../providers/fixture/fixtureProvider';
 import { buildMinimalSpace } from '../providers/fixture/minimalSpace';
 import {
   buildStrangersSpace,
@@ -33,6 +41,14 @@ export interface Session {
    * visitor's stored one; the strangers demo starts post-onboarding.
    */
   demoConfig: FarviewConfig | null;
+  /**
+   * True only when the user explicitly connected with editing. Actual
+   * capability is confirmed lazily — a 403 cap_scope_insufficient
+   * downgrades the UI rather than erroring.
+   */
+  editingRequested: boolean;
+  /** The write seam; null unless editing was requested. */
+  makeEditor: (resolved: ResolvedSchema) => Editor | null;
 }
 
 const DEMO_KEY = 'farview.demo';
@@ -90,36 +106,58 @@ export function createSession(): Session | null {
               projectStatus: null,
             },
           });
-    return { kind: 'demo', provider: new FixtureProvider(space), demoConfig };
+    const provider = new FixtureProvider(space);
+    // The strangers demo showcases editing (in memory, nothing leaves the
+    // tab); the other flavors stay read-only so that mode is visible too.
+    const editingRequested = demo === 'strangers';
+    return {
+      kind: 'demo',
+      provider,
+      demoConfig,
+      editingRequested,
+      makeEditor: (resolved) =>
+        editingRequested ? createFixtureEditor(provider, resolved) : null,
+    };
   }
 
   const credential = loadCredential();
   let client: CapacitiesClient | null = null;
+  const wantsWrite = credential?.wantsWrite === true;
   if (credential?.kind === 'token') {
     client = new CapacitiesClient({ apiToken: credential.apiToken });
   } else if (credential?.kind === 'oauth' && CLIENT_ID) {
-    const { kind, ...tokens } = credential;
+    const { kind, wantsWrite: ww, ...tokens } = credential;
     void kind;
     client = new CapacitiesClient({
       oauth: {
         tokens,
         clientId: CLIENT_ID,
-        onTokenRefreshed: (next) => saveCredential({ kind: 'oauth', ...next }),
+        onTokenRefreshed: (next) =>
+          saveCredential({ kind: 'oauth', wantsWrite: ww === true, ...next }),
       },
     });
   }
   if (client) {
-    return { kind: 'live', provider: new CapacitiesAdapter(client), demoConfig: null };
+    const c = client;
+    return {
+      kind: 'live',
+      provider: new CapacitiesAdapter(c),
+      demoConfig: null,
+      editingRequested: wantsWrite,
+      makeEditor: (resolved: ResolvedSchema) =>
+        wantsWrite ? createCapacitiesEditor(c, resolved) : null,
+    };
   }
   return null;
 }
 
-/** Kick off the OAuth redirect. */
-export async function connect(): Promise<void> {
+/** Kick off the OAuth redirect. Editing is an explicit opt-in (§0b'). */
+export async function connect(opts: { editing?: boolean } = {}): Promise<void> {
   if (!CLIENT_ID) return;
   const url = await beginAuthorization({
     clientId: CLIENT_ID,
     redirectUri: `${location.origin}/callback`,
+    editing: opts.editing === true,
     storage: {
       get: (k) => sessionStorage.getItem(k),
       set: (k, v) => sessionStorage.setItem(k, v),
@@ -130,8 +168,13 @@ export async function connect(): Promise<void> {
 }
 
 /** Store a personal API token and let the caller rebuild the session. */
-export function connectWithToken(apiToken: string): void {
-  saveCredential({ kind: 'token', apiToken });
+export function connectWithToken(apiToken: string, wantsWrite: boolean): void {
+  saveCredential({ kind: 'token', apiToken, wantsWrite });
+}
+
+/** A 403 that means "this connection was never granted write access". */
+export function isScopeInsufficiency(err: unknown): boolean {
+  return err instanceof CapacitiesApiError && err.code === 'cap_scope_insufficient';
 }
 
 export function disconnect(): void {

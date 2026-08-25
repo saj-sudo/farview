@@ -3,6 +3,7 @@ import { normalizeConfig } from '../../src/engine/config';
 import { classifyStatus, extractItem, extractMilestone } from '../../src/engine/extract';
 import type { FullObject, StructureDef } from '../../src/engine/provider';
 import { resolveSchema } from '../../src/engine/resolve';
+import { propDef } from '../../src/providers/fixture/types';
 
 const structures: StructureDef[] = [
   {
@@ -10,10 +11,10 @@ const structures: StructureDef[] = [
     title: 'Refit',
     pluralName: 'Refits',
     properties: [
-      { id: 'p-laid', name: 'Laid Down', type: 'date', labelNames: [] },
-      { id: 'p-launch', name: 'Launch Day', type: 'date', labelNames: [] },
-      { id: 'p-berth', name: 'Berth', type: 'label', labelNames: ['Rigging', 'Launched'] },
-      { id: 'p-waypoints', name: 'Waypoints', type: 'entity', labelNames: [] },
+      propDef('p-laid', 'Laid Down', 'date'),
+      propDef('p-launch', 'Launch Day', 'date'),
+      propDef('p-berth', 'Berth', 'label', ['Rigging', 'Launched']),
+      propDef('p-waypoints', 'Waypoints', 'entity'),
     ],
   },
 ];

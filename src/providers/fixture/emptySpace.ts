@@ -1,4 +1,4 @@
-import type { FixtureSpace } from './types';
+import { propDef, type FixtureSpace } from './types';
 
 /**
  * The empty fixture (spec §12): types exist, but there is not a single
@@ -17,7 +17,8 @@ export function buildEmptySpace(): FixtureSpace {
         title: 'Undertaking',
         pluralName: 'Undertakings',
         properties: [
-          { id: 'p-bywhen', name: 'By When', type: 'date', labelNames: [] },
+          propDef('p-min-title', 'Name', 'title'),
+          propDef('p-bywhen', 'By When', 'date'),
         ],
       },
     ],

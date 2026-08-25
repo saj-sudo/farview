@@ -3,7 +3,8 @@ import {
   beginAuthorization,
   completeAuthorization,
   OAuthCallbackError,
-  OAUTH_SCOPE,
+  READ_SCOPE,
+  WRITE_SCOPE,
   type KV,
 } from '../../src/auth/oauth';
 import { challengeS256, generateVerifier } from '../../src/auth/pkce';
@@ -42,12 +43,69 @@ describe('PKCE primitives', () => {
   });
 });
 
-describe('read-only scope', () => {
-  // The whole trust story rests on this string (spec §0b). If a change
-  // ever widens it, this failure is the intended alarm.
-  it('requests api:read and offline_access, and nothing else', () => {
-    expect(OAUTH_SCOPE).toBe('api:read offline_access');
-    expect(OAUTH_SCOPE).not.toContain('write');
+describe('scopes', () => {
+  // The trust story: read-only is the DEFAULT. Editing exists, but only
+  // as an explicit opt-in that requests the write scope separately. If a
+  // change ever makes write the default, this failure is the alarm.
+  it('keeps the default scope read-only', () => {
+    expect(READ_SCOPE).toBe('api:read offline_access');
+    expect(READ_SCOPE).not.toContain('write');
+  });
+
+  it('reserves the write scope for the explicit editing opt-in', () => {
+    expect(WRITE_SCOPE).toBe('api:read api:write offline_access');
+  });
+
+  it('requests the write scope only when editing is asked for', async () => {
+    const plain = new URL(
+      await beginAuthorization({
+        clientId: 'c',
+        redirectUri: 'https://farview.dev/callback',
+        storage: memoryKV(),
+        fetchFn: () => Promise.resolve(metadataResponse),
+      }),
+    );
+    expect(plain.searchParams.get('scope')).toBe(READ_SCOPE);
+
+    const editing = new URL(
+      await beginAuthorization({
+        clientId: 'c',
+        redirectUri: 'https://farview.dev/callback',
+        storage: memoryKV(),
+        editing: true,
+        fetchFn: () => Promise.resolve(metadataResponse),
+      }),
+    );
+    expect(editing.searchParams.get('scope')).toBe(WRITE_SCOPE);
+  });
+
+  it('carries the editing opt-in through the callback', async () => {
+    const storage = memoryKV();
+    await beginAuthorization({
+      clientId: 'c',
+      redirectUri: 'https://farview.dev/callback',
+      storage,
+      editing: true,
+      fetchFn: () => Promise.resolve(metadataResponse),
+    });
+    const pending = JSON.parse(storage.map.get('farview.oauth.pending')!) as {
+      state: string;
+    };
+    const fetchFn = ((url: string | URL | Request) => {
+      if (String(url).includes('.well-known')) return Promise.resolve(metadataResponse);
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ access_token: 'at', refresh_token: 'rt' }),
+      } as Response);
+    }) as typeof fetch;
+    const result = await completeAuthorization({
+      params: new URLSearchParams({ code: 'abc', state: pending.state }),
+      clientId: 'c',
+      redirectUri: 'https://farview.dev/callback',
+      storage,
+      fetchFn,
+    });
+    expect(result.editing).toBe(true);
   });
 });
 
