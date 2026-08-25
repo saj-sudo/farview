@@ -15,6 +15,7 @@ import {
 } from './session';
 import { useTimelineData, type TimelineData } from './useTimelineData';
 import { Connect } from './views/Connect';
+import { Settings } from './views/Settings';
 import { Timeline } from './views/Timeline';
 
 /**
@@ -143,9 +144,15 @@ function ConnectedApp(props: { session: Session }) {
           {!boot ? (
             <p class="loading">Reading the space…</p>
           ) : !config || !resolved ? (
-            <SetupNeeded />
-          ) : !resolved.types.project ? (
-            <MappingBroken resolved={resolved} />
+            <Settings
+              session={session}
+              boot={boot}
+              config={config}
+              today={today}
+              data={data}
+              onConfig={updateConfig}
+              onboarding={true}
+            />
           ) : (
             <ViewBody
               session={session}
@@ -160,20 +167,6 @@ function ConnectedApp(props: { session: Session }) {
           )}
         </main>
       </div>
-    </div>
-  );
-}
-
-/** No config yet: the onboarding flow lands here in the next build step. */
-function SetupNeeded() {
-  return (
-    <div class="setup-card">
-      <h3>Let’s map your space</h3>
-      <p>
-        Farview works with your object types, not a fixed schema. Head to{' '}
-        <a href={HASH_FOR.settings}>Settings</a> to pick which type holds your
-        projects and which properties carry the dates.
-      </p>
     </div>
   );
 }
@@ -203,6 +196,23 @@ function ViewBody(props: {
   data: TimelineData;
   onConfig: (config: FarviewConfig) => void;
 }) {
+  if (props.view === 'settings') {
+    return (
+      <Settings
+        session={props.session}
+        boot={props.boot}
+        config={props.config}
+        today={props.today}
+        data={props.data}
+        onConfig={props.onConfig}
+        onboarding={false}
+      />
+    );
+  }
+  // A renamed or deleted type routes to a clear message, not a blank chart.
+  if (!props.resolved.types.project) {
+    return <MappingBroken resolved={props.resolved} />;
+  }
   switch (props.view) {
     case 'timeline':
       return (
@@ -221,15 +231,6 @@ function ViewBody(props: {
           <div>
             <h2>Horizons</h2>
             <p class="fineprint">The column view lands in a coming step.</p>
-          </div>
-        </div>
-      );
-    case 'settings':
-      return (
-        <div class="view-head">
-          <div>
-            <h2>Settings</h2>
-            <p class="fineprint">The settings form lands in a coming step.</p>
           </div>
         </div>
       );

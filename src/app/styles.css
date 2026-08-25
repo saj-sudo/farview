@@ -1014,3 +1014,16 @@ a:hover {
   background: var(--accent);
   border-radius: 999px;
 }
+
+/* ---------- settings live preview ---------- */
+
+.preview-block {
+  margin: 1.75rem 0;
+}
+
+.tl-wrap.preview {
+  cursor: default;
+  pointer-events: none;
+  max-height: 340px;
+  overflow: hidden;
+}
