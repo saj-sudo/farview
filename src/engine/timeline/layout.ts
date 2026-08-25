@@ -35,6 +35,8 @@ export interface BarGeometry {
   h: number;
   /** Elapsed time as a fraction of the span — never completion % (§9.3). */
   elapsedFrac: number;
+  /** Pixel width of the elapsed fill, measured from x — clamp-safe. */
+  fillW: number;
   clampedLeft: boolean;
   clampedRight: boolean;
   overdue: boolean;
@@ -198,6 +200,17 @@ function barGeometry(
   else if (w < DOT_THRESHOLD_PX) kind = 'dot';
   else if (isOpenEnded) kind = 'openEnded';
 
+  // The fill must end at *today's pixel*, not at a fraction of the
+  // clamped width — a multi-year bar clipped by the viewport would
+  // otherwise show a fictional amount of elapsed time.
+  let fillW = 0;
+  if (done || isOpenEnded) {
+    fillW = w;
+  } else if (startDay !== null && targetDay !== null && targetDay > startDay) {
+    const fillEndDay = Math.min(todayDay, targetDay);
+    fillW = Math.min(w, Math.max(0, scale.xOf(fillEndDay) - x));
+  }
+
   // Label placement, measured with the char-width heuristic.
   const labelW = estTextWidth(item.title);
   let placement: BarGeometry['label']['placement'];
@@ -231,6 +244,7 @@ function barGeometry(
     y,
     h: BAR_H,
     elapsedFrac,
+    fillW,
     clampedLeft,
     clampedRight,
     overdue,

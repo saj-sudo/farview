@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { resolveSchema } from '../engine/resolve';
+import { resolveSchema, type ResolvedSchema } from '../engine/resolve';
 import type { SpaceInfo, StructureDef, TagDef } from '../engine/provider';
-import type { FarviewConfig } from '../engine/types';
-import { isBasicStructure } from '../providers/capacities/constants';
+import type { FarviewConfig, LocalDate } from '../engine/types';
 import { loadStoredConfig, saveStoredConfig } from './configStore';
 import { Icon } from './components/Icon';
 import { HASH_FOR, useView, type View } from './router';
@@ -14,12 +13,14 @@ import {
   todayLocal,
   type Session,
 } from './session';
+import { useTimelineData, type TimelineData } from './useTimelineData';
 import { Connect } from './views/Connect';
+import { Timeline } from './views/Timeline';
 
 /**
  * The app shell: sidebar + content, session bootstrap, auth-loss
- * handling. Views render from one shared boot payload (space info,
- * structures, tags) so every screen works from the same facts.
+ * handling. One dataset — loaded once through the pipeline — feeds both
+ * the Timeline and Horizons views.
  */
 
 export interface Boot {
@@ -35,19 +36,24 @@ const NAV: { view: View; label: string; icon: string }[] = [
 ];
 
 export function App() {
-  const [, setTick] = useState(0);
-  const rebuild = (): void => setTick((t) => t + 1);
+  const [tick, setTick] = useState(0);
+  const session = useMemo(createSession, [tick]);
+  if (!session) {
+    return <Connect onDemo={() => setTick((t) => t + 1)} onConnected={() => setTick((t) => t + 1)} />;
+  }
+  return <ConnectedApp session={session} />;
+}
 
-  const session = useMemo(createSession, []);
+function ConnectedApp(props: { session: Session }) {
+  const { session } = props;
   const [boot, setBoot] = useState<Boot | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [config, setConfig] = useState<FarviewConfig | null>(
-    () => session?.demoConfig ?? loadStoredConfig(),
+    () => session.demoConfig ?? loadStoredConfig(),
   );
   const view = useView(config?.display.defaultView ?? 'timeline');
 
   useEffect(() => {
-    if (!session) return;
     let cancelled = false;
     (async () => {
       try {
@@ -72,15 +78,12 @@ export function App() {
     };
   }, [session]);
 
-  const resolved = useMemo(
-    () =>
-      boot && config ? resolveSchema(config, boot.structures, boot.tags) : null,
+  const resolved: ResolvedSchema | null = useMemo(
+    () => (boot && config ? resolveSchema(config, boot.structures, boot.tags) : null),
     [boot, config],
   );
 
-  if (!session) {
-    return <Connect onDemo={rebuild} onConnected={rebuild} />;
-  }
+  const data = useTimelineData(session, config, resolved);
 
   const updateConfig = (next: FarviewConfig): void => {
     setConfig(next);
@@ -89,10 +92,10 @@ export function App() {
 
   const leaveDemo = (): void => {
     endDemo();
-    location.reload();
+    location.assign('/app/');
   };
 
-  const today = todayLocal(config?.display.timezone ?? null);
+  const today: LocalDate = todayLocal(config?.display.timezone ?? null);
 
   return (
     <div class="app">
@@ -129,14 +132,20 @@ export function App() {
       <div class="content">
         {session.kind === 'demo' && (
           <p class="demo-banner">
-            A synthetic space — the Saltmarsh Boatyard and friends. Nothing
-            here is real, and nothing leaves this tab.
+            A synthetic space — the Saltmarsh Boatyard. Nothing here is real,
+            and nothing leaves this tab.
           </p>
         )}
         <main class="app-main">
-          {loadError && <p class="notice">{loadError} Cached content may still be shown.</p>}
+          {loadError && (
+            <p class="notice">{loadError} Cached content may still be shown.</p>
+          )}
           {!boot ? (
             <p class="loading">Reading the space…</p>
+          ) : !config || !resolved ? (
+            <SetupNeeded />
+          ) : !resolved.types.project ? (
+            <MappingBroken resolved={resolved} />
           ) : (
             <ViewBody
               session={session}
@@ -145,6 +154,7 @@ export function App() {
               resolved={resolved}
               today={today}
               view={view}
+              data={data}
               onConfig={updateConfig}
             />
           )}
@@ -154,40 +164,74 @@ export function App() {
   );
 }
 
+/** No config yet: the onboarding flow lands here in the next build step. */
+function SetupNeeded() {
+  return (
+    <div class="setup-card">
+      <h3>Let’s map your space</h3>
+      <p>
+        Farview works with your object types, not a fixed schema. Head to{' '}
+        <a href={HASH_FOR.settings}>Settings</a> to pick which type holds your
+        projects and which properties carry the dates.
+      </p>
+    </div>
+  );
+}
+
+/** The config references things this space no longer has (§11). */
+function MappingBroken(props: { resolved: ResolvedSchema }) {
+  return (
+    <div class="setup-card">
+      <h3>The mapping needs a fresh look</h3>
+      {props.resolved.warnings.map((w) => (
+        <p key={w}>{w}</p>
+      ))}
+      <p>
+        <a href={HASH_FOR.settings}>Open Settings</a> to remap.
+      </p>
+    </div>
+  );
+}
+
 function ViewBody(props: {
   session: Session;
   boot: Boot;
-  config: FarviewConfig | null;
-  resolved: ReturnType<typeof resolveSchema> | null;
-  today: string;
+  config: FarviewConfig;
+  resolved: ResolvedSchema;
+  today: LocalDate;
   view: View;
+  data: TimelineData;
   onConfig: (config: FarviewConfig) => void;
 }) {
-  // Placeholder bodies — the real views land in the next build steps.
-  const customTypes = props.boot.structures.filter((s) => !isBasicStructure(s.id));
-  return (
-    <section>
-      <div class="view-head">
-        <div>
-          <h2>{props.view === 'timeline' ? 'Timeline' : props.view === 'horizons' ? 'Horizons' : 'Settings'}</h2>
-          <p class="fineprint">
-            Connected to “{props.boot.space.title}”. This space contains{' '}
-            {customTypes.length === 0
-              ? 'no custom object types'
-              : customTypes.map((s) => s.title).join(', ')}
-            {props.boot.tags.length > 0
-              ? `; tags: ${props.boot.tags.map((t) => t.name).join(', ')}.`
-              : '.'}
-          </p>
+  switch (props.view) {
+    case 'timeline':
+      return (
+        <Timeline
+          session={props.session}
+          config={props.config}
+          resolved={props.resolved}
+          today={props.today}
+          data={props.data}
+          loadMilestones={props.data.loadMilestones}
+        />
+      );
+    case 'horizons':
+      return (
+        <div class="view-head">
+          <div>
+            <h2>Horizons</h2>
+            <p class="fineprint">The column view lands in a coming step.</p>
+          </div>
         </div>
-      </div>
-      {props.resolved && props.resolved.warnings.length > 0 && (
-        <div class="notice">
-          {props.resolved.warnings.map((w) => (
-            <p key={w}>{w}</p>
-          ))}
+      );
+    case 'settings':
+      return (
+        <div class="view-head">
+          <div>
+            <h2>Settings</h2>
+            <p class="fineprint">The settings form lands in a coming step.</p>
+          </div>
         </div>
-      )}
-    </section>
-  );
+      );
+  }
 }

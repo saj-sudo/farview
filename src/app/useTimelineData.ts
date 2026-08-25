@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ResolvedSchema } from '../engine/resolve';
 import type { FarviewConfig, TimelineItem } from '../engine/types';
+import type { MilestoneItem } from '../engine/types';
 import { memoryCache, openIdbCache, type ObjectCache } from '../pipeline/cache';
-import { loadTimelineData } from '../pipeline/load';
+import { loadMilestones, loadTimelineData } from '../pipeline/load';
 import { disconnect, isAuthLoss, type Session } from './session';
 
 /**
@@ -21,6 +22,7 @@ export interface TimelineData {
   warnings: string[];
   refresh: (force: boolean) => void;
   loadMore: () => void;
+  loadMilestones: (ids: string[]) => Promise<MilestoneItem[]>;
   clearCache: () => Promise<void>;
 }
 
@@ -142,10 +144,17 @@ export function useTimelineData(
         appendRef.current = true;
         setRunSeq((s) => s + 1);
       },
+      loadMilestones: async (ids: string[]) => {
+        if (!config || !resolved || !cacheRef.current) return [];
+        return loadMilestones(
+          { provider: session.provider, cache: cacheRef.current, config, resolved },
+          ids,
+        );
+      },
       clearCache: async () => {
         await cacheRef.current?.clear();
       },
     }),
-    [itemMap, loading, progress, lastRefreshed, remaining, warnings, config],
+    [itemMap, loading, progress, lastRefreshed, remaining, warnings, config, resolved, session],
   );
 }

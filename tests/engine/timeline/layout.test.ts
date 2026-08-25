@@ -89,6 +89,9 @@ describe('layoutTimeline', () => {
     expect(epic.clampedRight).toBe(true);
     expect(epic.x).toBe(-8);
     expect(epic.x + epic.w).toBeLessThanOrEqual(WIDTH + 8);
+    // The elapsed fill ends at today's pixel, not a fraction of the
+    // clamped width — clamping must not invent elapsed time.
+    expect(epic.x + epic.fillW).toBeCloseTo(layout.nowX, 4);
   });
 
   it('collapses to dots at decade density and hides narrow labels', () => {

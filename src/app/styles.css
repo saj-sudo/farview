@@ -572,3 +572,445 @@ a:hover {
   border-top: 1px solid var(--line);
   padding-top: 1rem;
 }
+
+/* ---------- timeline: toolbar, chart, card, tray ---------- */
+
+.timeline-view {
+  max-width: none;
+}
+
+.tl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.refresh-bar {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+}
+
+.tl-zoom {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.tl-zoom-chip {
+  font-size: 0.82rem;
+  padding: 0.25rem 0.8rem;
+  border-radius: 999px;
+  box-shadow: none;
+}
+
+.tl-zoom-chip.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.tl-zoom-chip.today {
+  margin-left: 0.4rem;
+  font-weight: 500;
+}
+
+.tl-wrap {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.tl-wrap:active {
+  cursor: grabbing;
+}
+
+.tl-svg {
+  display: block;
+  width: 100%;
+  user-select: none;
+}
+
+.tl-svg text {
+  font-family: inherit;
+  fill: var(--ink);
+}
+
+.tl-band {
+  fill: var(--band);
+}
+
+.tl-weekend {
+  fill: var(--band);
+  opacity: 0.7;
+}
+
+.tl-svg text.tl-band-label {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  fill: var(--line);
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.tl-grid-major {
+  stroke: var(--line);
+}
+
+.tl-grid-minor {
+  stroke: var(--line);
+  opacity: 0.55;
+}
+
+.tl-lane-line {
+  stroke: var(--line);
+  opacity: 0.8;
+}
+
+.tl-lane-headers {
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tl-lane-header {
+  position: absolute;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem 0.05rem 0.35rem;
+}
+
+.tl-lane-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.tl-lane-count {
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--ink-soft);
+  opacity: 0.85;
+}
+
+/* Bars: the track wears its hue faintly; the elapsed fill wears it fully. */
+.tl-item {
+  cursor: pointer;
+  outline: none;
+}
+
+.tl-track {
+  fill-opacity: 0.16;
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+}
+
+.tl-item.is-overdue .tl-track {
+  stroke-opacity: 0.9;
+  stroke-width: 1.5;
+}
+
+.tl-fill {
+  fill-opacity: 0.85;
+}
+
+.tl-item.is-done .tl-track,
+.tl-item.is-done .tl-fill {
+  fill: var(--ink-soft);
+  stroke: var(--ink-soft);
+  fill-opacity: 0.14;
+  stroke-opacity: 0.3;
+}
+
+.tl-check {
+  font-size: 11px;
+  fill: var(--ink-soft);
+}
+
+.tl-chevrons {
+  font-size: 12px;
+  fill: var(--ink-soft);
+  pointer-events: none;
+}
+
+.tl-overdue-mark {
+  fill: none;
+  stroke-width: 1.5;
+}
+
+.tl-halo {
+  fill: none;
+  stroke-dasharray: 3 3;
+  stroke-width: 1.2;
+  opacity: 0.7;
+}
+
+.tl-milestone {
+  stroke: var(--surface);
+  stroke-width: 2;
+  opacity: 0.6;
+}
+
+.tl-milestone.done {
+  opacity: 1;
+}
+
+.tl-label {
+  font-size: 12px;
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.tl-label.inside {
+  font-weight: 500;
+}
+
+.tl-item:focus-visible .tl-track,
+.tl-item:focus-visible circle,
+.tl-item:focus-visible path {
+  stroke: var(--focus);
+  stroke-width: 2;
+  stroke-opacity: 1;
+}
+
+.tl-focus-ring {
+  fill: none;
+  stroke: var(--focus);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
+/* The past veil and the now-line. */
+.tl-veil {
+  fill: var(--veil);
+  pointer-events: none;
+}
+
+.tl-now {
+  pointer-events: none;
+}
+
+.tl-now-glow {
+  stroke: var(--accent);
+  stroke-width: 6;
+  opacity: 0.1;
+}
+
+.tl-now-pill rect {
+  fill: var(--surface);
+  stroke: var(--line);
+}
+
+.tl-now-pill text {
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+  fill: var(--accent);
+}
+
+/* Axis labels. */
+.tl-axis-major {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--ink-soft);
+}
+
+.tl-axis-minor {
+  font-size: 10px;
+  fill: var(--ink-soft);
+  opacity: 0.8;
+}
+
+/* The item card. */
+.tl-card-holder {
+  position: absolute;
+  z-index: 5;
+  width: 330px;
+  max-width: calc(100vw - 2rem);
+}
+
+.tl-card-holder.narrow {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  z-index: 30;
+  padding: 0.5rem;
+}
+
+.tl-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  box-shadow: 0 8px 28px rgba(20, 20, 30, 0.16);
+}
+
+.tl-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tl-card-head h3 {
+  margin: 0;
+}
+
+.tl-card-meta {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0 0.3rem;
+}
+
+.tl-card-dates {
+  margin: 0.2rem 0;
+  font-size: 0.92rem;
+}
+
+.tl-card p.fineprint {
+  margin: 0.25rem 0;
+}
+
+.tl-card-milestones ul {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.tl-card-milestones li {
+  padding: 0.15rem 0;
+}
+
+.tl-card-milestones li.done {
+  color: var(--ink-soft);
+}
+
+.tl-ms-dot {
+  color: var(--accent);
+  margin-right: 0.35rem;
+}
+
+.tl-card-open {
+  margin: 0.6rem 0 0;
+  font-size: 0.9rem;
+}
+
+/* Someday tray. */
+.someday {
+  margin: 1rem 0;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 0.5rem 0.9rem;
+}
+
+.someday summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.someday ul {
+  list-style: none;
+  margin: 0.5rem 0 0.25rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+}
+
+.someday li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.someday-item {
+  box-shadow: none;
+  font-size: 0.88rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+}
+
+/* The agenda list (narrow viewports). */
+.agenda {
+  list-style: none;
+  margin: 0.75rem 0;
+  padding: 0;
+}
+
+.agenda-month {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.9rem 0 0.25rem;
+}
+
+.agenda-today {
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 0.6rem 0;
+}
+
+.agenda-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+  text-align: left;
+  margin: 0.25rem 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: 10px;
+}
+
+.agenda-title {
+  font-weight: 500;
+}
+
+.agenda-meter {
+  display: block;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.agenda-meter span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
