@@ -8,17 +8,22 @@
 
 Notes are where plans get written, and where they quietly lose their shape: Capacities has no timeline, no Gantt view, no canvas — so the question "what does my year actually look like?" has no answer short of moving everything into a project manager. Farview answers it in place. Connect a space, and your projects and goals appear on a timeline — a single line marking today, bars stretching toward their targets, and one smooth zoom from this quarter out to the shape of your decade.
 
-## Read-only, and proud of it
+## Read-only by default — editing is an explicit opt-in
 
-Farview requests **`api:read` and nothing else**. It cannot create, modify, or delete anything in your space, and the OAuth consent screen will show you exactly that. This is the product's identity, not a limitation: every card deep-links into Capacities, where the real editing happens, and any feature that would need write access simply doesn't get built.
+A plain connect requests **`api:read` and nothing else**: Farview cannot create, modify, or delete anything in your space, and the OAuth consent screen shows you exactly that.
 
-You can revoke Farview's access at any time in Capacities under **Settings → Capacities API → Connections**.
+If you *want* to plan from the timeline, a separate **Connect with editing** path (or a Settings toggle, which reconnects) also requests `api:write` — again, visibly, on the consent screen. With editing on you can add goals and projects from the view, drag bars to move or resize their dates, and edit dates precisely on any card. Two rules never bend:
+
+- **Every write is a direct action of yours** — a drag you dropped, a save you clicked. There are no background writes, no sync, no cleanup, nothing on a timer.
+- **Nothing is ever deleted.** Farview creates objects and changes date properties; removing things stays in Capacities, where it belongs.
+
+Switch back to read-only any time from Settings, and revoke Farview's access entirely in Capacities under **Settings → Capacities API → Connections**.
 
 ## No backend, no telemetry
 
 The site is plain static files. OAuth happens in your browser, the token stays in your browser, and every API call goes from your browser straight to `api.capacities.io`. There is no server, no database, no account, no analytics, and no tracking — nothing of yours passes through anything the maintainer controls, because there is nothing to pass through.
 
-Honest tradeoff, stated rather than hidden: browser-stored tokens are reachable by any script that runs on the page. That is why Farview bundles everything, loads no third-party scripts, and ships a strict Content-Security-Policy (enforced by a test). The blast radius is also smaller than for most tools — the token is read-only.
+Honest tradeoff, stated rather than hidden: browser-stored tokens are reachable by any script that runs on the page. That is why Farview bundles everything, loads no third-party scripts, and ships a strict Content-Security-Policy (enforced by a test). The blast radius is also smaller than for most tools — the token is read-only unless you explicitly opted into editing.
 
 ## Works with *your* object types, not mine
 
@@ -41,7 +46,7 @@ No account is needed to look around: **Try the demo** runs on a synthetic space,
 
 ### Try it today with a personal token
 
-Until the hosted OAuth client is live (registration with Capacities is by email), you can run Farview against your own space with a personal API token: in Capacities, **Settings → Capacities API** → create a token (read access is all Farview needs), then use the *Advanced* section on the connect screen. The token stays in your browser; revoke it in the same settings screen whenever you like.
+Until the hosted OAuth client is live (registration with Capacities is by email), you can run Farview against your own space with a personal API token: in Capacities, **Settings → Capacities API** → create a token (read access is enough for viewing; give it write access and tick the editing box if you want to plan from the timeline), then use the *Advanced* section on the connect screen. The token stays in your browser; revoke it in the same settings screen whenever you like.
 
 ## Built on the official API
 

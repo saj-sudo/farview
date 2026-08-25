@@ -17,7 +17,7 @@ No OAuth client id is needed for development: the demo mode (synthetic spaces) a
 
 ## The rules that are treated as build failures
 
-- **Read-only, forever.** The OAuth scope is `api:read offline_access` and a test (`tests/auth/pkce.test.ts`) guards the string. The `Provider` interface has no write method. A feature that needs write access is a feature Farview does not get.
+- **Read-only by default; every write behind an explicit opt-in AND a user gesture.** The default OAuth scope is `api:read offline_access`, and a test (`tests/auth/pkce.test.ts`) guards that the write scope is only ever requested through the explicit editing opt-in. The read `Provider` interface has no write method; all writes go through the deliberately narrow `Editor` seam (`src/engine/editor.ts`) — create an item, patch its dates — each triggered by a direct user action. No background writes, no deletes, ever.
 - **No hardcoded schema.** Not one user object-type id, property id, or tag name in code. Config carries human-readable names; `src/engine/resolve.ts` is the only place names become ids, and its failure messages must name what was missing *and* list what the space contains. `tests/engine/resolve.test.ts` enforces the message shape.
 - **Engine purity.** Nothing under `src/engine/` may import the SDK, touch the DOM, or read a clock. Today's date is always injected. This is what lets the entire layout engine run under `environment: 'node'`.
 - **Fixtures are synthetic, always.** The Saltmarsh Boatyard and friends are fiction. Never commit a real space export, even redacted (`fixtures/real/` is gitignored as a tripwire).

@@ -33,13 +33,16 @@ function Landing() {
         alt="The Farview timeline: colored lanes of project bars around a vertical gradient line marking today, with goals flying small pennants above."
       />
 
-      <h2>Read-only. Actually read-only.</h2>
+      <h2>Read-only by default</h2>
       <p>
-        Farview asks Capacities for <strong>read access and nothing else</strong>.
-        It cannot create, change, or delete anything in your space — the OAuth
-        consent screen will show you exactly that. Every card deep-links back
-        into Capacities, where the real editing happens. If a feature would
-        need write access, the feature is not built.
+        A plain connect asks Capacities for{' '}
+        <strong>read access and nothing else</strong> — it cannot create,
+        change, or delete anything in your space, and the OAuth consent
+        screen will show you exactly that. If you want to plan from the
+        timeline, a separate opt-in unlocks editing: add goals, drag bars to
+        move their dates. Even then, every write is a direct action of yours
+        — never a background sync — and nothing is ever deleted. Every card
+        still deep-links into Capacities, where the full editing lives.
       </p>
 
       <h2>No backend. Really none.</h2>

@@ -4,6 +4,30 @@ All notable changes to Farview are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] — 2026-08-25
+
+### Added
+
+- **Opt-in editing.** Read-only remains the default and the consent screen
+  still shows it; a separate "Connect with editing" path (or a Settings
+  toggle, which reconnects) requests `api:write` and unlocks planning from
+  the view: a "+ New" dialog that creates goals and projects, drag-to-move
+  and edge-resize on timeline bars (day-snapped, ghost-previewed, one PATCH
+  on drop, Escape cancels), bracket-key date nudges for keyboard users,
+  precise date fields on every card (the mobile path), and per-column "+"
+  in Horizons pre-filled inside the bucket. Edits apply optimistically,
+  write through the cache, and revert with a plain notice on failure; a
+  scope-insufficient 403 downgrades to read-only with a pointer to
+  Settings. Every write is a direct user gesture; nothing is ever deleted.
+- The strangers demo now showcases editing, entirely in-memory; the other
+  demo flavors stay read-only.
+
+### Changed
+
+- The product rule "Farview never writes" became "read-only by default;
+  writes only behind an explicit opt-in and a user gesture" — documented in
+  the README and CONTRIBUTING, guarded by the scope tests.
+
 ## [0.1.0] — 2026-08-25
 
 ### Added
