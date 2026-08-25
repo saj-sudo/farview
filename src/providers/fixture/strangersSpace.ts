@@ -273,7 +273,9 @@ export function strangersDemoConfig(): unknown {
     },
     statusValues: {
       active: ['Drafting', 'In the Shed', 'Rigging'],
-      done: ['Launched', 'Scuttled'],
+      // 'Passed' is the Waypoint done-label; status values are shared
+      // between the project and milestone levels by design.
+      done: ['Launched', 'Scuttled', 'Passed'],
     },
     grouping: {
       by: 'tag',
