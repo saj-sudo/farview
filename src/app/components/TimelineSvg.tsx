@@ -145,12 +145,14 @@ export function TimelineSvg(props: TimelineSvgProps) {
             stroke="url(#fv-now)"
             stroke-width="2"
           />
-          <g class="tl-now-pill">
-            <rect x={layout.nowX - 46} y={6} width={92} height={20} rx={10} />
-            <text x={layout.nowX} y={20}>
-              {`Today · ${formatMonthDay(props.today)}`}
-            </text>
-          </g>
+          {chartH > 60 && (
+            <g class="tl-now-pill">
+              <rect x={layout.nowX - 46} y={6} width={92} height={20} rx={10} />
+              <text x={layout.nowX} y={20}>
+                {`Today · ${formatMonthDay(props.today)}`}
+              </text>
+            </g>
+          )}
         </g>
       )}
 

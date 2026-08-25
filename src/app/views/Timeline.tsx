@@ -413,6 +413,11 @@ export function Timeline(props: {
         {selected && (
           <div
             class="tl-card-holder"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key !== 'Escape') e.stopPropagation();
+            }}
             style={{
               left: `${Math.max(8, Math.min(width - 340, (selected.anchor?.x ?? width / 2) - 160))}px`,
               top: `${(selected.anchor?.y ?? 80) + 10}px`,
