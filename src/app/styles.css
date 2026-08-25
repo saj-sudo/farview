@@ -1027,3 +1027,107 @@ a:hover {
   max-height: 340px;
   overflow: hidden;
 }
+
+/* ---------- horizons columns ---------- */
+
+.hz-columns {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding: 0.75rem 0 1.25rem;
+}
+
+.hz-column {
+  flex: 1 0 13rem;
+  max-width: 18rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
+  box-shadow: var(--shadow);
+  min-height: 8rem;
+}
+
+.hz-column.someday-col {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.hz-column h3 {
+  margin: 0 0 0.6rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hz-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  width: 100%;
+  text-align: left;
+  margin: 0 0 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.hz-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 20, 30, 0.08);
+}
+
+.hz-card.is-done {
+  opacity: 0.6;
+}
+
+.hz-title {
+  font-weight: 500;
+}
+
+.hz-goal-group {
+  border-left: 3px solid var(--g5);
+  padding-left: 0.55rem;
+  margin: 0 0 0.75rem;
+}
+
+.hz-goal {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  box-shadow: none;
+  font-weight: 600;
+  padding: 0.2rem 0;
+  margin-bottom: 0.35rem;
+}
+
+.hz-flag {
+  color: var(--g5);
+  margin-right: 0.35rem;
+}
+
+.hz-empty {
+  font-size: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .hz-columns {
+    flex-direction: column;
+  }
+  .hz-column {
+    max-width: none;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+  }
+}

@@ -15,6 +15,7 @@ import {
 } from './session';
 import { useTimelineData, type TimelineData } from './useTimelineData';
 import { Connect } from './views/Connect';
+import { Horizons } from './views/Horizons';
 import { Settings } from './views/Settings';
 import { Timeline } from './views/Timeline';
 
@@ -227,12 +228,14 @@ function ViewBody(props: {
       );
     case 'horizons':
       return (
-        <div class="view-head">
-          <div>
-            <h2>Horizons</h2>
-            <p class="fineprint">The column view lands in a coming step.</p>
-          </div>
-        </div>
+        <Horizons
+          session={props.session}
+          config={props.config}
+          resolved={props.resolved}
+          today={props.today}
+          data={props.data}
+          loadMilestones={props.data.loadMilestones}
+        />
       );
   }
 }
