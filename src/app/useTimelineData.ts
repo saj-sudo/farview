@@ -3,9 +3,9 @@ import type { ResolvedSchema } from '../engine/resolve';
 import type { FarviewConfig, TimelineItem } from '../engine/types';
 import { extractItem } from '../engine/extract';
 import type { FullObject } from '../engine/provider';
-import type { MilestoneItem } from '../engine/types';
+import type { ActionItem, MilestoneItem } from '../engine/types';
 import { memoryCache, openIdbCache, type ObjectCache } from '../pipeline/cache';
-import { loadMilestones, loadTimelineData } from '../pipeline/load';
+import { loadActions, loadMilestones, loadTimelineData } from '../pipeline/load';
 import { disconnect, isAuthLoss, type Session } from './session';
 
 /**
@@ -25,6 +25,10 @@ export interface TimelineData {
   refresh: (force: boolean) => void;
   loadMore: () => void;
   loadMilestones: (ids: string[]) => Promise<MilestoneItem[]>;
+  loadActionItems: (ids: string[]) => Promise<ActionItem[]>;
+  /** One object by id, kind inferred from its structure — the detail
+   *  view's cold-start path for deep links. Upserts into the item set. */
+  loadSingle: (id: string) => Promise<TimelineItem | null>;
   clearCache: () => Promise<void>;
   /** Replace one item locally (optimistic edits and reverts). */
   upsertItem: (item: TimelineItem) => void;
@@ -160,6 +164,28 @@ export function useTimelineData(
           { provider: session.provider, cache: cacheRef.current, config, resolved },
           ids,
         );
+      },
+      loadActionItems: async (ids: string[]) => {
+        if (!config || !resolved || !cacheRef.current) return [];
+        return loadActions(
+          { provider: session.provider, cache: cacheRef.current, config, resolved },
+          ids,
+        );
+      },
+      loadSingle: async (id: string) => {
+        if (!config || !resolved) return null;
+        const existing = itemMap.get(id);
+        if (existing) return existing;
+        const obj = await session.provider.getObject(id).catch(() => null);
+        if (!obj) return null;
+        const kind =
+          obj.structureId === resolved.types.goal?.structure.id ? 'goal' : 'project';
+        const extracted = extractItem(obj, kind, config, resolved, () => []);
+        setItemMap((prev) => new Map(prev).set(extracted.id, extracted));
+        void cacheRef.current
+          ?.put([{ id: obj.id, fetchedAt: Date.now(), object: obj }])
+          .catch(() => {});
+        return extracted;
       },
       upsertItem: (item: TimelineItem) => {
         setItemMap((prev) => new Map(prev).set(item.id, item));

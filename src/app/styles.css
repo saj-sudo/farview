@@ -1221,3 +1221,79 @@ a:hover {
 .tl-item.is-derived {
   cursor: pointer;
 }
+
+/* ---------- item detail (drill-in) ---------- */
+
+.detail-crumbs {
+  font-size: 0.88rem;
+  margin: 0 0 0.5rem;
+}
+
+.detail-head {
+  max-width: none;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.detail-head h2 {
+  font-size: 1.45rem;
+}
+
+.detail-facts {
+  color: var(--accent);
+}
+
+.detail-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.detail-actions .tl-card-edit {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.detail-chart {
+  cursor: default;
+  margin-bottom: 1rem;
+}
+
+.detail-list {
+  max-width: 46rem;
+}
+
+.detail-list h3 {
+  margin: 1.25rem 0 0.4rem;
+}
+
+.detail-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.detail-list li {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-list li.done,
+.detail-list .done {
+  color: var(--ink-soft);
+}
+
+.detail-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--ink);
+}
+
+.detail-child:hover {
+  text-decoration: none;
+  color: var(--accent);
+}

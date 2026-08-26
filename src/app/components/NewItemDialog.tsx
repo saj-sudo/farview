@@ -1,28 +1,32 @@
 import { useState } from 'preact/hooks';
-import type { NewItemSpec } from '../../engine/editor';
+import type { CreatableKind, NewItemSpec } from '../../engine/editor';
 import { isLocalDate } from '../../engine/dates';
 import type { ResolvedSchema } from '../../engine/resolve';
 import type { FarviewConfig, LocalDate } from '../../engine/types';
 
 /**
- * The create dialog: a goal (or project) born on the timeline. Only
- * mapped kinds are offered; the horizon label select appears for goals
- * when the space uses an explicit horizon property.
+ * The create dialog: a goal, project, or action born on the timeline.
+ * Only mapped kinds are offered; the horizon label select appears for
+ * goals when the space uses an explicit horizon property. A parent
+ * (detail view) locks the kind list and links the child at creation.
  */
 
 export function NewItemDialog(props: {
   resolved: ResolvedSchema;
   config: FarviewConfig;
-  defaultKind: 'goal' | 'project';
+  defaultKind: CreatableKind;
   defaultTarget: LocalDate | null;
+  /** Restrict the kind picker (detail-view "+ action" etc.). */
+  allowedKinds?: CreatableKind[];
+  /** Shown when creating under a parent: "linked to <title>". */
+  parentTitle?: string;
   onCreate: (spec: NewItemSpec) => Promise<boolean>;
   onClose: () => void;
 }) {
-  const kinds: ('goal' | 'project')[] = [
-    ...(props.resolved.types.goal ? (['goal'] as const) : []),
-    ...(props.resolved.types.project ? (['project'] as const) : []),
-  ];
-  const [kind, setKind] = useState<'goal' | 'project'>(
+  const kinds: CreatableKind[] = (
+    props.allowedKinds ?? (['goal', 'project'] as CreatableKind[])
+  ).filter((k) => props.resolved.types[k] !== undefined);
+  const [kind, setKind] = useState<CreatableKind>(
     kinds.includes(props.defaultKind) ? props.defaultKind : kinds[0]!,
   );
   const [title, setTitle] = useState('');
@@ -36,7 +40,7 @@ export function NewItemDialog(props: {
       ? props.resolved.properties.goalHorizon?.property
       : undefined;
 
-  const typeName = (k: 'goal' | 'project'): string =>
+  const typeName = (k: CreatableKind): string =>
     props.resolved.types[k]!.structure.title;
 
   const submit = async (): Promise<void> => {
@@ -65,6 +69,9 @@ export function NewItemDialog(props: {
         }}
       >
         <h3>New {typeName(kind)}</h3>
+        {props.parentTitle && (
+          <p class="fineprint">Linked to “{props.parentTitle}”.</p>
+        )}
         {kinds.length > 1 && (
           <div class="tag-grid">
             {kinds.map((k) => (

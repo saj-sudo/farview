@@ -153,6 +153,10 @@ export function ItemCard(props: ItemCardProps) {
       )}
 
       <p class="tl-card-open">
+        <a href={`#/item?id=${encodeURIComponent(item.id)}`} onClick={props.onClose}>
+          Details →
+        </a>
+        {' · '}
         <a href={props.deepLink} target="_blank" rel="noreferrer">
           Open in Capacities ↗
         </a>

@@ -17,6 +17,7 @@ import {
 import { useTimelineData, type TimelineData } from './useTimelineData';
 import { Connect } from './views/Connect';
 import { Horizons } from './views/Horizons';
+import { ItemDetail } from './views/ItemDetail';
 import { Settings } from './views/Settings';
 import { Timeline } from './views/Timeline';
 
@@ -241,6 +242,17 @@ function ViewBody(props: {
           data={props.data}
           edit={props.edit}
           loadMilestones={props.data.loadMilestones}
+        />
+      );
+    case 'item':
+      return (
+        <ItemDetail
+          session={props.session}
+          config={props.config}
+          resolved={props.resolved}
+          today={props.today}
+          data={props.data}
+          edit={props.edit}
         />
       );
   }
