@@ -17,8 +17,11 @@ export type LocalDate = string & { readonly __localDate?: never };
  * Roles a mapped object type can play (spec §8). Only `project` — the
  * middle of the hierarchy — is required; most spaces have no Goal type
  * at all, and project-only is the default experience, not a fallback.
+ * `action` is the optional leaf level (Capacities' built-in Tasks or
+ * any custom type); `milestone` stays a separate concept — achievement
+ * markers, not work items.
  */
-export type TypeRole = 'goal' | 'project' | 'milestone';
+export type TypeRole = 'goal' | 'project' | 'milestone' | 'action';
 
 /** Roles a mapped property can play. */
 export type PropertyRole =
@@ -26,8 +29,14 @@ export type PropertyRole =
   | 'projectTarget'
   | 'projectStatus'
   | 'projectMilestones'
+  | 'projectGoal'
+  | 'projectActions'
   | 'goalTarget'
-  | 'goalHorizon';
+  | 'goalHorizon'
+  | 'goalActions'
+  | 'goalMilestones'
+  | 'actionDate'
+  | 'actionStatus';
 
 export type GroupingMode = 'tag' | 'property' | 'type' | 'none';
 export type HorizonMode = 'derived' | 'property';
@@ -46,14 +55,21 @@ export interface FarviewConfig {
     goal: string | null;
     project: string | null;
     milestone: string | null;
+    action: string | null;
   };
   properties: {
     projectStart: string | null;
     projectTarget: string | null;
     projectStatus: string | null;
     projectMilestones: string | null;
+    projectGoal: string | null;
+    projectActions: string | null;
     goalTarget: string | null;
     goalHorizon: string | null;
+    goalActions: string | null;
+    goalMilestones: string | null;
+    actionDate: string | null;
+    actionStatus: string | null;
   };
   statusValues: {
     active: string[];
@@ -105,8 +121,26 @@ export interface TimelineItem {
   };
   /** Milestone object ids from the mapped entity property (lazy-fetched, §8.1). */
   milestoneIds: string[];
+  /** This project's goal, from the mapped projectGoal entity (first id wins). */
+  goalId: string | null;
+  /** Linked action ids (projectActions / goalActions), lazy-fetched. */
+  actionIds: string[];
+  /**
+   * Rollup span derived from dated children when the item itself is
+   * undated — a fact stated as such, drawn dashed, never a real date.
+   */
+  derived: { start: LocalDate | null; target: LocalDate | null } | null;
   /** The explicit horizon label when horizons.mode === 'property'. */
   horizonLabel: string | null;
+}
+
+/** An action resolved from its own object — the leaf level of the hierarchy. */
+export interface ActionItem {
+  id: string;
+  title: string;
+  start: LocalDate | null;
+  target: LocalDate | null;
+  done: boolean;
 }
 
 /** A milestone resolved from its own object (lazy, opt-in — §8.1). */

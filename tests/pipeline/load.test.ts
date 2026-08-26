@@ -56,10 +56,10 @@ describe('loadTimelineData on the stranger\'s space', () => {
       c.hooks,
     );
 
-    // 13 Refits + 3 Voyages; Waypoints and Crew are never enumerated.
-    expect(result.total).toBe(16);
-    expect(c.items).toHaveLength(16);
-    expect(c.progress()).toEqual({ done: 16, total: 16 });
+    // 13 Refits + 4 Voyages; Chores, Waypoints, Crew are never enumerated.
+    expect(result.total).toBe(17);
+    expect(c.items).toHaveLength(17);
+    expect(c.progress()).toEqual({ done: 17, total: 17 });
     expect(result.remaining).toBe(0);
 
     const byId = new Map(c.items.map((i) => [i.id, i]));
@@ -72,6 +72,16 @@ describe('loadTimelineData on the stranger\'s space', () => {
     const voyage = byId.get('v-circumnavigate')!;
     expect(voyage.kind).toBe('goal');
     expect(voyage.horizonLabel).toBe('Beyond the Chart');
+
+    // The hierarchy's wiring: projectGoal links, action links on both
+    // levels, and goal milestones — all via mapped entity properties.
+    expect(mainstay.goalId).toBe('v-atoll');
+    expect(mainstay.actionIds).toEqual(['ch-partners', 'ch-brightwork', 'ch-halyard']);
+    expect(byId.get('x-replank')!.goalId).toBe('v-circumnavigate');
+    const tide = byId.get('v-spring-tide')!;
+    expect(tide.actionIds).toEqual(['ch-wax', 'ch-spinnaker']);
+    expect(tide.milestoneIds).toEqual(['w-mast']); // goalMilestones role
+    expect(byId.get('v-inland')!.target).toBeNull(); // derived later, not here
 
     // The reversed-dates refit is flagged, not swapped; the unknown berth
     // stays visible; the undated one flows through to Someday handling.
@@ -94,7 +104,7 @@ describe('loadTimelineData on the stranger\'s space', () => {
       first.hooks,
     );
     expect(r1.attempted).toBe(10);
-    expect(r1.remaining).toBe(6);
+    expect(r1.remaining).toBe(7);
     expect(first.items).toHaveLength(10);
 
     const second = collector();
@@ -104,9 +114,9 @@ describe('loadTimelineData on the stranger\'s space', () => {
       { offset: 10 },
     );
     expect(r2.remaining).toBe(0);
-    expect(second.items).toHaveLength(6);
+    expect(second.items).toHaveLength(7);
     const all = new Set([...first.items, ...second.items].map((i) => i.id));
-    expect(all.size).toBe(16);
+    expect(all.size).toBe(17);
   });
 
   it('serves cache-fresh objects without refetching, until TTL or force', async () => {
@@ -124,24 +134,24 @@ describe('loadTimelineData on the stranger\'s space', () => {
 
     await loadTimelineData(deps, collector().hooks);
     const callsAfterCold = provider.getObjectCalls;
-    expect(callsAfterCold).toBe(16);
+    expect(callsAfterCold).toBe(17);
 
     // Warm: everything fresh, zero GETs — and items still arrive.
     nowMs += 10 * 60_000;
     const warm = collector();
     await loadTimelineData(deps, warm.hooks);
     expect(provider.getObjectCalls).toBe(callsAfterCold);
-    expect(warm.items).toHaveLength(16);
-    expect(warm.batches[0]).toBe(16); // one instant batch from cache
+    expect(warm.items).toHaveLength(17);
+    expect(warm.batches[0]).toBe(17); // one instant batch from cache
 
     // TTL expiry (default 60 min): everything refetches.
     nowMs += 55 * 60_000;
     await loadTimelineData(deps, collector().hooks);
-    expect(provider.getObjectCalls).toBe(callsAfterCold + 16);
+    expect(provider.getObjectCalls).toBe(callsAfterCold + 17);
 
     // Manual force ignores freshness outright.
     await loadTimelineData(deps, collector().hooks, { force: true });
-    expect(provider.getObjectCalls).toBe(callsAfterCold + 32);
+    expect(provider.getObjectCalls).toBe(callsAfterCold + 34);
   });
 
   it('rides out scripted 429s — progressive render continues', async () => {
@@ -154,7 +164,7 @@ describe('loadTimelineData on the stranger\'s space', () => {
       c.hooks,
     );
     expect(result.failed).toBe(0);
-    expect(c.items).toHaveLength(16);
+    expect(c.items).toHaveLength(17);
     expect(c.warnings).toEqual([]);
   });
 
@@ -174,11 +184,11 @@ describe('loadTimelineData on the stranger\'s space', () => {
       { provider: flaky, cache: memoryCache(), config, resolved, backoff: noSleep },
       c.hooks,
     );
-    expect(c.items).toHaveLength(14);
+    expect(c.items).toHaveLength(15);
     expect(result.failed).toBe(1);
     expect(c.warnings).toHaveLength(1);
     expect(c.warnings[0]).toContain('could not be loaded');
-    expect(c.progress()).toEqual({ done: 16, total: 16 });
+    expect(c.progress()).toEqual({ done: 17, total: 17 });
   });
 });
 

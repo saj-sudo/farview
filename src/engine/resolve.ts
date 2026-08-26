@@ -41,8 +41,14 @@ const PROPERTY_HOME: Record<PropertyRole, TypeRole> = {
   projectTarget: 'project',
   projectStatus: 'project',
   projectMilestones: 'project',
+  projectGoal: 'project',
+  projectActions: 'project',
   goalTarget: 'goal',
   goalHorizon: 'goal',
+  goalActions: 'goal',
+  goalMilestones: 'goal',
+  actionDate: 'action',
+  actionStatus: 'action',
 };
 
 function listNames(items: { name?: string; title?: string }[]): string {

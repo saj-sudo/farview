@@ -36,7 +36,9 @@ function derivedBucket(
   today: LocalDate,
   config: FarviewConfig,
 ): string | null {
-  const date = item.target ?? item.start;
+  // Real dates first; a rollup span derived from children is still a
+  // better bucket than Someday.
+  const date = item.target ?? item.start ?? item.derived?.target ?? item.derived?.start ?? null;
   if (date === null) return null;
   const daysOut = diffDays(date, today);
   for (const bucket of config.horizons.buckets) {
@@ -114,12 +116,15 @@ export function buildHorizonColumns(
   }
   for (const column of columns.values()) column.items.sort(byDate);
 
-  // Nest projects under goals that share a group, within the goal's column.
+  // Nest projects under their goal: real projectGoal links first, the
+  // shared-group join as the fallback for spaces without the relation.
+  const anyLinks = rest.some((i) => i.goalId !== null);
   for (const goal of goals.sort(byDate)) {
     const label = bucketFor(goal, today, config);
     const column = columns.get(label) ?? columns.get(SOMEDAY_LABEL)!;
-    const matching =
-      goal.group === null
+    const matching = anyLinks
+      ? column.items.filter((i) => i.goalId === goal.id)
+      : goal.group === null
         ? []
         : column.items.filter((i) => i.group === goal.group);
     column.goalGroups.push({ goal, items: matching });

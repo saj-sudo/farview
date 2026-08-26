@@ -1,7 +1,13 @@
 import { localDateFromIso } from './dates';
 import type { FullObject, PropertyValue } from './provider';
 import type { ResolvedSchema } from './resolve';
-import type { FarviewConfig, ItemStatus, MilestoneItem, TimelineItem } from './types';
+import type {
+  ActionItem,
+  FarviewConfig,
+  ItemStatus,
+  MilestoneItem,
+  TimelineItem,
+} from './types';
 
 /**
  * FullObject → TimelineItem: the one place raw API property payloads
@@ -129,8 +135,67 @@ export function extractItem(
     flags: {
       targetBeforeStart: start !== null && target !== null && target < start,
     },
-    milestoneIds: isGoal ? [] : entityProp(obj, p.projectMilestones?.property.id),
+    milestoneIds: isGoal
+      ? entityProp(obj, p.goalMilestones?.property.id)
+      : entityProp(obj, p.projectMilestones?.property.id),
+    goalId: isGoal ? null : (entityProp(obj, p.projectGoal?.property.id)[0] ?? null),
+    actionIds: isGoal
+      ? entityProp(obj, p.goalActions?.property.id)
+      : entityProp(obj, p.projectActions?.property.id),
+    derived: null, // rollup spans are computed later, from loaded children
     horizonLabel: horizonLabels[0] ?? null,
+  };
+}
+
+/**
+ * An action object → the hierarchy's leaf: a real (possibly ranged)
+ * date and a done flag. Mapped properties first; when the action type's
+ * schema is unmapped, fall back to the first date property and any
+ * label matching the configured done values — same forgiving posture
+ * as milestones.
+ */
+export function extractAction(
+  obj: FullObject,
+  config: FarviewConfig,
+  resolved: ResolvedSchema,
+): ActionItem {
+  const dateId = resolved.properties.actionDate?.property.id;
+  const statusId = resolved.properties.actionStatus?.property.id;
+
+  let start: string | null = null;
+  let end: string | null = null;
+  if (dateId && obj.properties[dateId]?.type === 'date') {
+    const v = obj.properties[dateId] as { start: string | null; end: string | null };
+    start = v.start;
+    end = v.end;
+  } else {
+    for (const value of Object.values(obj.properties)) {
+      if (value.type === 'date') {
+        start = value.start;
+        end = value.end;
+        break;
+      }
+    }
+  }
+
+  let labels: string[];
+  if (statusId && obj.properties[statusId]?.type === 'label') {
+    labels = (obj.properties[statusId] as { names: string[] }).names;
+  } else {
+    labels = Object.values(obj.properties)
+      .filter((v): v is { type: 'label'; names: string[] } => v.type === 'label')
+      .flatMap((v) => v.names);
+  }
+  const { status } = classifyStatus(labels, config);
+
+  const startDate = start ? localDateFromIso(start) : null;
+  const endDate = end ? localDateFromIso(end) : null;
+  return {
+    id: obj.id,
+    title: obj.title,
+    start: endDate !== null ? startDate : null, // a lone date is the target
+    target: endDate ?? startDate,
+    done: status === 'done',
   };
 }
 

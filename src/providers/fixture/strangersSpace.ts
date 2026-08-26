@@ -39,6 +39,8 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
           'Drafting', 'In the Shed', 'Rigging', 'Launched', 'Scuttled',
         ]),
         propDef('p-waypoints', 'Waypoints', 'entity'),
+        propDef('p-voyage', 'Voyage', 'entity'),
+        propDef('p-chores', 'Chores', 'entity'),
         propDef('p-notes', 'Yard Notes', 'text'),
       ],
     },
@@ -52,6 +54,19 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
         propDef('p-reach', 'Reach', 'label', [
           'This Tide', 'This Season', 'This Year', 'Beyond the Chart',
         ]),
+        propDef('p-chores-v', 'Chores', 'entity'),
+        propDef('p-marks', 'Marks', 'entity'),
+      ],
+    },
+    {
+      // The action level: leaf work items, one sitting to one day each.
+      id: 'st-chore',
+      title: 'Deck Chore',
+      pluralName: 'Deck Chores',
+      properties: [
+        propDef('p-chore-title', 'Name', 'title'),
+        propDef('p-slated', 'Slated For', 'date'),
+        propDef('p-state', 'State', 'label', ['On the List', 'Squared Away']),
       ],
     },
     {
@@ -87,12 +102,15 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
   ): FullObject => ({ id, structureId: 'st-refit', title, properties });
 
   const objects: FullObject[] = [
-    // Spanning now: the flagship demo bar, with waypoints straddling today.
+    // Spanning now: the flagship demo bar, with waypoints straddling today,
+    // a goal link, and its own chores — the full hierarchy in one item.
     refit('x-mainstay', 'Rebuild the Mainstay', {
       'p-laid': date(addDays(today, -60)),
       'p-launch': date(addDays(today, 90)),
       'p-berth': label('Rigging'),
       'p-waypoints': entity('w-mast', 'w-rig', 'w-seatrial'),
+      'p-voyage': entity('v-atoll'),
+      'p-chores': entity('ch-partners', 'ch-brightwork', 'ch-halyard'),
     }),
     // Overdue and still active: weight-shift marker, "Now" bucket, no red.
     refit('x-tender-a', 'Repaint the Tender', {
@@ -123,11 +141,14 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
       'p-laid': date(addDays(today, -400)),
       'p-launch': date(addDays(today, 700)),
       'p-berth': label('In the Shed'),
+      'p-voyage': entity('v-circumnavigate'),
     }),
     refit('x-new-sails', 'Cut the New Suit of Sails', {
       'p-laid': date(addDays(today, -10)),
       'p-launch': date(addDays(today, 45)),
       'p-berth': label('Drafting'),
+      'p-voyage': entity('v-atoll'),
+      'p-chores': entity('ch-loft', 'ch-stormjib'),
     }),
     refit('x-winter-engine', 'Winter the Engine', {
       'p-laid': date(addDays(today, 100)),
@@ -169,6 +190,18 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
       properties: {
         'p-landfall': date(addDays(today, 21)),
         'p-reach': label('This Tide'),
+        'p-chores-v': entity('ch-wax', 'ch-spinnaker'),
+        'p-marks': entity('w-mast'),
+      },
+    },
+    {
+      // Undated, but its chores are dated: the derived dashed bar's case.
+      id: 'v-inland',
+      structureId: 'st-voyage',
+      title: 'Chart the Inland Waterways',
+      properties: {
+        'p-reach': label('This Season'),
+        'p-chores-v': entity('ch-channel', 'ch-locks'),
       },
     },
     {
@@ -220,6 +253,29 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
       },
     },
 
+    /* ---- Deck Chores: the action level, one sitting each ---- */
+    ...([
+      ['ch-partners', 'Fair the mast partners', 10, 'On the List'],
+      ['ch-brightwork', 'Oil the deck brightwork', -5, 'Squared Away'],
+      ['ch-halyard', 'Splice the halyard ends', 30, 'On the List'],
+      ['ch-loft', 'Loft the mainsail pattern', 12, 'On the List'],
+      ['ch-stormjib', 'Seam the storm jib', 25, 'On the List'],
+      ['ch-wax', 'Wax the hull to the waterline', 7, 'On the List'],
+      ['ch-spinnaker', 'Rig the spinnaker pole', 14, 'Squared Away'],
+      ['ch-channel', 'Sound the northern channel', 40, 'On the List'],
+      ['ch-locks', 'Order paper charts for the locks', 95, 'On the List'],
+    ] as const).map(
+      ([id, title, offset, state]): FullObject => ({
+        id,
+        structureId: 'st-chore',
+        title,
+        properties: {
+          'p-slated': date(addDays(today, offset)),
+          'p-state': label(state),
+        },
+      }),
+    ),
+
     /* ---- Crew: noise the mapper must calmly ignore ---- */
     {
       id: 'c-elva',
@@ -256,20 +312,31 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
 /** The demo's post-onboarding config, mapping the invented schema. */
 export function strangersDemoConfig(): unknown {
   return {
-    types: { project: 'Refit', goal: 'Voyage', milestone: 'Waypoint' },
+    types: {
+      project: 'Refit',
+      goal: 'Voyage',
+      milestone: 'Waypoint',
+      action: 'Deck Chore',
+    },
     properties: {
       projectStart: 'Laid Down',
       projectTarget: 'Launch Day',
       projectStatus: 'Berth',
       projectMilestones: 'Waypoints',
+      projectGoal: 'Voyage',
+      projectActions: 'Chores',
       goalTarget: 'Landfall',
       goalHorizon: 'Reach',
+      goalActions: 'Chores',
+      goalMilestones: 'Marks',
+      actionDate: 'Slated For',
+      actionStatus: 'State',
     },
     statusValues: {
-      active: ['Drafting', 'In the Shed', 'Rigging'],
-      // 'Passed' is the Waypoint done-label; status values are shared
-      // between the project and milestone levels by design.
-      done: ['Launched', 'Scuttled', 'Passed'],
+      active: ['Drafting', 'In the Shed', 'Rigging', 'On the List'],
+      // 'Passed' and 'Squared Away' are the milestone/action done-labels;
+      // status values are shared across all levels by design.
+      done: ['Launched', 'Scuttled', 'Passed', 'Squared Away'],
     },
     grouping: {
       by: 'tag',
