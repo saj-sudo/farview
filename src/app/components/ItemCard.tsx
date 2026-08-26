@@ -69,7 +69,15 @@ export function ItemCard(props: ItemCardProps) {
             ? `Target: ${formatLocalDate(item.target)}`
             : item.start !== null
               ? `Started ${formatLocalDate(item.start)} — no target date`
-              : 'No dates yet'}
+              : item.derived !== null
+                ? `No dates of its own — its linked items span ${
+                    item.derived.start !== null ? formatLocalDate(item.derived.start) : '…'
+                  } → ${
+                    item.derived.target !== null
+                      ? formatLocalDate(item.derived.target)
+                      : '…'
+                  }. Set a date here or in Capacities to pin it.`
+                : 'No dates yet'}
       </p>
       {elapsedSentence(item, today) !== null && (
         <p class="fineprint">{elapsedSentence(item, today)}</p>

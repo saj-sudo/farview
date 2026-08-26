@@ -4,7 +4,12 @@ import type { Provider } from '../../src/engine/provider';
 import { resolveSchema } from '../../src/engine/resolve';
 import type { LocalDate, TimelineItem } from '../../src/engine/types';
 import { memoryCache } from '../../src/pipeline/cache';
-import { loadMilestones, loadTimelineData, type LoadHooks } from '../../src/pipeline/load';
+import {
+  loadActions,
+  loadMilestones,
+  loadTimelineData,
+  type LoadHooks,
+} from '../../src/pipeline/load';
 import { FixtureProvider } from '../../src/providers/fixture/fixtureProvider';
 import {
   buildStrangersSpace,
@@ -58,7 +63,8 @@ describe('loadTimelineData on the stranger\'s space', () => {
 
     // 13 Refits + 4 Voyages; Chores, Waypoints, Crew are never enumerated.
     expect(result.total).toBe(17);
-    expect(c.items).toHaveLength(17);
+    // The derived-span pass re-emits updated items; count unique ids.
+    expect(new Set(c.items.map((i) => i.id)).size).toBe(17);
     expect(c.progress()).toEqual({ done: 17, total: 17 });
     expect(result.remaining).toBe(0);
 
@@ -114,7 +120,7 @@ describe('loadTimelineData on the stranger\'s space', () => {
       { offset: 10 },
     );
     expect(r2.remaining).toBe(0);
-    expect(second.items).toHaveLength(7);
+    expect(new Set(second.items.map((i) => i.id)).size).toBe(7);
     const all = new Set([...first.items, ...second.items].map((i) => i.id));
     expect(all.size).toBe(17);
   });
@@ -134,24 +140,24 @@ describe('loadTimelineData on the stranger\'s space', () => {
 
     await loadTimelineData(deps, collector().hooks);
     const callsAfterCold = provider.getObjectCalls;
-    expect(callsAfterCold).toBe(17);
+    expect(callsAfterCold).toBe(19); // 17 items + 2 chores for the derived pass
 
     // Warm: everything fresh, zero GETs — and items still arrive.
     nowMs += 10 * 60_000;
     const warm = collector();
     await loadTimelineData(deps, warm.hooks);
     expect(provider.getObjectCalls).toBe(callsAfterCold);
-    expect(warm.items).toHaveLength(17);
     expect(warm.batches[0]).toBe(17); // one instant batch from cache
 
     // TTL expiry (default 60 min): everything refetches.
     nowMs += 55 * 60_000;
     await loadTimelineData(deps, collector().hooks);
-    expect(provider.getObjectCalls).toBe(callsAfterCold + 17);
+    expect(provider.getObjectCalls).toBe(callsAfterCold + 19);
 
-    // Manual force ignores freshness outright.
+    // Manual force refetches the 17 listed items; the derived pass's
+    // chores were just refreshed by the TTL run, so they stay cached.
     await loadTimelineData(deps, collector().hooks, { force: true });
-    expect(provider.getObjectCalls).toBe(callsAfterCold + 34);
+    expect(provider.getObjectCalls).toBe(callsAfterCold + 36);
   });
 
   it('rides out scripted 429s — progressive render continues', async () => {
@@ -164,7 +170,7 @@ describe('loadTimelineData on the stranger\'s space', () => {
       c.hooks,
     );
     expect(result.failed).toBe(0);
-    expect(c.items).toHaveLength(17);
+    expect(new Set(c.items.map((i) => i.id)).size).toBe(17);
     expect(c.warnings).toEqual([]);
   });
 
@@ -184,11 +190,58 @@ describe('loadTimelineData on the stranger\'s space', () => {
       { provider: flaky, cache: memoryCache(), config, resolved, backoff: noSleep },
       c.hooks,
     );
-    expect(c.items).toHaveLength(15);
+    expect(new Set(c.items.map((i) => i.id)).size).toBe(15);
     expect(result.failed).toBe(1);
     expect(c.warnings).toHaveLength(1);
     expect(c.warnings[0]).toContain('could not be loaded');
     expect(c.progress()).toEqual({ done: 17, total: 17 });
+  });
+});
+
+describe('derived spans (rollup pass)', () => {
+  it('gives an undated goal the envelope of its dated chores, dashed-style', async () => {
+    const { provider, config, resolved } = await setup();
+    const c = collector();
+    await loadTimelineData(
+      { provider, cache: memoryCache(), config, resolved, backoff: noSleep },
+      c.hooks,
+    );
+    // The pass re-emits updated items; last write wins in the item map.
+    const inland = [...c.items].reverse().find((i) => i.id === 'v-inland')!;
+    expect(inland.start).toBeNull();
+    expect(inland.target).toBeNull();
+    // ch-channel (+40) and ch-locks (+95): single dates → the envelope.
+    expect(inland.derived).toEqual({ start: '2026-10-04', target: '2026-11-28' });
+  });
+
+  it('derives an undated goal from its loaded projects without extra fetches', async () => {
+    const { provider, config, resolved } = await setup();
+    // Strip v-atoll's own date so it must borrow its projects' spans.
+    provider.patchObject('v-atoll', (obj) => {
+      delete obj.properties['p-landfall'];
+    });
+    const c = collector();
+    await loadTimelineData(
+      { provider, cache: memoryCache(), config, resolved, backoff: noSleep },
+      c.hooks,
+    );
+    const atoll = [...c.items].reverse().find((i) => i.id === 'v-atoll')!;
+    // x-mainstay (−60 → +90) and x-new-sails (−10 → +45) are its projects.
+    expect(atoll.derived).toEqual({ start: '2026-06-26', target: '2026-11-23' });
+  });
+});
+
+describe('loadActions', () => {
+  it('fetches leaf actions cache-first, in date order, with done flags', async () => {
+    const { provider, config, resolved } = await setup();
+    const cache = memoryCache();
+    const deps = { provider, cache, config, resolved, backoff: noSleep };
+    const actions = await loadActions(deps, ['ch-halyard', 'ch-brightwork', 'ch-partners']);
+    expect(actions.map((a) => a.id)).toEqual(['ch-brightwork', 'ch-partners', 'ch-halyard']);
+    expect(actions[0]!.done).toBe(true); // Squared Away
+    const calls = provider.getObjectCalls;
+    await loadActions(deps, ['ch-partners']);
+    expect(provider.getObjectCalls).toBe(calls); // cache-fresh
   });
 });
 

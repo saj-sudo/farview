@@ -209,12 +209,16 @@ function Bar(props: {
         : 'start'
       : 'move';
 
-  const canDrag = props.editable && !bar.done && props.onDragStart !== undefined;
+  // A derived span isn't this item's own date, so there is nothing to
+  // drag — set real dates (card or Capacities) to pin it first.
+  const canDrag =
+    props.editable && !bar.done && !bar.derived && props.onDragStart !== undefined;
 
   const classes = [
     'tl-item',
     bar.done ? 'is-done' : '',
     bar.overdue ? 'is-overdue' : '',
+    bar.derived ? 'is-derived' : '',
     props.selected ? 'is-selected' : '',
     canDrag ? 'editable' : '',
   ]

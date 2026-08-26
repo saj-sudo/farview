@@ -1,7 +1,13 @@
-import { extractItem, extractMilestone } from '../engine/extract';
+import { extractAction, extractItem, extractMilestone } from '../engine/extract';
 import type { ObjectSummary, Provider } from '../engine/provider';
 import type { ResolvedSchema } from '../engine/resolve';
-import type { FarviewConfig, MilestoneItem, TimelineItem } from '../engine/types';
+import { deriveSpan } from '../engine/rollup';
+import type {
+  ActionItem,
+  FarviewConfig,
+  MilestoneItem,
+  TimelineItem,
+} from '../engine/types';
 import { withBackoff, type BackoffOptions } from '../providers/capacities/rateLimit';
 import { isFresh, type CachedRecord, type ObjectCache } from './cache';
 import { runPool } from './pool';
@@ -131,6 +137,7 @@ export async function loadTimelineData(
   /* 5 — enrich through the adaptive pool, emitting in small batches. */
   const buffer: TimelineItem[] = [];
   const writes: CachedRecord[] = [];
+  const collected: TimelineItem[] = [...freshItems];
   const flush = (): void => {
     if (buffer.length > 0) hooks.onItems(buffer.splice(0));
   };
@@ -158,9 +165,15 @@ export async function loadTimelineData(
       done += 1;
       if (obj) {
         writes.push({ id: obj.id, fetchedAt: now(), object: obj });
-        buffer.push(
-          extractItem(obj, kindOf.get(summary.id) ?? 'project', config, resolved, tagsOf),
+        const item = extractItem(
+          obj,
+          kindOf.get(summary.id) ?? 'project',
+          config,
+          resolved,
+          tagsOf,
         );
+        collected.push(item);
+        buffer.push(item);
         if (buffer.length >= EMIT_BATCH) flush();
       }
       // null without a failure count = deleted between list and get: pruned
@@ -185,11 +198,123 @@ export async function loadTimelineData(
     );
   }
 
+  /* 6 — derived spans: an undated item whose children carry dates gets
+     the children's envelope, stated as derived and drawn dashed. Goals
+     borrow their loaded projects for free; anything still undated gets a
+     bounded child-fetch pass so the extra cost stays small. */
+  if (!deps.signal?.aborted) {
+    const undated = collected.filter((i) => i.start === null && i.target === null);
+    const updates: TimelineItem[] = [];
+    const needFetch: TimelineItem[] = [];
+    for (const item of undated) {
+      const fromProjects =
+        item.kind === 'goal'
+          ? deriveSpan(collected.filter((p) => p.goalId === item.id))
+          : null;
+      if (fromProjects) {
+        updates.push({ ...item, derived: fromProjects });
+      } else if (item.actionIds.length > 0 || item.milestoneIds.length > 0) {
+        needFetch.push(item);
+      }
+    }
+    for (const item of needFetch.slice(0, DERIVED_FETCH_CAP)) {
+      const children = await loadActions(
+        deps,
+        [...item.actionIds, ...item.milestoneIds],
+      );
+      const span = deriveSpan(children);
+      if (span) updates.push({ ...item, derived: span });
+    }
+    if (updates.length > 0) hooks.onItems(updates);
+  }
+
   return { total, attempted: slice.length, remaining, lastRefreshed: now(), failed };
 }
 
+/** Undated parents given a child-fetch for derivation, per run. */
+const DERIVED_FETCH_CAP = 25;
+
 function emptyResult(nowMs: number): LoadResult {
   return { total: 0, attempted: 0, remaining: 0, lastRefreshed: nowMs, failed: 0 };
+}
+
+/**
+ * Actions — the hierarchy's leaf — fetched lazily (a detail view, a
+ * derived-span pass), cache-first, through a small pool. Same shape as
+ * milestones: never part of the initial enumeration.
+ */
+export async function loadActions(
+  deps: LoadDeps,
+  ids: string[],
+): Promise<ActionItem[]> {
+  const now = deps.now ?? Date.now;
+  const cached = await deps.cache.get(ids);
+  const ttl = deps.config.display.cacheTtlMinutes;
+  const out: ActionItem[] = [];
+  const toFetch: string[] = [];
+  for (const id of ids) {
+    const rec = cached.get(id);
+    if (rec && isFresh(rec, now(), ttl)) {
+      out.push(extractAction(rec.object, deps.config, deps.resolved));
+    } else {
+      toFetch.push(id);
+    }
+  }
+  const writes: CachedRecord[] = [];
+  await runPool(
+    toFetch,
+    async (id, ctx) => {
+      try {
+        return await withBackoff(() => deps.provider.getObject(id), {
+          ...deps.backoff,
+          onRateLimited: ctx.onRateLimited,
+        });
+      } catch {
+        return null;
+      }
+    },
+    (id, obj) => {
+      void id;
+      if (obj) {
+        writes.push({ id: obj.id, fetchedAt: now(), object: obj });
+        out.push(extractAction(obj, deps.config, deps.resolved));
+      }
+    },
+    { initialConcurrency: 2, ...(deps.signal ? { signal: deps.signal } : {}) },
+  );
+  if (writes.length > 0) {
+    try {
+      await deps.cache.put(writes);
+    } catch {
+      // refetch later
+    }
+  }
+  return out.sort((a, b) => ((a.target ?? '9999') < (b.target ?? '9999') ? -1 : 1));
+}
+
+/**
+ * One item by id, as a full TimelineItem — the detail view's cold-start
+ * path when a deep link arrives before (or without) the main load.
+ */
+export async function loadItem(
+  deps: LoadDeps,
+  id: string,
+  kind: 'project' | 'goal',
+): Promise<TimelineItem | null> {
+  const now = deps.now ?? Date.now;
+  const cached = await deps.cache.get([id]);
+  const rec = cached.get(id);
+  if (rec && isFresh(rec, now(), deps.config.display.cacheTtlMinutes)) {
+    return extractItem(rec.object, kind, deps.config, deps.resolved, () => []);
+  }
+  const obj = await withBackoff(() => deps.provider.getObject(id), deps.backoff ?? {});
+  if (!obj) return null;
+  try {
+    await deps.cache.put([{ id, fetchedAt: now(), object: obj }]);
+  } catch {
+    // refetch later
+  }
+  return extractItem(obj, kind, deps.config, deps.resolved, () => []);
 }
 
 /**

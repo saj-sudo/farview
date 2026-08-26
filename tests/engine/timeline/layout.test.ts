@@ -131,6 +131,20 @@ describe('layoutTimeline', () => {
     expect(projBar.h).toBe(BAR_H);
   });
 
+  it('places derived-span items as dashed shells: no fill, no overdue', () => {
+    const layout = lay([
+      item({
+        id: 'rollup',
+        derived: { start: '2026-06-01' as LocalDate, target: '2026-08-01' as LocalDate },
+      }),
+    ]);
+    const bar = layout.bars.find((b) => b.item.id === 'rollup')!;
+    expect(bar.derived).toBe(true);
+    expect(bar.fillW).toBe(0);
+    expect(bar.overdue).toBe(false); // a derived past span is not "late"
+    expect(bar.kind).toBe('bar');
+  });
+
   it('culls far-off-screen items but keeps row positions stable', () => {
     const inView = item({ id: 'in', start: '2026-08-01', target: '2026-10-01' });
     const farAway = item({ id: 'far', start: '2031-01-01', target: '2031-06-01' });

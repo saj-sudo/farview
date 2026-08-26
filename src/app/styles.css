@@ -1209,3 +1209,15 @@ a:hover {
   fill: transparent;
   cursor: ew-resize;
 }
+
+/* Derived rollup spans: a fact about children, drawn as a dashed shell. */
+.tl-item.is-derived .tl-track {
+  fill-opacity: 0.05;
+  stroke-dasharray: 5 4;
+  stroke-opacity: 0.75;
+  stroke-width: 1.4;
+}
+
+.tl-item.is-derived {
+  cursor: pointer;
+}

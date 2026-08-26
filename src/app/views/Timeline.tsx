@@ -133,12 +133,16 @@ export function Timeline(props: {
       ),
     [props.data.items, props.config.display.showCompleted],
   );
+  // Items placed by a derived rollup span sit on the line (dashed), not
+  // in the Someday tray.
   const someday = useMemo(
-    () => visible.filter((i) => i.start === null && i.target === null),
+    () =>
+      visible.filter((i) => i.start === null && i.target === null && i.derived === null),
     [visible],
   );
   const dated = useMemo(
-    () => visible.filter((i) => i.start !== null || i.target !== null),
+    () =>
+      visible.filter((i) => i.start !== null || i.target !== null || i.derived !== null),
     [visible],
   );
 

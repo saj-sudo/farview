@@ -15,6 +15,8 @@ export interface Placed {
   /** The span the bar occupies on the axis (label reservation excluded). */
   effStart: number;
   effEnd: number;
+  /** Placed by a rollup span derived from children, not its own dates. */
+  usesDerived: boolean;
 }
 
 export interface Lane {
@@ -41,21 +43,30 @@ export function estTextWidth(text: string): number {
 
 /** Where an item sits on the axis, before pixels exist. */
 export function place(item: TimelineItem, todayDay: number): Placed | null {
-  const startDay = item.start !== null ? dayNumber(item.start as LocalDate) : null;
-  const targetDay = item.target !== null ? dayNumber(item.target as LocalDate) : null;
-  if (startDay === null && targetDay === null) return null; // Someday tray
+  let startDay = item.start !== null ? dayNumber(item.start as LocalDate) : null;
+  let targetDay = item.target !== null ? dayNumber(item.target as LocalDate) : null;
+  let usesDerived = false;
+  if (startDay === null && targetDay === null) {
+    // No dates of its own: a rollup span derived from children still
+    // earns a (dashed) place on the line; truly undated → Someday tray.
+    if (item.derived === null) return null;
+    startDay = item.derived.start !== null ? dayNumber(item.derived.start) : null;
+    targetDay = item.derived.target !== null ? dayNumber(item.derived.target) : null;
+    if (startDay === null && targetDay === null) return null;
+    usesDerived = true;
+  }
   if (item.flags.targetBeforeStart) {
     // Rendered as a point at the target (§11) — never swapped.
-    return { item, startDay, targetDay, effStart: targetDay!, effEnd: targetDay! + 1 };
+    return { item, startDay, targetDay, effStart: targetDay!, effEnd: targetDay! + 1, usesDerived };
   }
   if (startDay !== null && targetDay !== null) {
-    return { item, startDay, targetDay, effStart: startDay, effEnd: Math.max(targetDay, startDay + 1) };
+    return { item, startDay, targetDay, effStart: startDay, effEnd: Math.max(targetDay, startDay + 1), usesDerived };
   }
   if (startDay !== null) {
     // Start-only: open-ended through today.
-    return { item, startDay, targetDay, effStart: startDay, effEnd: Math.max(todayDay, startDay + 1) };
+    return { item, startDay, targetDay, effStart: startDay, effEnd: Math.max(todayDay, startDay + 1), usesDerived };
   }
-  return { item, startDay, targetDay, effStart: targetDay!, effEnd: targetDay! + 1 };
+  return { item, startDay, targetDay, effStart: targetDay!, effEnd: targetDay! + 1, usesDerived };
 }
 
 export function packLanes(items: TimelineItem[], opts: PackOptions): Lane[] {

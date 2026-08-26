@@ -41,6 +41,8 @@ export interface BarGeometry {
   clampedRight: boolean;
   overdue: boolean;
   done: boolean;
+  /** Placed by a derived rollup span: drawn dashed, no fill, no drag. */
+  derived: boolean;
   color: string;
   label: { placement: 'inside' | 'right' | 'left' | 'hidden'; text: string; x: number };
 }
@@ -162,7 +164,7 @@ function barGeometry(
   y: number,
   color: string,
 ): BarGeometry | null {
-  const { item, startDay, targetDay, effStart, effEnd } = placed;
+  const { item, startDay, targetDay, effStart, effEnd, usesDerived } = placed;
 
   // Cull far-off-screen geometry, generously, so labels never pop at edges.
   const cullMargin = 400 / Math.max(scale.pxPerDay, 0.001);
@@ -184,10 +186,14 @@ function barGeometry(
   const w = Math.max(endX - x, 2);
 
   const done = item.status === 'done';
-  const overdue = !done && targetDay !== null && targetDay < todayDay;
+  // A derived span is a fact about children, not a commitment of this
+  // item: it never fills, never reads as overdue.
+  const overdue = !done && !usesDerived && targetDay !== null && targetDay < todayDay;
 
   let elapsedFrac = 0;
-  if (done) {
+  if (usesDerived) {
+    elapsedFrac = 0;
+  } else if (done) {
     elapsedFrac = 1;
   } else if (startDay !== null && targetDay !== null && targetDay > startDay) {
     elapsedFrac = Math.min(1, Math.max(0, (todayDay - startDay) / (targetDay - startDay)));
@@ -204,7 +210,9 @@ function barGeometry(
   // clamped width — a multi-year bar clipped by the viewport would
   // otherwise show a fictional amount of elapsed time.
   let fillW = 0;
-  if (done || isOpenEnded) {
+  if (usesDerived) {
+    fillW = 0;
+  } else if (done || isOpenEnded) {
     fillW = w;
   } else if (startDay !== null && targetDay !== null && targetDay > startDay) {
     const fillEndDay = Math.min(todayDay, targetDay);
@@ -245,6 +253,7 @@ function barGeometry(
     h: BAR_H,
     elapsedFrac,
     fillW,
+    derived: usesDerived,
     clampedLeft,
     clampedRight,
     overdue,
