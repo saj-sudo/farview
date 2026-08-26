@@ -36,6 +36,19 @@ Farview has no idea what a "Project" is until you tell it. Setup reads your spac
 
 ![The horizons view: columns for Now, Quarter, Year, Long and Someday with goal-grouped cards](docs/horizons.png)
 
+## Goals → projects → actions
+
+If your space connects things — a project pointing at its goal, a goal or project listing its actions or sub-items — Farview maps those relations too (all optional, all by property name):
+
+- **Click into any goal or project** for its own page: a mini-timeline of the family (the item's bar, its projects, its actions), a breadcrumb up to its goal, and navigable lists of everything underneath.
+- **Actions** are the leaf level — one sitting to one day of work. Point the mapping at Capacities' built-in Tasks or any custom type; keep your day-to-day to-dos wherever they already live.
+- **Milestones stay milestones**: achievement markers drawn as ticks on a bar, on projects and goals alike — separate from actions on purpose.
+- **Progress is stated as facts** — "1 of 3 actions done · 2 of 4 projects completed" — never a percent bar.
+- **Undated but connected?** A goal or project with no dates of its own borrows the envelope of its dated children: a dashed shell on the timeline, always labeled as derived, gone the moment you set a real date.
+- With editing on, **+ Project / + Action on a detail page create children already linked** to that item.
+
+![A project's detail page: breadcrumb to its goal, elapsed facts, and a mini-timeline of its own actions](docs/detail.png)
+
 ## Getting started
 
 1. Visit the site and click **Connect to Capacities**. You approve read access and pick which space to share — all on the Capacities side.

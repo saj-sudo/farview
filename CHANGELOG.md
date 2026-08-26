@@ -4,6 +4,29 @@ All notable changes to Farview are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-08-26
+
+### Added
+
+- **Item detail pages** — click into any goal or project (`#/item?id=…`, linked
+  from every card) for its own mini-timeline: the item's bar, its linked
+  projects and actions in their own lanes, milestone ticks, a breadcrumb up to
+  its goal, navigable children lists, and fact rollups ("1 of 3 actions done ·
+  2 of 4 projects completed" — counts, never percents).
+- **Mapped relations** (all optional, resolved by name like everything else):
+  a project's goal link, actions on projects and goals, and milestone markers
+  on goals. The new actions level can point at Capacities' built-in Tasks or
+  any custom type — or stay unmapped and invisible.
+- **Derived spans**: an undated goal or project with dated children borrows
+  their envelope as a dashed shell on the main timeline — labeled as derived,
+  never filled, never "overdue", gone once a real date is set. Horizon columns
+  bucket by the derived date instead of Someday.
+- With editing on, detail pages create **pre-linked children**: a new project
+  sets its goal at birth; a new action is appended to the parent's actions
+  property right after creation.
+- Horizons goal-grouping now prefers real goal links over the shared-group
+  fallback; the Saltmarsh demo gained Deck Chores and a fully linked hierarchy.
+
 ## [0.2.0] — 2026-08-25
 
 ### Added

@@ -112,6 +112,10 @@ export function Settings(props: {
 
   /* ---------------- form pieces ---------------- */
 
+  // Built-in Tasks (RootTask is an API constant, like RootPage) are a
+  // natural actions source for pro users — surfaced first for that role.
+  const taskType = boot.structures.find((s) => s.id === 'RootTask');
+
   const typeSelect = (role: TypeRole, label: string, hint: string) => (
     <label class="field">
       <span>{label}</span>
@@ -124,6 +128,11 @@ export function Settings(props: {
         }
       >
         <option value="">None of these</option>
+        {role === 'action' && taskType && (
+          <option value={taskType.title}>
+            {taskType.title} (built-in Tasks)
+          </option>
+        )}
         {customTypes.map((s) => (
           <option key={s.id} value={s.title}>
             {s.title} ({countLabel(s.id)})
@@ -242,18 +251,36 @@ export function Settings(props: {
         )}
       </div>
       {structureFor('project') && (
-        <div class="field-row">
-          {propertySelect('projectStart', 'Start date', 'project', 'date')}
-          {propertySelect('projectTarget', 'Target date', 'project', 'date', 'Items are placed by this date.')}
-          {propertySelect('projectStatus', 'Status', 'project', 'label')}
-          {propertySelect(
-            'projectMilestones',
-            'Milestones',
-            'project',
-            'entity',
-            'Optional. Loaded lazily when you expand a card.',
-          )}
-        </div>
+        <>
+          <div class="field-row">
+            {propertySelect('projectStart', 'Start date', 'project', 'date')}
+            {propertySelect('projectTarget', 'Target date', 'project', 'date', 'Items are placed by this date.')}
+            {propertySelect('projectStatus', 'Status', 'project', 'label')}
+          </div>
+          <div class="field-row">
+            {propertySelect(
+              'projectGoal',
+              'Goal link',
+              'project',
+              'entity',
+              'The property pointing at the project’s goal.',
+            )}
+            {propertySelect(
+              'projectActions',
+              'Actions',
+              'project',
+              'entity',
+              'Sub-items; shown on the project’s detail page.',
+            )}
+            {propertySelect(
+              'projectMilestones',
+              'Milestones',
+              'project',
+              'entity',
+              'Achievement markers, drawn as ticks on the bar.',
+            )}
+          </div>
+        </>
       )}
       {statusChecks('active', 'Which statuses count as active?', 'Unlisted statuses stay visible rather than vanish.')}
       {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
@@ -274,6 +301,45 @@ export function Settings(props: {
               'goal',
               'label',
               'Only if your goals carry an explicit horizon.',
+            )}
+          </>
+        )}
+      </div>
+      {structureFor('goal') && (
+        <div class="field-row">
+          {propertySelect(
+            'goalActions',
+            'Actions',
+            'goal',
+            'entity',
+            'Actions hanging directly off a goal.',
+          )}
+          {propertySelect(
+            'goalMilestones',
+            'Milestones',
+            'goal',
+            'entity',
+            'Achievement markers on the goal itself.',
+          )}
+        </div>
+      )}
+
+      <h3>Actions — optional</h3>
+      <div class="field-row">
+        {typeSelect(
+          'action',
+          'A type for actions or sub-items',
+          'The leaf level: Capacities’ built-in Tasks or any custom type. Keep your day-to-day to-dos wherever they live — this is for planning-sized pieces.',
+        )}
+        {structureFor('action') && (
+          <>
+            {propertySelect('actionDate', 'Date', 'action', 'date')}
+            {propertySelect(
+              'actionStatus',
+              'Status',
+              'action',
+              'label',
+              'Done-ness comes from the “done” status values above.',
             )}
           </>
         )}
