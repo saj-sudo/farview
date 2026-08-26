@@ -144,9 +144,11 @@ export function createFixtureEditor(
     const p = payload as
       | { type: 'date'; date: { start: string | null } }
       | { type: 'label'; label: { id: string; name: string }[] }
+      | { type: 'entity'; entity: { id: string }[] }
       | { type: 'title'; title: { value: string } };
     if (p.type === 'date') return { type: 'date', start: p.date.start, end: null };
     if (p.type === 'label') return { type: 'label', names: p.label.map((l) => l.name) };
+    if (p.type === 'entity') return { type: 'entity', ids: p.entity.map((e) => e.id) };
     return { type: 'text', value: p.title.value };
   };
 
@@ -176,6 +178,14 @@ export function createFixtureEditor(
         for (const [propId, payload] of Object.entries(patch)) {
           obj.properties[propId] = simplify(payload);
         }
+      });
+      return Promise.resolve(updated);
+    },
+    setEntityProperty(id, propertyId, ids) {
+      const failure = provider.writeFails();
+      if (failure) return failure;
+      const updated = provider.patchObject(id, (obj) => {
+        obj.properties[propertyId] = { type: 'entity', ids: [...ids] };
       });
       return Promise.resolve(updated);
     },

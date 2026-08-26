@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'preact/hooks';
 import {
+  actionsPropertyId,
   applyDateChange,
   EditNotPossibleError,
   type DateChange,
@@ -21,7 +22,12 @@ import type { TimelineData } from './useTimelineData';
 
 export interface EditActions {
   updateDates: (item: TimelineItem, change: DateChange) => Promise<boolean>;
-  createItem: (spec: NewItemSpec) => Promise<TimelineItem | null>;
+  /**
+   * Create an item; with a parentItem, link it — a project sets its
+   * goal at create, an action is appended to the parent's actions
+   * entity property afterwards (the parent owns that relation).
+   */
+  createItem: (spec: NewItemSpec, parentItem?: TimelineItem | null) => Promise<boolean>;
   notice: string | null;
   dismissNotice: () => void;
 }
@@ -66,13 +72,36 @@ export function useEditActions(
           return false;
         }
       },
-      createItem: async (spec) => {
+      createItem: async (spec, parentItem = null) => {
         try {
-          const server = await editor.createItem(spec);
-          return data.applyObject(server, spec.kind);
+          const withParent: NewItemSpec = {
+            ...spec,
+            parent: parentItem ? { kind: parentItem.kind, id: parentItem.id } : null,
+          };
+          const server = await editor.createItem(withParent);
+          if (spec.kind === 'action') {
+            // Two-step link: the parent's entity property gains the new id.
+            if (parentItem && resolved) {
+              const propId = actionsPropertyId(resolved, parentItem.kind);
+              if (propId) {
+                const parentServer = await editor.setEntityProperty(
+                  parentItem.id,
+                  propId,
+                  [...parentItem.actionIds, server.id],
+                );
+                data.applyObject(parentServer, parentItem.kind, {
+                  group: parentItem.group,
+                  tags: parentItem.tags,
+                });
+              }
+            }
+            return true;
+          }
+          data.applyObject(server, spec.kind);
+          return true;
         } catch (err) {
           setNotice(failureMessage(err));
-          return null;
+          return false;
         }
       },
     };

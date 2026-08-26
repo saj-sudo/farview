@@ -96,6 +96,55 @@ describe('buildCreateProperties', () => {
   });
 });
 
+describe('parent linking', () => {
+  it('sets projectGoal at create for a project born under a goal', async () => {
+    const { resolved } = await setup();
+    const { properties } = buildCreateProperties(resolved, {
+      kind: 'project',
+      title: 'Recaulk the Foredeck',
+      start: null,
+      target: '2026-12-01' as LocalDate,
+      parent: { kind: 'goal', id: 'v-atoll' },
+    });
+    expect(properties['p-voyage']).toEqual({ type: 'entity', entity: [{ id: 'v-atoll' }] });
+  });
+
+  it('creates an action with the mapped action date', async () => {
+    const { resolved } = await setup();
+    const { structureId, properties } = buildCreateProperties(resolved, {
+      kind: 'action',
+      title: 'Grease the winches',
+      start: null,
+      target: '2026-09-10' as LocalDate,
+    });
+    expect(structureId).toBe('st-chore');
+    expect(properties['p-slated']).toEqual({
+      type: 'date',
+      date: { dateResolution: 'day', start: '2026-09-10' },
+    });
+  });
+
+  it('appends a created action to the parent via setEntityProperty', async () => {
+    const { provider, resolved } = await setup();
+    const editor = createFixtureEditor(provider, resolved);
+    const action = await editor.createItem({
+      kind: 'action',
+      title: 'Grease the winches',
+      start: null,
+      target: '2026-09-10' as LocalDate,
+    });
+    const parent = await editor.setEntityProperty('x-mainstay', 'p-chores', [
+      'ch-partners', 'ch-brightwork', 'ch-halyard', action.id,
+    ]);
+    expect(parent.properties['p-chores']).toEqual({
+      type: 'entity',
+      ids: ['ch-partners', 'ch-brightwork', 'ch-halyard', action.id],
+    });
+    // The new action is fetchable like any other object.
+    expect((await provider.getObject(action.id))!.title).toBe('Grease the winches');
+  });
+});
+
 describe('fixture editor end-to-end', () => {
   it('creates a goal that then lists, enriches, and extracts', async () => {
     const { provider, resolved } = await setup();

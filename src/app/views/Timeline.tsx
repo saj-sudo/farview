@@ -526,7 +526,7 @@ export function Timeline(props: {
             config={props.config}
             defaultKind={props.resolved.types.goal ? 'goal' : 'project'}
             defaultTarget={addDays(props.today, 30)}
-            onCreate={async (spec) => (await props.edit!.createItem(spec)) !== null}
+            onCreate={(spec) => props.edit!.createItem(spec)}
             onClose={() => setCreating(false)}
           />
         )}
@@ -644,7 +644,7 @@ export function Timeline(props: {
           config={props.config}
           defaultKind={props.resolved.types.goal ? 'goal' : 'project'}
           defaultTarget={addDays(props.today, 30)}
-          onCreate={async (spec) => (await props.edit!.createItem(spec)) !== null}
+          onCreate={(spec) => props.edit!.createItem(spec)}
           onClose={() => setCreating(false)}
         />
       )}

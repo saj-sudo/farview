@@ -11,6 +11,8 @@ import type { LocalDate, TimelineItem } from './types';
  */
 
 export type ItemKind = 'project' | 'goal';
+/** What the create dialog can make; actions join the two main levels. */
+export type CreatableKind = 'project' | 'goal' | 'action';
 
 /** undefined = leave unchanged; null = clear the date. */
 export interface DateChange {
@@ -19,19 +21,41 @@ export interface DateChange {
 }
 
 export interface NewItemSpec {
-  kind: ItemKind;
+  kind: CreatableKind;
   title: string;
   start: LocalDate | null;
   target: LocalDate | null;
   /** Horizon label name (goals, property mode) — matched against the labelSet. */
   horizonLabel?: string | null;
+  /**
+   * Link at birth: a new project under a goal sets projectGoal on
+   * create. (A new action is linked afterwards by patching the parent's
+   * actions entity property — the parent owns that relation.)
+   */
+  parent?: { kind: ItemKind; id: string } | null;
 }
 
 export interface Editor {
-  /** Create a goal or project; resolves to the server's view of it. */
+  /** Create a goal, project, or action; resolves to the server's view of it. */
   createItem(spec: NewItemSpec): Promise<FullObject>;
   /** Patch only the changed date properties; resolves to the fresh object. */
   updateDates(id: string, kind: ItemKind, change: DateChange): Promise<FullObject>;
+  /**
+   * Replace one entity property's reference list — used solely to
+   * append a just-created child to its parent's actions. Callers pass
+   * the full id list (existing + new); nothing here removes links.
+   */
+  setEntityProperty(id: string, propertyId: string, ids: string[]): Promise<FullObject>;
+}
+
+/** The actions entity property on a parent of the given kind, if mapped. */
+export function actionsPropertyId(
+  resolved: ResolvedSchema,
+  parentKind: ItemKind,
+): string | null {
+  return parentKind === 'goal'
+    ? (resolved.properties.goalActions?.property.id ?? null)
+    : (resolved.properties.projectActions?.property.id ?? null);
 }
 
 export class EditNotPossibleError extends Error {}
@@ -138,12 +162,23 @@ export function buildCreateProperties(
     properties[titleDef.id] = { type: 'title', title: { value: spec.title } };
   }
 
-  const ids = datePropertyIds(resolved, spec.kind);
+  const ids =
+    spec.kind === 'action'
+      ? { start: null, target: resolved.properties.actionDate?.property.id ?? null }
+      : datePropertyIds(resolved, spec.kind);
   if (spec.start !== null && ids.start !== null) {
     properties[ids.start] = dayPayload(spec.start);
   }
   if (spec.target !== null && ids.target !== null) {
     properties[ids.target] = dayPayload(spec.target);
+  }
+
+  // A project born under a goal carries the link from its first breath.
+  if (spec.kind === 'project' && spec.parent?.kind === 'goal') {
+    const linkId = resolved.properties.projectGoal?.property.id;
+    if (linkId) {
+      properties[linkId] = { type: 'entity', entity: [{ id: spec.parent.id }] };
+    }
   }
 
   if (spec.kind === 'goal' && spec.horizonLabel) {

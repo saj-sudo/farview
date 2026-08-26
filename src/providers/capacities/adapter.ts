@@ -158,6 +158,20 @@ export function createCapacitiesEditor(
       );
       return toFullObject(res);
     },
+    async setEntityProperty(id, propertyId, ids) {
+      const properties = {
+        [propertyId]: { type: 'entity', entity: ids.map((ref) => ({ id: ref })) },
+      };
+      const res = await withBackoff(() =>
+        client.object.update({
+          id,
+          properties: properties as Parameters<
+            typeof client.object.update
+          >[0]['properties'],
+        }),
+      );
+      return toFullObject(res);
+    },
   };
 }
 
