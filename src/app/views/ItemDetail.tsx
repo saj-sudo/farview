@@ -39,6 +39,7 @@ function actionAsItem(action: ActionItem, lane: string): TimelineItem {
     status: action.done ? 'done' : 'active',
     statusLabel: null,
     group: lane,
+    subGroup: null,
     tags: [],
     flags: { targetBeforeStart: false },
     milestoneIds: [],
@@ -338,11 +339,13 @@ export function ItemDetail(props: {
       <div class="tl-wrap detail-chart" ref={wrapRef}>
         <div class="tl-lane-headers" aria-hidden="true">
           {layout.lanes.map((lane) => (
-            <div key={lane.label} class="tl-lane-header" style={{ top: `${lane.y + 4}px` }}>
+            <div
+              key={`${lane.group ?? ''}/${lane.subGroup ?? ''}`}
+              class="tl-lane-header"
+              style={{ top: `${lane.y + 4}px` }}
+            >
               <span class="tl-lane-dot" style={{ background: lane.color }} />
-              {lane.label === 'Goals' || lane.label === 'Projects'
-                ? lane.label
-                : lane.label}
+              {lane.label}
               <span class="tl-lane-count">{lane.count}</span>
             </div>
           ))}

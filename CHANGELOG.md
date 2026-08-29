@@ -4,6 +4,20 @@ All notable changes to Farview are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-08-29
+
+### Added
+
+- **Two-level lanes: pillars and areas.** Both grouping levels can now be
+  mapped, and each one can either follow a tag **collection** — the space's own
+  list, so lanes appear as you add tags to it — or use tags picked by hand in
+  lane order. Every (pillar, area) pair becomes its own lane; a repeated area
+  name under two pillars stays two lanes.
+- Sub-lanes indent under their pillar, which names itself once per run, and
+  **inherit the pillar's color** so a pillar reads as one block down the page.
+- Lane order is configured-first, then alphabetical, with untagged lanes last
+  within their pillar and the ungrouped lane last of all.
+
 ## [0.3.0] — 2026-08-26
 
 ### Added

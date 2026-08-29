@@ -81,6 +81,21 @@ export interface FarviewConfig {
     property: string | null;
     /** Tag names (grouping by tag) or label values (by property), in lane order. */
     values: string[];
+    /**
+     * A tag collection whose members supply `values` live — how spaces
+     * that keep their taxonomy in a collection ("Life Pillars") map it
+     * without ticking every tag by hand. Takes precedence over values.
+     */
+    collection: string | null;
+    /**
+     * The second level: sub-lanes within each primary lane. Pillars
+     * over areas, in the vocabulary of the systems this borrows from.
+     */
+    sub: {
+      by: 'tag' | 'none';
+      values: string[];
+      collection: string | null;
+    };
   };
   horizons: {
     mode: HorizonMode;
@@ -113,6 +128,8 @@ export interface TimelineItem {
   statusLabel: string | null;
   /** Resolved lane/color group; null = ungrouped. */
   group: string | null;
+  /** Second-level group (the sub-lane within `group`); null = none. */
+  subGroup: string | null;
   /** Configured grouping tags this item carries (tag grouping only). */
   tags: string[];
   flags: {

@@ -60,6 +60,9 @@ export function ItemCard(props: ItemCardProps) {
       <p class="tl-card-meta">
         {item.kind === 'goal' && <span class="chip">Goal</span>}
         {item.group !== null && <span class="chip">{item.group}</span>}
+        {item.subGroup !== null && item.subGroup !== item.group && (
+          <span class="chip">{item.subGroup}</span>
+        )}
         {item.statusLabel !== null && <span class="chip">{item.statusLabel}</span>}
       </p>
       <p class="tl-card-dates">

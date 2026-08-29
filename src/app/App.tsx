@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { resolveSchema, type ResolvedSchema } from '../engine/resolve';
-import type { SpaceInfo, StructureDef, TagDef } from '../engine/provider';
+import {
+  resolveSchema,
+  type CollectionTags,
+  type ResolvedSchema,
+} from '../engine/resolve';
+import type {
+  CollectionDef,
+  SpaceInfo,
+  StructureDef,
+  TagDef,
+} from '../engine/provider';
+import { loadCollectionTags } from '../pipeline/load';
 import type { FarviewConfig, LocalDate } from '../engine/types';
 import { loadStoredConfig, saveStoredConfig } from './configStore';
 import { useEditActions, type EditActions } from './edits';
@@ -31,6 +41,10 @@ export interface Boot {
   space: SpaceInfo;
   structures: StructureDef[];
   tags: TagDef[];
+  /** Collections in the space, offered as grouping sources in Settings. */
+  collections: CollectionDef[];
+  /** Collection name (lowercased) → member tag names, for mapped levels. */
+  collectionTags: CollectionTags;
 }
 
 const NAV: { view: View; label: string; icon: string }[] = [
@@ -61,12 +75,19 @@ function ConnectedApp(props: { session: Session }) {
     let cancelled = false;
     (async () => {
       try {
-        const [space, structures, tags] = await Promise.all([
+        const [space, structures, tags, collections] = await Promise.all([
           session.provider.spaceInfo(),
           session.provider.listStructures(),
           session.provider.listTags(),
+          session.provider.listCollections().catch(() => [] as CollectionDef[]),
         ]);
-        if (!cancelled) setBoot({ space, structures, tags });
+        // Only the collections a mapped level names are expanded to tags.
+        const collectionTags = config
+          ? await loadCollectionTags(session.provider, config).catch(() => ({}))
+          : {};
+        if (!cancelled) {
+          setBoot({ space, structures, tags, collections, collectionTags });
+        }
       } catch (err) {
         if (cancelled) return;
         if (isAuthLoss(err)) {
@@ -83,7 +104,10 @@ function ConnectedApp(props: { session: Session }) {
   }, [session]);
 
   const resolved: ResolvedSchema | null = useMemo(
-    () => (boot && config ? resolveSchema(config, boot.structures, boot.tags) : null),
+    () =>
+      boot && config
+        ? resolveSchema(config, boot.structures, boot.tags, boot.collectionTags)
+        : null,
     [boot, config],
   );
 

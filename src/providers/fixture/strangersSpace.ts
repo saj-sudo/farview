@@ -88,11 +88,35 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
     },
   ];
 
+  // Two levels of tags, the way a space that keeps its taxonomy in
+  // collections has it: broad pillars, and finer areas within them.
   const tags: FixtureSpace['tags'] = [
     { id: 'tag-hull', name: 'hull' },
     { id: 'tag-sails', name: 'sails' },
     { id: 'tag-galley', name: 'galley' },
     { id: 'tag-harbor', name: 'harbormaster' },
+    { id: 'tag-restoration', name: 'restoration' },
+    { id: 'tag-outfitting', name: 'outfitting' },
+    { id: 'tag-provisioning', name: 'provisioning' },
+    { id: 'tag-paperwork', name: 'paperwork' },
+  ];
+
+  const collections: FixtureSpace['collections'] = [
+    {
+      id: 'col-pillars',
+      name: 'Yard Pillars',
+      memberIds: ['tag-hull', 'tag-sails', 'tag-galley', 'tag-harbor'],
+    },
+    {
+      id: 'col-areas',
+      name: 'Work Areas',
+      memberIds: [
+        'tag-restoration',
+        'tag-outfitting',
+        'tag-provisioning',
+        'tag-paperwork',
+      ],
+    },
   ];
 
   const refit = (
@@ -296,6 +320,12 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
     'tag-sails': ['x-new-sails', 'x-rigging-loft', 'x-celestial', 'v-atoll'],
     'tag-galley': ['x-galley-stove', 'x-winter-engine', 'x-tender-b'],
     'tag-harbor': ['x-mooring-chart', 'x-licence', 'x-old-punt'],
+    // The second level cuts across the first: a hull refit can be
+    // restoration or outfitting work, and both lanes should show it.
+    'tag-restoration': ['x-mainstay', 'x-replank', 'x-old-punt'],
+    'tag-outfitting': ['x-new-sails', 'x-rigging-loft', 'x-tender-b', 'v-atoll'],
+    'tag-provisioning': ['x-galley-stove', 'x-winter-engine'],
+    'tag-paperwork': ['x-mooring-chart', 'x-licence'],
     // x-careen carries no tag at all: the ungrouped lane must exist.
   };
 
@@ -306,6 +336,7 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
     tags,
     objects,
     tagAssignments,
+    collections,
   };
 }
 
@@ -340,7 +371,11 @@ export function strangersDemoConfig(): unknown {
     },
     grouping: {
       by: 'tag',
-      values: ['hull', 'sails', 'galley', 'harbormaster'],
+      // The space's own taxonomy, read live from its collections —
+      // no ticking tags one by one.
+      collection: 'Yard Pillars',
+      values: [],
+      sub: { by: 'tag', collection: 'Work Areas', values: [] },
     },
   };
 }

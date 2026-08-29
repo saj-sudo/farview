@@ -6,6 +6,7 @@ import type { LocalDate, TimelineItem } from '../../src/engine/types';
 import { memoryCache } from '../../src/pipeline/cache';
 import {
   loadActions,
+  loadCollectionTags,
   loadMilestones,
   loadTimelineData,
   type LoadHooks,
@@ -29,6 +30,7 @@ async function setup(configOverride: object = {}) {
     config,
     await provider.listStructures(),
     await provider.listTags(),
+    await loadCollectionTags(provider, config),
   );
   expect(resolved.warnings).toEqual([]);
   return { provider, config, resolved };
@@ -265,8 +267,10 @@ function providerDelegate(provider: FixtureProvider): Provider {
     spaceInfo: () => provider.spaceInfo(),
     listStructures: () => provider.listStructures(),
     listTags: () => provider.listTags(),
+    listCollections: () => provider.listCollections(),
     listObjectsByStructure: (id) => provider.listObjectsByStructure(id),
     listObjectsByTag: (id) => provider.listObjectsByTag(id),
+    listObjectsByCollection: (id) => provider.listObjectsByCollection(id),
     getObject: (id) => provider.getObject(id),
     deepLink: (id) => provider.deepLink(id),
   };

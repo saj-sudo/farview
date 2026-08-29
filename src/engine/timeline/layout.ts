@@ -49,6 +49,10 @@ export interface BarGeometry {
 
 export interface LaneGeometry {
   group: string | null;
+  /** The area within the pillar, when a second grouping level is mapped. */
+  subGroup: string | null;
+  /** First lane of its primary group: the pillar's name prints here only. */
+  firstOfGroup: boolean;
   label: string;
   color: string;
   y: number;
@@ -73,6 +77,8 @@ export interface LayoutOptions {
   width: number;
   today: LocalDate;
   groupOrder: string[];
+  /** Second-level lane order (areas within a pillar). */
+  subGroupOrder?: string[];
   maxRowsPerLane?: number;
 }
 
@@ -98,7 +104,8 @@ export function layoutTimeline(
   const goals = items.filter((i) => i.kind === 'goal');
   const projects = items.filter((i) => i.kind !== 'goal');
   const goalLanes = packLanes(
-    goals.map((g) => ({ ...g, group: GOALS_LANE })),
+    // One goals lane, whatever their tags: sub-grouping applies to work.
+    goals.map((g) => ({ ...g, group: GOALS_LANE, subGroup: null })),
     {
       todayDay,
       pxPerDay: scale.pxPerDay,
@@ -110,9 +117,12 @@ export function layoutTimeline(
     todayDay,
     pxPerDay: scale.pxPerDay,
     groupOrder: opts.groupOrder,
+    ...(opts.subGroupOrder ? { subGroupOrder: opts.subGroupOrder } : {}),
     ...(opts.maxRowsPerLane !== undefined ? { maxRows: opts.maxRowsPerLane } : {}),
   });
 
+  // Color follows the PRIMARY group: a pillar's areas share its hue, so
+  // the sub-lanes read as one family rather than six unrelated colors.
   const colors = assignGroupColors(projectLanes.map((l) => l.group));
   const laneGeoms: LaneGeometry[] = [];
   const bars: BarGeometry[] = [];
@@ -134,9 +144,17 @@ export function layoutTimeline(
     y += LANE_PAD_BOTTOM;
     laneGeoms.push({
       group: isGoals ? null : lane.group,
+      subGroup: isGoals ? null : lane.subGroup,
+      firstOfGroup: isGoals ? true : lane.firstOfGroup,
+      // The lane's own name: its area when nested, else its pillar. A
+      // pillar's leftovers — tagged with it but with no area — trail its
+      // areas as "Other" rather than repeating the pillar's name.
       label: isGoals
         ? 'Goals'
-        : (lane.group ?? (projectLanes.length > 1 ? 'Ungrouped' : 'Projects')),
+        : (lane.subGroup ??
+          (lane.firstOfGroup
+            ? (lane.group ?? (projectLanes.length > 1 ? 'Ungrouped' : 'Projects'))
+            : 'Other')),
       color,
       y: laneTop,
       height: y - laneTop,

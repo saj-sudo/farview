@@ -1,6 +1,6 @@
 import { extractAction, extractItem, extractMilestone } from '../engine/extract';
-import type { ObjectSummary, Provider } from '../engine/provider';
-import type { ResolvedSchema } from '../engine/resolve';
+import type { CollectionDef, ObjectSummary, Provider } from '../engine/provider';
+import type { CollectionTags, ResolvedSchema } from '../engine/resolve';
 import { deriveSpan } from '../engine/rollup';
 import type {
   ActionItem,
@@ -91,8 +91,9 @@ export async function loadTimelineData(
   /* 2 — tag membership: list results carry no tags, so grouping by tag
      means one cheap summary listing per configured tag (not per object). */
   const membership = new Map<string, string[]>();
-  if (config.grouping.by === 'tag') {
-    for (const name of config.grouping.values) {
+  const groupingTagNames = [...resolved.groupValues, ...resolved.subGroupValues];
+  if (config.grouping.by === 'tag' || config.grouping.sub.by === 'tag') {
+    for (const name of groupingTagNames) {
       const tagId = resolved.tagIds[name];
       if (!tagId) continue;
       for await (const summary of provider.listObjectsByTag(tagId)) {
@@ -236,6 +237,46 @@ const DERIVED_FETCH_CAP = 25;
 
 function emptyResult(nowMs: number): LoadResult {
   return { total: 0, attempted: 0, remaining: 0, lastRefreshed: nowMs, failed: 0 };
+}
+
+/**
+ * Resolve the tag collections a config names into their member tag
+ * names — the live read that lets a space map a whole grouping level
+ * by naming its own collection ("Life Pillars") instead of listing
+ * every tag. Only the named collections are fetched, so the cost is
+ * one listing per mapped level, not per collection in the space.
+ */
+export async function loadCollectionTags(
+  provider: Provider,
+  config: FarviewConfig,
+): Promise<CollectionTags> {
+  const wanted = [config.grouping.collection, config.grouping.sub.collection]
+    .filter((c): c is string => c !== null)
+    .map((c) => c.trim().toLowerCase());
+  if (wanted.length === 0) return {};
+
+  let collections: CollectionDef[];
+  try {
+    collections = await withBackoff(() => provider.listCollections());
+  } catch {
+    return {}; // a space that will not list collections simply has no lanes
+  }
+
+  const out: CollectionTags = {};
+  for (const collection of collections) {
+    const key = collection.name.trim().toLowerCase();
+    if (!wanted.includes(key) || out[key] !== undefined) continue;
+    const names: string[] = [];
+    try {
+      for await (const member of provider.listObjectsByCollection(collection.id)) {
+        names.push(member.title);
+      }
+    } catch {
+      continue;
+    }
+    out[key] = names;
+  }
+  return out;
 }
 
 /**

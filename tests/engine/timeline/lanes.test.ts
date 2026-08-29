@@ -16,6 +16,7 @@ function item(overrides: Partial<TimelineItem>): TimelineItem {
     status: 'active',
     statusLabel: null,
     group: null,
+    subGroup: null,
     tags: [],
     flags: { targetBeforeStart: false },
     milestoneIds: [],
@@ -101,6 +102,46 @@ describe('packLanes', () => {
       groupOrder: ['hull'],
     });
     expect(again.map((l) => l.group)).toEqual(['hull', 'aft', 'zebra', null]);
+  });
+
+  it('nests sub-lanes under their pillar, in configured then alpha order', () => {
+    // A two-level taxonomy: pillar tags on the first level, area tags on
+    // the second. Each (pillar, area) pair earns its own lane, and the
+    // pillar's name prints once — on the first lane of its run.
+    const items = [
+      item({ id: 'a', group: 'Health', subGroup: 'Home', target: '2026-09-01' }),
+      item({ id: 'b', group: 'Health', subGroup: 'Aesthetic', target: '2026-09-01' }),
+      item({ id: 'c', group: 'Health', subGroup: null, target: '2026-09-01' }),
+      item({ id: 'd', group: 'Work', subGroup: 'Home', target: '2026-09-01' }),
+      item({ id: 'e', group: null, subGroup: null, target: '2026-09-01' }),
+    ];
+    const lanes = packLanes(items, {
+      todayDay: TODAY_DAY,
+      pxPerDay: 2,
+      groupOrder: ['Work', 'Health'],
+      subGroupOrder: ['Home'],
+    });
+    expect(lanes.map((l) => [l.group, l.subGroup])).toEqual([
+      ['Work', 'Home'],
+      ['Health', 'Home'], // configured sub-order wins over alphabetical
+      ['Health', 'Aesthetic'],
+      ['Health', null], // an untagged area sits last within its pillar
+      [null, null], // ungrouped last of all
+    ]);
+    expect(lanes.map((l) => l.firstOfGroup)).toEqual([true, true, false, false, true]);
+  });
+
+  it('keeps one item per (pillar, area) pair rather than flattening', () => {
+    // The same area name under two pillars must not merge into one lane.
+    const lanes = packLanes(
+      [
+        item({ id: 'a', group: 'Mind', subGroup: 'Learn', start: '2026-01-01', target: '2026-06-01' }),
+        item({ id: 'b', group: 'Money', subGroup: 'Learn', start: '2026-01-01', target: '2026-06-01' }),
+      ],
+      { todayDay: TODAY_DAY, pxPerDay: 2, groupOrder: [], subGroupOrder: [] },
+    );
+    expect(lanes.length).toBe(2);
+    expect(lanes.every((l) => l.rows.length === 1)).toBe(true);
   });
 
   it('caps rows and counts the overflow instead of dropping it', () => {

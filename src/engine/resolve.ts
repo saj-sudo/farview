@@ -32,6 +32,10 @@ export interface ResolvedSchema {
   tagIds: Record<string, string>;
   /** Grouping property (on the project type) when grouping by property. */
   groupingProperty: ResolvedProperty | null;
+  /** Lane values for the primary level, after any collection expansion. */
+  groupValues: string[];
+  /** Sub-lane values for the second level (pillars over areas). */
+  subGroupValues: string[];
   /** Readable messages for every mapping that failed to resolve. */
   warnings: string[];
 }
@@ -67,15 +71,49 @@ function findByName<T extends { name: string } | { title: string }>(
   });
 }
 
-/** Every tag name the config references, deduplicated. */
-export function referencedTagNames(config: FarviewConfig): string[] {
-  return config.grouping.by === 'tag' ? [...new Set(config.grouping.values)] : [];
+/**
+ * The tag names a grouping level actually uses: a named collection's
+ * members when one is mapped (the space's own taxonomy, read live),
+ * otherwise the explicitly listed tags.
+ */
+export function levelTagNames(
+  level: { values: string[]; collection: string | null },
+  collectionTags: CollectionTags,
+): string[] {
+  if (level.collection !== null) {
+    const members = collectionTags[level.collection.trim().toLowerCase()];
+    if (members) return [...new Set(members)];
+  }
+  return [...new Set(level.values)];
 }
+
+/** Every tag name the config references, deduplicated. */
+export function referencedTagNames(
+  config: FarviewConfig,
+  collectionTags: CollectionTags = {},
+): string[] {
+  const names: string[] = [];
+  if (config.grouping.by === 'tag') {
+    names.push(...levelTagNames(config.grouping, collectionTags));
+  }
+  if (config.grouping.sub.by === 'tag') {
+    names.push(...levelTagNames(config.grouping.sub, collectionTags));
+  }
+  return [...new Set(names)];
+}
+
+/**
+ * Collection name (lowercased) → the tag names it holds. Loaded from
+ * the space at boot for the collections the config names, so a level
+ * mapped to "Life Pillars" follows that collection as it changes.
+ */
+export type CollectionTags = Record<string, string[]>;
 
 export function resolveSchema(
   config: FarviewConfig,
   structures: StructureDef[],
   tags: TagDef[],
+  collectionTags: CollectionTags = {},
 ): ResolvedSchema {
   const warnings: string[] = [];
   const types: ResolvedSchema['types'] = {};
@@ -118,13 +156,33 @@ export function resolveSchema(
     }
   }
 
-  for (const name of referencedTagNames(config)) {
+  const groupValues =
+    config.grouping.by === 'tag'
+      ? levelTagNames(config.grouping, collectionTags)
+      : config.grouping.values;
+  const subGroupValues =
+    config.grouping.sub.by === 'tag'
+      ? levelTagNames(config.grouping.sub, collectionTags)
+      : [];
+
+  for (const name of referencedTagNames(config, collectionTags)) {
     const tag = findByName(tags, name);
     if (tag) {
       tagIds[name] = tag.id;
     } else {
       warnings.push(
         `Tag "${name}" is not in this space. Its tags are: ${listNames(tags)}.`,
+      );
+    }
+  }
+  for (const level of [config.grouping, config.grouping.sub]) {
+    if (
+      level.collection !== null &&
+      collectionTags[level.collection.trim().toLowerCase()] === undefined
+    ) {
+      warnings.push(
+        `Collection "${level.collection}" was not found in this space, so that ` +
+          `grouping level has no lanes yet.`,
       );
     }
   }
@@ -150,7 +208,15 @@ export function resolveSchema(
     }
   }
 
-  return { types, properties, tagIds, groupingProperty, warnings };
+  return {
+    types,
+    properties,
+    tagIds,
+    groupingProperty,
+    groupValues,
+    subGroupValues,
+    warnings,
+  };
 }
 
 /** True when the one required mapping — the project type — is usable. */

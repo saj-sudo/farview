@@ -9,6 +9,7 @@ import {
   type Editor,
 } from '../../engine/editor';
 import type {
+  CollectionDef,
   FullObject,
   ObjectSummary,
   PropertyValue,
@@ -18,7 +19,7 @@ import type {
   TagDef,
 } from '../../engine/provider';
 import type { ResolvedSchema } from '../../engine/resolve';
-import { APP_BASE, TAG_STRUCTURE_ID } from './constants';
+import { APP_BASE, COLLECTION_STRUCTURE_ID, TAG_STRUCTURE_ID } from './constants';
 import { withBackoff } from './rateLimit';
 
 /**
@@ -77,6 +78,29 @@ export class CapacitiesAdapter implements Provider {
       const page = await withBackoff(() =>
         this.client.objects.structure({
           structureId,
+          pageSize: 100,
+          ...(cursor ? { cursor } : {}),
+        }),
+      );
+      yield* page.results;
+      cursor = page.hasMore && page.nextCursor ? page.nextCursor : undefined;
+    } while (cursor);
+  }
+
+  async listCollections(): Promise<CollectionDef[]> {
+    const collections: CollectionDef[] = [];
+    for await (const summary of this.listObjectsByStructure(COLLECTION_STRUCTURE_ID)) {
+      collections.push({ id: summary.id, name: summary.title });
+    }
+    return collections;
+  }
+
+  async *listObjectsByCollection(collectionId: string): AsyncIterable<ObjectSummary> {
+    let cursor: string | undefined;
+    do {
+      const page = await withBackoff(() =>
+        this.client.objects.collection({
+          collectionId,
           pageSize: 100,
           ...(cursor ? { cursor } : {}),
         }),

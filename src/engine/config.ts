@@ -52,6 +52,8 @@ export function defaultConfig(): FarviewConfig {
       by: 'none',
       property: null,
       values: [],
+      collection: null,
+      sub: { by: 'none', values: [], collection: null },
     },
     horizons: {
       mode: 'derived',
@@ -178,6 +180,19 @@ export function normalizeConfig(input: unknown): FarviewConfig {
       ),
       property: strOrNull(grouping['property'], d.grouping.property),
       values: strArray(grouping['values'], d.grouping.values),
+      collection: strOrNull(grouping['collection'], d.grouping.collection),
+      sub: {
+        by: oneOf<'tag' | 'none'>(
+          rec(grouping['sub'])['by'],
+          ['tag', 'none'],
+          d.grouping.sub.by,
+        ),
+        values: strArray(rec(grouping['sub'])['values'], d.grouping.sub.values),
+        collection: strOrNull(
+          rec(grouping['sub'])['collection'],
+          d.grouping.sub.collection,
+        ),
+      },
     },
     horizons: {
       mode: oneOf<HorizonMode>(horizons['mode'], ['derived', 'property'], d.horizons.mode),

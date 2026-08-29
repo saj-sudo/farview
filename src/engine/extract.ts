@@ -72,17 +72,24 @@ export function assignGroup(
   config: FarviewConfig,
   resolved: ResolvedSchema,
   tagsOf: (id: string) => string[],
-): { group: string | null; tags: string[] } {
+): { group: string | null; subGroup: string | null; tags: string[] } {
+  // The second level is always tag-driven: a space that keeps pillars
+  // and areas as tags gets both, in the order its own taxonomy lists.
+  const subGroup =
+    config.grouping.sub.by === 'tag'
+      ? (resolved.subGroupValues.filter((v) => tagsOf(obj.id).includes(v))[0] ?? null)
+      : null;
+
   switch (config.grouping.by) {
     case 'tag': {
       const tags = tagsOf(obj.id);
-      const configured = config.grouping.values.filter((v) => tags.includes(v));
-      return { group: configured[0] ?? null, tags: configured };
+      const configured = resolved.groupValues.filter((v) => tags.includes(v));
+      return { group: configured[0] ?? null, subGroup, tags: configured };
     }
     case 'property': {
       const propId = resolved.groupingProperty?.property.id;
       const labels = labelProp(obj, propId);
-      return { group: labels[0] ?? null, tags: [] };
+      return { group: labels[0] ?? null, subGroup, tags: [] };
     }
     case 'type': {
       const structure = [
@@ -90,10 +97,10 @@ export function assignGroup(
         resolved.types.goal,
         resolved.types.milestone,
       ].find((t) => t?.structure.id === obj.structureId);
-      return { group: structure?.structure.title ?? null, tags: [] };
+      return { group: structure?.structure.title ?? null, subGroup, tags: [] };
     }
     case 'none':
-      return { group: null, tags: [] };
+      return { group: null, subGroup, tags: [] };
   }
 }
 
@@ -118,7 +125,7 @@ export function extractItem(
   const statusLabels = isGoal ? [] : labelProp(obj, p.projectStatus?.property.id);
   const { status, statusLabel } = classifyStatus(statusLabels, config);
 
-  const { group, tags } = assignGroup(obj, config, resolved, tagsOf);
+  const { group, subGroup, tags } = assignGroup(obj, config, resolved, tagsOf);
 
   const horizonLabels = isGoal ? labelProp(obj, p.goalHorizon?.property.id) : [];
 
@@ -131,6 +138,7 @@ export function extractItem(
     status,
     statusLabel,
     group,
+    subGroup,
     tags,
     flags: {
       targetBeforeStart: start !== null && target !== null && target < start,

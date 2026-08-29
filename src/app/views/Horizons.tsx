@@ -75,6 +75,7 @@ export function Horizons(props: {
             ? `from ${formatLocalDate(item.start)}`
             : 'undated'}
         {item.group !== null ? ` · ${item.group}` : ''}
+        {item.subGroup !== null ? ` › ${item.subGroup}` : ''}
       </span>
     </button>
   );

@@ -112,12 +112,13 @@ export function TimelineSvg(props: TimelineSvgProps) {
       {layout.lanes.map((lane, i) =>
         i === 0 ? null : (
           <line
-            key={`lane-${lane.label}`}
+            key={`lane-${lane.group ?? ''}/${lane.subGroup ?? ''}`}
             x1={0}
             y1={lane.y}
             x2={layout.width}
             y2={lane.y}
-            class="tl-lane-line"
+            /* Areas inside one pillar are divided faintly; pillars fully. */
+            class={`tl-lane-line ${lane.firstOfGroup ? '' : 'is-sub'}`}
           />
         ),
       )}

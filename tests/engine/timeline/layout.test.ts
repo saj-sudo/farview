@@ -22,6 +22,7 @@ function item(overrides: Partial<TimelineItem>): TimelineItem {
     status: 'active',
     statusLabel: null,
     group: null,
+    subGroup: null,
     tags: [],
     flags: { targetBeforeStart: false },
     milestoneIds: [],
@@ -129,6 +130,33 @@ describe('layoutTimeline', () => {
     const projBar = layout.bars.find((b) => b.item.id === 'p')!;
     expect(goalBar.y).toBeLessThan(projBar.y);
     expect(projBar.h).toBe(BAR_H);
+  });
+
+  it('labels nested lanes by area and shares the pillar\'s color', () => {
+    // Pillar → area lanes: each area gets its own row band, but the hue
+    // comes from the pillar so the family reads as one block of colour.
+    const layout = layoutTimeline(
+      [
+        item({ id: 'a', group: 'Health', subGroup: 'Home', start: '2026-08-01', target: '2026-10-01' }),
+        item({ id: 'b', group: 'Health', subGroup: 'Eros', start: '2026-08-01', target: '2026-10-01' }),
+        // Tagged Health but with no area: trails its pillar's areas.
+        item({ id: 'x', group: 'Health', subGroup: null, start: '2026-08-01', target: '2026-10-01' }),
+        item({ id: 'c', group: 'Work', subGroup: 'Admin', start: '2026-08-01', target: '2026-10-01' }),
+      ],
+      {
+        view: { ...defaultView(TODAY_DAY), daysVisible: 548 },
+        width: WIDTH,
+        today: TODAY,
+        groupOrder: ['Health', 'Work'],
+        subGroupOrder: ['Home', 'Eros'],
+      },
+    );
+    expect(layout.lanes.map((l) => l.label)).toEqual(['Home', 'Eros', 'Other', 'Admin']);
+    expect(layout.lanes.map((l) => l.firstOfGroup)).toEqual([true, false, false, true]);
+    const colors = layout.lanes.map((l) => l.color);
+    expect(colors[0]).toBe(colors[1]); // one pillar, one hue
+    expect(colors[2]).toBe(colors[0]); // the "Other" lane included
+    expect(colors[3]).not.toBe(colors[0]);
   });
 
   it('places derived-span items as dashed shells: no fill, no overdue', () => {
