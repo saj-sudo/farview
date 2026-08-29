@@ -58,6 +58,7 @@ export function AgendaList(props: {
           <span class="fineprint">
             {item.target !== null ? formatLocalDate(item.target) : `from ${formatLocalDate(item.start!)}`}
             {item.group !== null ? ` · ${item.group}` : ''}
+            {item.subGroup !== null ? ` › ${item.subGroup}` : ''}
           </span>
           {elapsed !== null && item.status !== 'done' && (
             <span class="agenda-meter" aria-hidden="true">

@@ -133,12 +133,16 @@ export function Timeline(props: {
       ),
     [props.data.items, props.config.display.showCompleted],
   );
+  // Items placed by a derived rollup span sit on the line (dashed), not
+  // in the Someday tray.
   const someday = useMemo(
-    () => visible.filter((i) => i.start === null && i.target === null),
+    () =>
+      visible.filter((i) => i.start === null && i.target === null && i.derived === null),
     [visible],
   );
   const dated = useMemo(
-    () => visible.filter((i) => i.start !== null || i.target !== null),
+    () =>
+      visible.filter((i) => i.start !== null || i.target !== null || i.derived !== null),
     [visible],
   );
 
@@ -177,10 +181,19 @@ export function Timeline(props: {
         view: clamped,
         width,
         today: props.today,
-        groupOrder: props.config.grouping.values,
+        groupOrder: props.resolved.groupValues,
+        subGroupOrder: props.resolved.subGroupValues,
         ...(pxPerDay < 0.35 ? { maxRowsPerLane: 6 } : {}),
       }),
-    [layoutItems, clamped, width, props.today, props.config.grouping.values, pxPerDay],
+    [
+      layoutItems,
+      clamped,
+      width,
+      props.today,
+      props.resolved.groupValues,
+      props.resolved.subGroupValues,
+      pxPerDay,
+    ],
   );
 
   /* ---------------- zoom + pan ---------------- */
@@ -522,7 +535,7 @@ export function Timeline(props: {
             config={props.config}
             defaultKind={props.resolved.types.goal ? 'goal' : 'project'}
             defaultTarget={addDays(props.today, 30)}
-            onCreate={async (spec) => (await props.edit!.createItem(spec)) !== null}
+            onCreate={(spec) => props.edit!.createItem(spec)}
             onClose={() => setCreating(false)}
           />
         )}
@@ -594,7 +607,21 @@ export function Timeline(props: {
       >
         <div class="tl-lane-headers" aria-hidden="true">
           {layout.lanes.map((lane) => (
-            <div key={lane.label} class="tl-lane-header" style={{ top: `${lane.y + 4}px` }}>
+            <div
+              key={`${lane.group ?? ''}/${lane.subGroup ?? ''}`}
+              class={`tl-lane-header ${
+                lane.subGroup !== null || !lane.firstOfGroup ? 'is-sub' : ''
+              }`}
+              style={{ top: `${lane.y + 4}px` }}
+            >
+              {/* The pillar names itself once; its areas nest beneath.
+                  A level mapped to the same tags twice says it once. */}
+              {lane.firstOfGroup &&
+                lane.subGroup !== null &&
+                lane.group !== null &&
+                lane.group !== lane.subGroup && (
+                <span class="tl-lane-pillar">{lane.group} ›</span>
+              )}
               <span class="tl-lane-dot" style={{ background: lane.color }} />
               {lane.label}
               <span class="tl-lane-count">{lane.count}</span>
@@ -640,7 +667,7 @@ export function Timeline(props: {
           config={props.config}
           defaultKind={props.resolved.types.goal ? 'goal' : 'project'}
           defaultTarget={addDays(props.today, 30)}
-          onCreate={async (spec) => (await props.edit!.createItem(spec)) !== null}
+          onCreate={(spec) => props.edit!.createItem(spec)}
           onClose={() => setCreating(false)}
         />
       )}

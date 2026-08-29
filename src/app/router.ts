@@ -5,19 +5,43 @@ import { useEffect, useState } from 'preact/hooks';
  * switch on the fragment so no host rewrite rules are ever needed.
  */
 
-export type View = 'timeline' | 'horizons' | 'settings';
+export type View = 'timeline' | 'horizons' | 'settings' | 'item';
 
 const ROUTES: Record<string, View> = {
   '#/timeline': 'timeline',
   '#/horizons': 'horizons',
   '#/settings': 'settings',
+  '#/item': 'item',
 };
 
 export const HASH_FOR: Record<View, string> = {
   timeline: '#/timeline',
   horizons: '#/horizons',
   settings: '#/settings',
+  item: '#/item',
 };
+
+/** The detail route for one item: `#/item?id=<objectId>`. */
+export function itemHash(id: string): string {
+  return `#/item?id=${encodeURIComponent(id)}`;
+}
+
+export function itemParam(): string | null {
+  const query = location.hash.split('?')[1];
+  if (!query) return null;
+  return new URLSearchParams(query).get('id');
+}
+
+/** Re-renders when the hash's query changes, not just the view. */
+export function useHashItemId(): string | null {
+  const [id, setId] = useState<string | null>(() => itemParam());
+  useEffect(() => {
+    const onChange = (): void => setId(itemParam());
+    window.addEventListener('hashchange', onChange);
+    return () => window.removeEventListener('hashchange', onChange);
+  }, []);
+  return id;
+}
 
 function hashPath(): string {
   return location.hash.split('?')[0] ?? '';

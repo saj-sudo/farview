@@ -24,9 +24,13 @@ function item(overrides: Partial<TimelineItem>): TimelineItem {
     status: 'active',
     statusLabel: null,
     group: null,
+    subGroup: null,
     tags: [],
     flags: { targetBeforeStart: false },
     milestoneIds: [],
+    goalId: null,
+    actionIds: [],
+    derived: null,
     horizonLabel: null,
     ...overrides,
   };

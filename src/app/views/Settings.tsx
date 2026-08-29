@@ -6,13 +6,13 @@ import {
   importConfig,
   normalizeConfig,
 } from '../../engine/config';
-import type { PropertyDef, StructureDef } from '../../engine/provider';
-import { resolveSchema } from '../../engine/resolve';
+import type { CollectionDef, PropertyDef, StructureDef, TagDef } from '../../engine/provider';
+import { resolveSchema, type CollectionTags } from '../../engine/resolve';
 import { layoutTimeline } from '../../engine/timeline/layout';
 import { defaultView } from '../../engine/timeline/scale';
 import type { FarviewConfig, LocalDate, TimelineItem, TypeRole } from '../../engine/types';
 import { memoryCache } from '../../pipeline/cache';
-import { loadTimelineData } from '../../pipeline/load';
+import { loadCollectionTags, loadTimelineData } from '../../pipeline/load';
 import { isBasicStructure } from '../../providers/capacities/constants';
 import type { Boot } from '../App';
 import { TimelineSvg } from '../components/TimelineSvg';
@@ -87,9 +87,37 @@ export function Settings(props: {
     setSavedNote(null);
   };
 
+  // Tag names inside each collection, keyed by lowercased collection
+  // name. Seeded from boot (the mapped ones are already loaded) and
+  // topped up when a level is pointed at a collection not used yet, so
+  // the chips and the preview reflect the pick immediately.
+  const [collectionMembers, setCollectionMembers] = useState<CollectionTags>(
+    boot.collectionTags,
+  );
+  const requestedRef = useRef(new Set(Object.keys(boot.collectionTags)));
+  useEffect(() => {
+    const wanted = [draft.grouping.collection, draft.grouping.sub.collection]
+      .filter((c): c is string => c !== null)
+      .map((c) => c.trim().toLowerCase())
+      .filter((key) => !requestedRef.current.has(key));
+    if (wanted.length === 0) return;
+    for (const key of wanted) requestedRef.current.add(key);
+    let cancelled = false;
+    void loadCollectionTags(props.session.provider, draft).then((more) => {
+      if (cancelled) return;
+      // A collection the space won't list settles as empty rather than
+      // spinning forever: the picker then says so plainly.
+      const settled: CollectionTags = Object.fromEntries(wanted.map((k) => [k, []]));
+      setCollectionMembers((prev) => ({ ...prev, ...settled, ...more }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [draft.grouping.collection, draft.grouping.sub.collection, props.session, draft]);
+
   const resolved = useMemo(
-    () => resolveSchema(draft, boot.structures, boot.tags),
-    [draft, boot],
+    () => resolveSchema(draft, boot.structures, boot.tags, collectionMembers),
+    [draft, boot, collectionMembers],
   );
 
   const structureFor = (role: TypeRole): StructureDef | null =>
@@ -112,6 +140,10 @@ export function Settings(props: {
 
   /* ---------------- form pieces ---------------- */
 
+  // Built-in Tasks (RootTask is an API constant, like RootPage) are a
+  // natural actions source for pro users — surfaced first for that role.
+  const taskType = boot.structures.find((s) => s.id === 'RootTask');
+
   const typeSelect = (role: TypeRole, label: string, hint: string) => (
     <label class="field">
       <span>{label}</span>
@@ -124,6 +156,11 @@ export function Settings(props: {
         }
       >
         <option value="">None of these</option>
+        {role === 'action' && taskType && (
+          <option value={taskType.title}>
+            {taskType.title} (built-in Tasks)
+          </option>
+        )}
         {customTypes.map((s) => (
           <option key={s.id} value={s.title}>
             {s.title} ({countLabel(s.id)})
@@ -242,18 +279,36 @@ export function Settings(props: {
         )}
       </div>
       {structureFor('project') && (
-        <div class="field-row">
-          {propertySelect('projectStart', 'Start date', 'project', 'date')}
-          {propertySelect('projectTarget', 'Target date', 'project', 'date', 'Items are placed by this date.')}
-          {propertySelect('projectStatus', 'Status', 'project', 'label')}
-          {propertySelect(
-            'projectMilestones',
-            'Milestones',
-            'project',
-            'entity',
-            'Optional. Loaded lazily when you expand a card.',
-          )}
-        </div>
+        <>
+          <div class="field-row">
+            {propertySelect('projectStart', 'Start date', 'project', 'date')}
+            {propertySelect('projectTarget', 'Target date', 'project', 'date', 'Items are placed by this date.')}
+            {propertySelect('projectStatus', 'Status', 'project', 'label')}
+          </div>
+          <div class="field-row">
+            {propertySelect(
+              'projectGoal',
+              'Goal link',
+              'project',
+              'entity',
+              'The property pointing at the project’s goal.',
+            )}
+            {propertySelect(
+              'projectActions',
+              'Actions',
+              'project',
+              'entity',
+              'Sub-items; shown on the project’s detail page.',
+            )}
+            {propertySelect(
+              'projectMilestones',
+              'Milestones',
+              'project',
+              'entity',
+              'Achievement markers, drawn as ticks on the bar.',
+            )}
+          </div>
+        </>
       )}
       {statusChecks('active', 'Which statuses count as active?', 'Unlisted statuses stay visible rather than vanish.')}
       {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
@@ -274,6 +329,45 @@ export function Settings(props: {
               'goal',
               'label',
               'Only if your goals carry an explicit horizon.',
+            )}
+          </>
+        )}
+      </div>
+      {structureFor('goal') && (
+        <div class="field-row">
+          {propertySelect(
+            'goalActions',
+            'Actions',
+            'goal',
+            'entity',
+            'Actions hanging directly off a goal.',
+          )}
+          {propertySelect(
+            'goalMilestones',
+            'Milestones',
+            'goal',
+            'entity',
+            'Achievement markers on the goal itself.',
+          )}
+        </div>
+      )}
+
+      <h3>Actions — optional</h3>
+      <div class="field-row">
+        {typeSelect(
+          'action',
+          'A type for actions or sub-items',
+          'The leaf level: Capacities’ built-in Tasks or any custom type. Keep your day-to-day to-dos wherever they live — this is for planning-sized pieces.',
+        )}
+        {structureFor('action') && (
+          <>
+            {propertySelect('actionDate', 'Date', 'action', 'date')}
+            {propertySelect(
+              'actionStatus',
+              'Status',
+              'action',
+              'label',
+              'Done-ness comes from the “done” status values above.',
             )}
           </>
         )}
@@ -300,6 +394,12 @@ export function Settings(props: {
       )}
 
       <h3>Grouping and color</h3>
+      <p class="hint">
+        Lanes can nest two deep — a pillar, then the areas inside it. Point
+        each level at a tag collection and Farview follows that collection
+        as you add tags to it; hand-picked tags stay fixed until you change
+        them here.
+      </p>
       <div class="field-row">
         <label class="field">
           <span>Split timeline lanes by</span>
@@ -343,35 +443,72 @@ export function Settings(props: {
             </select>
           </label>
         )}
+        {draft.grouping.by !== 'none' && (
+          <label class="field">
+            <span>Then split each lane by</span>
+            <select
+              value={draft.grouping.sub.by}
+              onChange={(e) =>
+                update((d) => {
+                  d.grouping.sub.by = (e.target as HTMLSelectElement).value as 'tag' | 'none';
+                  if (d.grouping.sub.by === 'none') {
+                    d.grouping.sub.collection = null;
+                    d.grouping.sub.values = [];
+                  }
+                })
+              }
+            >
+              <option value="none">Nothing — one level</option>
+              <option value="tag">Tags (areas inside each lane)</option>
+            </select>
+          </label>
+        )}
       </div>
       {draft.grouping.by === 'tag' && (
-        <div class="field">
-          <span>Which tags become lanes? (click in lane order)</span>
-          <div class="tag-grid">
-            {boot.tags.map((tag) => {
-              const on = draft.grouping.values.includes(tag.name);
-              return (
-                <label key={tag.id} class={`tag-chip ${on ? 'on' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={on}
-                    onChange={() =>
-                      update((d) => {
-                        d.grouping.values = on
-                          ? d.grouping.values.filter((v) => v !== tag.name)
-                          : [...d.grouping.values, tag.name];
-                      })
-                    }
-                  />
-                  {tag.name}
-                </label>
-              );
-            })}
-            {boot.tags.length === 0 && (
-              <span class="empty-note">This space has no tags yet.</span>
-            )}
-          </div>
-        </div>
+        <TagLevelPicker
+          legend="Which tags become lanes?"
+          tags={boot.tags}
+          collections={boot.collections}
+          collection={draft.grouping.collection}
+          values={draft.grouping.values}
+          members={collectionMembers}
+          onCollection={(name) =>
+            update((d) => {
+              d.grouping.collection = name;
+              if (name !== null) d.grouping.values = [];
+            })
+          }
+          onToggle={(name) =>
+            update((d) => {
+              d.grouping.values = d.grouping.values.includes(name)
+                ? d.grouping.values.filter((v) => v !== name)
+                : [...d.grouping.values, name];
+            })
+          }
+        />
+      )}
+      {draft.grouping.by !== 'none' && draft.grouping.sub.by === 'tag' && (
+        <TagLevelPicker
+          legend="Which tags become the second level?"
+          tags={boot.tags}
+          collections={boot.collections}
+          collection={draft.grouping.sub.collection}
+          values={draft.grouping.sub.values}
+          members={collectionMembers}
+          onCollection={(name) =>
+            update((d) => {
+              d.grouping.sub.collection = name;
+              if (name !== null) d.grouping.sub.values = [];
+            })
+          }
+          onToggle={(name) =>
+            update((d) => {
+              d.grouping.sub.values = d.grouping.sub.values.includes(name)
+                ? d.grouping.sub.values.filter((v) => v !== name)
+                : [...d.grouping.sub.values, name];
+            })
+          }
+        />
       )}
 
       <h3>Display</h3>
@@ -462,6 +599,7 @@ export function Settings(props: {
       <LivePreview
         session={props.session}
         boot={boot}
+        collectionMembers={collectionMembers}
         draft={draft}
         today={props.today}
       />
@@ -595,6 +733,78 @@ export function Settings(props: {
 }
 
 /**
+ * One level of the lane taxonomy. A level either follows a tag
+ * collection — the space's own list, so lanes appear as tags are added
+ * to it — or names tags by hand, clicked in the order the lanes should
+ * sit. Nothing here is typed: every option comes from the real space.
+ */
+function TagLevelPicker(props: {
+  legend: string;
+  tags: TagDef[];
+  collections: CollectionDef[];
+  collection: string | null;
+  values: string[];
+  members: CollectionTags;
+  onCollection: (name: string | null) => void;
+  onToggle: (name: string) => void;
+}) {
+  const members =
+    props.collection !== null
+      ? props.members[props.collection.trim().toLowerCase()]
+      : undefined;
+
+  return (
+    <div class="field level-picker">
+      <span>{props.legend}</span>
+      <label class="field">
+        <select
+          value={props.collection ?? ''}
+          onChange={(e) =>
+            props.onCollection((e.target as HTMLSelectElement).value || null)
+          }
+        >
+          <option value="">Tags I pick by hand</option>
+          {props.collections.map((c) => (
+            <option key={c.id} value={c.name}>
+              Everything in “{c.name}”
+            </option>
+          ))}
+        </select>
+      </label>
+      {props.collection !== null ? (
+        members === undefined ? (
+          <p class="loading">Reading “{props.collection}”…</p>
+        ) : members.length === 0 ? (
+          <p class="empty-note">
+            “{props.collection}” has no tags in it yet — lanes appear here as
+            you add some in Capacities.
+          </p>
+        ) : (
+          <p class="fineprint">
+            Lanes, in this collection’s order: {members.join(' · ')}
+          </p>
+        )
+      ) : (
+        <div class="tag-grid">
+          {props.tags.map((tag) => {
+            const on = props.values.includes(tag.name);
+            return (
+              <label key={tag.id} class={`tag-chip ${on ? 'on' : ''}`}>
+                <input type="checkbox" checked={on} onChange={() => props.onToggle(tag.name)} />
+                {tag.name}
+              </label>
+            );
+          })}
+          {props.tags.length === 0 && (
+            <span class="empty-note">This space has no tags yet.</span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * The live preview (§6 step 7): the actual timeline, rendered from the
  * actual space through the draft mapping, before anything is saved.
  * Capped small so it stays quick even mid-onboarding.
@@ -602,6 +812,7 @@ export function Settings(props: {
 function LivePreview(props: {
   session: Session;
   boot: Boot;
+  collectionMembers: CollectionTags;
   draft: FarviewConfig;
   today: LocalDate;
 }) {
@@ -612,8 +823,14 @@ function LivePreview(props: {
   const [width, setWidth] = useState(760);
 
   const resolved = useMemo(
-    () => resolveSchema(props.draft, props.boot.structures, props.boot.tags),
-    [props.draft, props.boot],
+    () =>
+      resolveSchema(
+        props.draft,
+        props.boot.structures,
+        props.boot.tags,
+        props.collectionMembers,
+      ),
+    [props.draft, props.boot, props.collectionMembers],
   );
   const projectMapped = resolved.types.project !== undefined;
 
@@ -680,7 +897,8 @@ function LivePreview(props: {
     view: defaultView(dayNumber(props.today)),
     width,
     today: props.today,
-    groupOrder: props.draft.grouping.values,
+    groupOrder: resolved.groupValues,
+    subGroupOrder: resolved.subGroupValues,
   });
 
   return (

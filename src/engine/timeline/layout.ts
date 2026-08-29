@@ -41,12 +41,18 @@ export interface BarGeometry {
   clampedRight: boolean;
   overdue: boolean;
   done: boolean;
+  /** Placed by a derived rollup span: drawn dashed, no fill, no drag. */
+  derived: boolean;
   color: string;
   label: { placement: 'inside' | 'right' | 'left' | 'hidden'; text: string; x: number };
 }
 
 export interface LaneGeometry {
   group: string | null;
+  /** The area within the pillar, when a second grouping level is mapped. */
+  subGroup: string | null;
+  /** First lane of its primary group: the pillar's name prints here only. */
+  firstOfGroup: boolean;
   label: string;
   color: string;
   y: number;
@@ -71,6 +77,8 @@ export interface LayoutOptions {
   width: number;
   today: LocalDate;
   groupOrder: string[];
+  /** Second-level lane order (areas within a pillar). */
+  subGroupOrder?: string[];
   maxRowsPerLane?: number;
 }
 
@@ -96,7 +104,8 @@ export function layoutTimeline(
   const goals = items.filter((i) => i.kind === 'goal');
   const projects = items.filter((i) => i.kind !== 'goal');
   const goalLanes = packLanes(
-    goals.map((g) => ({ ...g, group: GOALS_LANE })),
+    // One goals lane, whatever their tags: sub-grouping applies to work.
+    goals.map((g) => ({ ...g, group: GOALS_LANE, subGroup: null })),
     {
       todayDay,
       pxPerDay: scale.pxPerDay,
@@ -108,9 +117,12 @@ export function layoutTimeline(
     todayDay,
     pxPerDay: scale.pxPerDay,
     groupOrder: opts.groupOrder,
+    ...(opts.subGroupOrder ? { subGroupOrder: opts.subGroupOrder } : {}),
     ...(opts.maxRowsPerLane !== undefined ? { maxRows: opts.maxRowsPerLane } : {}),
   });
 
+  // Color follows the PRIMARY group: a pillar's areas share its hue, so
+  // the sub-lanes read as one family rather than six unrelated colors.
   const colors = assignGroupColors(projectLanes.map((l) => l.group));
   const laneGeoms: LaneGeometry[] = [];
   const bars: BarGeometry[] = [];
@@ -132,9 +144,17 @@ export function layoutTimeline(
     y += LANE_PAD_BOTTOM;
     laneGeoms.push({
       group: isGoals ? null : lane.group,
+      subGroup: isGoals ? null : lane.subGroup,
+      firstOfGroup: isGoals ? true : lane.firstOfGroup,
+      // The lane's own name: its area when nested, else its pillar. A
+      // pillar's leftovers — tagged with it but with no area — trail its
+      // areas as "Other" rather than repeating the pillar's name.
       label: isGoals
         ? 'Goals'
-        : (lane.group ?? (projectLanes.length > 1 ? 'Ungrouped' : 'Projects')),
+        : (lane.subGroup ??
+          (lane.firstOfGroup
+            ? (lane.group ?? (projectLanes.length > 1 ? 'Ungrouped' : 'Projects'))
+            : 'Other')),
       color,
       y: laneTop,
       height: y - laneTop,
@@ -162,7 +182,7 @@ function barGeometry(
   y: number,
   color: string,
 ): BarGeometry | null {
-  const { item, startDay, targetDay, effStart, effEnd } = placed;
+  const { item, startDay, targetDay, effStart, effEnd, usesDerived } = placed;
 
   // Cull far-off-screen geometry, generously, so labels never pop at edges.
   const cullMargin = 400 / Math.max(scale.pxPerDay, 0.001);
@@ -184,10 +204,14 @@ function barGeometry(
   const w = Math.max(endX - x, 2);
 
   const done = item.status === 'done';
-  const overdue = !done && targetDay !== null && targetDay < todayDay;
+  // A derived span is a fact about children, not a commitment of this
+  // item: it never fills, never reads as overdue.
+  const overdue = !done && !usesDerived && targetDay !== null && targetDay < todayDay;
 
   let elapsedFrac = 0;
-  if (done) {
+  if (usesDerived) {
+    elapsedFrac = 0;
+  } else if (done) {
     elapsedFrac = 1;
   } else if (startDay !== null && targetDay !== null && targetDay > startDay) {
     elapsedFrac = Math.min(1, Math.max(0, (todayDay - startDay) / (targetDay - startDay)));
@@ -204,7 +228,9 @@ function barGeometry(
   // clamped width — a multi-year bar clipped by the viewport would
   // otherwise show a fictional amount of elapsed time.
   let fillW = 0;
-  if (done || isOpenEnded) {
+  if (usesDerived) {
+    fillW = 0;
+  } else if (done || isOpenEnded) {
     fillW = w;
   } else if (startDay !== null && targetDay !== null && targetDay > startDay) {
     const fillEndDay = Math.min(todayDay, targetDay);
@@ -245,6 +271,7 @@ function barGeometry(
     h: BAR_H,
     elapsedFrac,
     fillW,
+    derived: usesDerived,
     clampedLeft,
     clampedRight,
     overdue,

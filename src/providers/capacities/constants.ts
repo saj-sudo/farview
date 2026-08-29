@@ -5,6 +5,7 @@
  */
 export const TAG_STRUCTURE_ID = 'RootTag';
 export const PAGE_STRUCTURE_ID = 'RootPage';
+export const COLLECTION_STRUCTURE_ID = 'RootDatabase';
 
 /** Known deep-link base. */
 export const APP_BASE = 'https://app.capacities.io';

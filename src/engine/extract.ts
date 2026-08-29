@@ -1,7 +1,13 @@
 import { localDateFromIso } from './dates';
 import type { FullObject, PropertyValue } from './provider';
 import type { ResolvedSchema } from './resolve';
-import type { FarviewConfig, ItemStatus, MilestoneItem, TimelineItem } from './types';
+import type {
+  ActionItem,
+  FarviewConfig,
+  ItemStatus,
+  MilestoneItem,
+  TimelineItem,
+} from './types';
 
 /**
  * FullObject → TimelineItem: the one place raw API property payloads
@@ -66,17 +72,24 @@ export function assignGroup(
   config: FarviewConfig,
   resolved: ResolvedSchema,
   tagsOf: (id: string) => string[],
-): { group: string | null; tags: string[] } {
+): { group: string | null; subGroup: string | null; tags: string[] } {
+  // The second level is always tag-driven: a space that keeps pillars
+  // and areas as tags gets both, in the order its own taxonomy lists.
+  const subGroup =
+    config.grouping.sub.by === 'tag'
+      ? (resolved.subGroupValues.filter((v) => tagsOf(obj.id).includes(v))[0] ?? null)
+      : null;
+
   switch (config.grouping.by) {
     case 'tag': {
       const tags = tagsOf(obj.id);
-      const configured = config.grouping.values.filter((v) => tags.includes(v));
-      return { group: configured[0] ?? null, tags: configured };
+      const configured = resolved.groupValues.filter((v) => tags.includes(v));
+      return { group: configured[0] ?? null, subGroup, tags: configured };
     }
     case 'property': {
       const propId = resolved.groupingProperty?.property.id;
       const labels = labelProp(obj, propId);
-      return { group: labels[0] ?? null, tags: [] };
+      return { group: labels[0] ?? null, subGroup, tags: [] };
     }
     case 'type': {
       const structure = [
@@ -84,10 +97,10 @@ export function assignGroup(
         resolved.types.goal,
         resolved.types.milestone,
       ].find((t) => t?.structure.id === obj.structureId);
-      return { group: structure?.structure.title ?? null, tags: [] };
+      return { group: structure?.structure.title ?? null, subGroup, tags: [] };
     }
     case 'none':
-      return { group: null, tags: [] };
+      return { group: null, subGroup, tags: [] };
   }
 }
 
@@ -112,7 +125,7 @@ export function extractItem(
   const statusLabels = isGoal ? [] : labelProp(obj, p.projectStatus?.property.id);
   const { status, statusLabel } = classifyStatus(statusLabels, config);
 
-  const { group, tags } = assignGroup(obj, config, resolved, tagsOf);
+  const { group, subGroup, tags } = assignGroup(obj, config, resolved, tagsOf);
 
   const horizonLabels = isGoal ? labelProp(obj, p.goalHorizon?.property.id) : [];
 
@@ -125,12 +138,72 @@ export function extractItem(
     status,
     statusLabel,
     group,
+    subGroup,
     tags,
     flags: {
       targetBeforeStart: start !== null && target !== null && target < start,
     },
-    milestoneIds: isGoal ? [] : entityProp(obj, p.projectMilestones?.property.id),
+    milestoneIds: isGoal
+      ? entityProp(obj, p.goalMilestones?.property.id)
+      : entityProp(obj, p.projectMilestones?.property.id),
+    goalId: isGoal ? null : (entityProp(obj, p.projectGoal?.property.id)[0] ?? null),
+    actionIds: isGoal
+      ? entityProp(obj, p.goalActions?.property.id)
+      : entityProp(obj, p.projectActions?.property.id),
+    derived: null, // rollup spans are computed later, from loaded children
     horizonLabel: horizonLabels[0] ?? null,
+  };
+}
+
+/**
+ * An action object → the hierarchy's leaf: a real (possibly ranged)
+ * date and a done flag. Mapped properties first; when the action type's
+ * schema is unmapped, fall back to the first date property and any
+ * label matching the configured done values — same forgiving posture
+ * as milestones.
+ */
+export function extractAction(
+  obj: FullObject,
+  config: FarviewConfig,
+  resolved: ResolvedSchema,
+): ActionItem {
+  const dateId = resolved.properties.actionDate?.property.id;
+  const statusId = resolved.properties.actionStatus?.property.id;
+
+  let start: string | null = null;
+  let end: string | null = null;
+  if (dateId && obj.properties[dateId]?.type === 'date') {
+    const v = obj.properties[dateId] as { start: string | null; end: string | null };
+    start = v.start;
+    end = v.end;
+  } else {
+    for (const value of Object.values(obj.properties)) {
+      if (value.type === 'date') {
+        start = value.start;
+        end = value.end;
+        break;
+      }
+    }
+  }
+
+  let labels: string[];
+  if (statusId && obj.properties[statusId]?.type === 'label') {
+    labels = (obj.properties[statusId] as { names: string[] }).names;
+  } else {
+    labels = Object.values(obj.properties)
+      .filter((v): v is { type: 'label'; names: string[] } => v.type === 'label')
+      .flatMap((v) => v.names);
+  }
+  const { status } = classifyStatus(labels, config);
+
+  const startDate = start ? localDateFromIso(start) : null;
+  const endDate = end ? localDateFromIso(end) : null;
+  return {
+    id: obj.id,
+    title: obj.title,
+    start: endDate !== null ? startDate : null, // a lone date is the target
+    target: endDate ?? startDate,
+    done: status === 'done',
   };
 }
 

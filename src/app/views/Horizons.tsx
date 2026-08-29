@@ -75,6 +75,7 @@ export function Horizons(props: {
             ? `from ${formatLocalDate(item.start)}`
             : 'undated'}
         {item.group !== null ? ` · ${item.group}` : ''}
+        {item.subGroup !== null ? ` › ${item.subGroup}` : ''}
       </span>
     </button>
   );
@@ -176,7 +177,7 @@ export function Horizons(props: {
           config={props.config}
           defaultKind={props.resolved.types.goal ? 'goal' : 'project'}
           defaultTarget={creatingTarget}
-          onCreate={async (spec) => (await props.edit!.createItem(spec)) !== null}
+          onCreate={(spec) => props.edit!.createItem(spec)}
           onClose={() => setCreatingTarget('closed')}
         />
       )}

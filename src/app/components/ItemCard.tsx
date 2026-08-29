@@ -60,6 +60,9 @@ export function ItemCard(props: ItemCardProps) {
       <p class="tl-card-meta">
         {item.kind === 'goal' && <span class="chip">Goal</span>}
         {item.group !== null && <span class="chip">{item.group}</span>}
+        {item.subGroup !== null && item.subGroup !== item.group && (
+          <span class="chip">{item.subGroup}</span>
+        )}
         {item.statusLabel !== null && <span class="chip">{item.statusLabel}</span>}
       </p>
       <p class="tl-card-dates">
@@ -69,7 +72,15 @@ export function ItemCard(props: ItemCardProps) {
             ? `Target: ${formatLocalDate(item.target)}`
             : item.start !== null
               ? `Started ${formatLocalDate(item.start)} — no target date`
-              : 'No dates yet'}
+              : item.derived !== null
+                ? `No dates of its own — its linked items span ${
+                    item.derived.start !== null ? formatLocalDate(item.derived.start) : '…'
+                  } → ${
+                    item.derived.target !== null
+                      ? formatLocalDate(item.derived.target)
+                      : '…'
+                  }. Set a date here or in Capacities to pin it.`
+                : 'No dates yet'}
       </p>
       {elapsedSentence(item, today) !== null && (
         <p class="fineprint">{elapsedSentence(item, today)}</p>
@@ -145,6 +156,10 @@ export function ItemCard(props: ItemCardProps) {
       )}
 
       <p class="tl-card-open">
+        <a href={`#/item?id=${encodeURIComponent(item.id)}`} onClick={props.onClose}>
+          Details →
+        </a>
+        {' · '}
         <a href={props.deepLink} target="_blank" rel="noreferrer">
           Open in Capacities ↗
         </a>

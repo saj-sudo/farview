@@ -14,6 +14,8 @@ export interface FixtureSpace {
   objects: FullObject[];
   /** tagId → object ids carrying that tag. */
   tagAssignments: Record<string, string[]>;
+  /** Collections and the object (usually tag) ids they hold. */
+  collections?: { id: string; name: string; memberIds: string[] }[];
 }
 
 /**

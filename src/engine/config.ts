@@ -28,14 +28,21 @@ export function defaultConfig(): FarviewConfig {
       goal: null,
       project: 'Project',
       milestone: null,
+      action: null,
     },
     properties: {
       projectStart: 'Start Date',
       projectTarget: 'Target Completion',
       projectStatus: 'Status',
       projectMilestones: null,
+      projectGoal: null,
+      projectActions: null,
       goalTarget: null,
       goalHorizon: null,
+      goalActions: null,
+      goalMilestones: null,
+      actionDate: null,
+      actionStatus: null,
     },
     statusValues: {
       active: ['Active', 'Planned'],
@@ -45,6 +52,8 @@ export function defaultConfig(): FarviewConfig {
       by: 'none',
       property: null,
       values: [],
+      collection: null,
+      sub: { by: 'none', values: [], collection: null },
     },
     horizons: {
       mode: 'derived',
@@ -140,6 +149,7 @@ export function normalizeConfig(input: unknown): FarviewConfig {
       goal: strOrNull(types['goal'], d.types.goal),
       project: strOrNull(types['project'], d.types.project),
       milestone: strOrNull(types['milestone'], d.types.milestone),
+      action: strOrNull(types['action'], d.types.action),
     },
     properties: {
       projectStart: strOrNull(props['projectStart'], d.properties.projectStart),
@@ -149,8 +159,14 @@ export function normalizeConfig(input: unknown): FarviewConfig {
         props['projectMilestones'],
         d.properties.projectMilestones,
       ),
+      projectGoal: strOrNull(props['projectGoal'], d.properties.projectGoal),
+      projectActions: strOrNull(props['projectActions'], d.properties.projectActions),
       goalTarget: strOrNull(props['goalTarget'], d.properties.goalTarget),
       goalHorizon: strOrNull(props['goalHorizon'], d.properties.goalHorizon),
+      goalActions: strOrNull(props['goalActions'], d.properties.goalActions),
+      goalMilestones: strOrNull(props['goalMilestones'], d.properties.goalMilestones),
+      actionDate: strOrNull(props['actionDate'], d.properties.actionDate),
+      actionStatus: strOrNull(props['actionStatus'], d.properties.actionStatus),
     },
     statusValues: {
       active: strArray(status['active'], d.statusValues.active),
@@ -164,6 +180,19 @@ export function normalizeConfig(input: unknown): FarviewConfig {
       ),
       property: strOrNull(grouping['property'], d.grouping.property),
       values: strArray(grouping['values'], d.grouping.values),
+      collection: strOrNull(grouping['collection'], d.grouping.collection),
+      sub: {
+        by: oneOf<'tag' | 'none'>(
+          rec(grouping['sub'])['by'],
+          ['tag', 'none'],
+          d.grouping.sub.by,
+        ),
+        values: strArray(rec(grouping['sub'])['values'], d.grouping.sub.values),
+        collection: strOrNull(
+          rec(grouping['sub'])['collection'],
+          d.grouping.sub.collection,
+        ),
+      },
     },
     horizons: {
       mode: oneOf<HorizonMode>(horizons['mode'], ['derived', 'property'], d.horizons.mode),

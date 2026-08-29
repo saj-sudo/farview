@@ -1,6 +1,6 @@
 {
   "name": "farview",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "Farview: see your goals across time, in Capacities. A visual timeline of your goals and projects across planning horizons — read-only by default, with editing as an explicit opt-in. Disclaimer: Farview is an independent community tool. It is not affiliated with, endorsed by, or sponsored by Capacities. Capacities is a trademark of its respective owners.",
   "keywords": [
     "capacities",

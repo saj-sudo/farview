@@ -112,12 +112,13 @@ export function TimelineSvg(props: TimelineSvgProps) {
       {layout.lanes.map((lane, i) =>
         i === 0 ? null : (
           <line
-            key={`lane-${lane.label}`}
+            key={`lane-${lane.group ?? ''}/${lane.subGroup ?? ''}`}
             x1={0}
             y1={lane.y}
             x2={layout.width}
             y2={lane.y}
-            class="tl-lane-line"
+            /* Areas inside one pillar are divided faintly; pillars fully. */
+            class={`tl-lane-line ${lane.firstOfGroup ? '' : 'is-sub'}`}
           />
         ),
       )}
@@ -209,12 +210,16 @@ function Bar(props: {
         : 'start'
       : 'move';
 
-  const canDrag = props.editable && !bar.done && props.onDragStart !== undefined;
+  // A derived span isn't this item's own date, so there is nothing to
+  // drag — set real dates (card or Capacities) to pin it first.
+  const canDrag =
+    props.editable && !bar.done && !bar.derived && props.onDragStart !== undefined;
 
   const classes = [
     'tl-item',
     bar.done ? 'is-done' : '',
     bar.overdue ? 'is-overdue' : '',
+    bar.derived ? 'is-derived' : '',
     props.selected ? 'is-selected' : '',
     canDrag ? 'editable' : '',
   ]

@@ -1,5 +1,6 @@
 import { buildCreateProperties, buildDatePatch, type Editor } from '../../engine/editor';
 import type {
+  CollectionDef,
   FullObject,
   ObjectSummary,
   PropertyValue,
@@ -58,6 +59,25 @@ export class FixtureProvider implements Provider {
       if (o.structureId === structureId) {
         yield { id: o.id, structureId, title: o.title };
       }
+    }
+  }
+
+  listCollections(): Promise<CollectionDef[]> {
+    return Promise.resolve(
+      (this.space.collections ?? []).map((c) => ({ id: c.id, name: c.name })),
+    );
+  }
+
+  async *listObjectsByCollection(collectionId: string): AsyncIterable<ObjectSummary> {
+    const collection = (this.space.collections ?? []).find((c) => c.id === collectionId);
+    for (const id of collection?.memberIds ?? []) {
+      const tag = this.space.tags.find((t) => t.id === id);
+      if (tag) {
+        yield { id: tag.id, structureId: 'RootTag', title: tag.name };
+        continue;
+      }
+      const obj = this.space.objects.find((o) => o.id === id);
+      if (obj) yield { id: obj.id, structureId: obj.structureId, title: obj.title };
     }
   }
 
@@ -144,9 +164,11 @@ export function createFixtureEditor(
     const p = payload as
       | { type: 'date'; date: { start: string | null } }
       | { type: 'label'; label: { id: string; name: string }[] }
+      | { type: 'entity'; entity: { id: string }[] }
       | { type: 'title'; title: { value: string } };
     if (p.type === 'date') return { type: 'date', start: p.date.start, end: null };
     if (p.type === 'label') return { type: 'label', names: p.label.map((l) => l.name) };
+    if (p.type === 'entity') return { type: 'entity', ids: p.entity.map((e) => e.id) };
     return { type: 'text', value: p.title.value };
   };
 
@@ -176,6 +198,14 @@ export function createFixtureEditor(
         for (const [propId, payload] of Object.entries(patch)) {
           obj.properties[propId] = simplify(payload);
         }
+      });
+      return Promise.resolve(updated);
+    },
+    setEntityProperty(id, propertyId, ids) {
+      const failure = provider.writeFails();
+      if (failure) return failure;
+      const updated = provider.patchObject(id, (obj) => {
+        obj.properties[propertyId] = { type: 'entity', ids: [...ids] };
       });
       return Promise.resolve(updated);
     },

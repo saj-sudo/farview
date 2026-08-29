@@ -476,6 +476,33 @@ a:hover {
   color: var(--ink-soft);
 }
 
+/* A grouping level: its source select, then either its chips or a
+   read-out of the collection it follows. Indented so the two levels
+   read as a hierarchy rather than two unrelated blocks. */
+.level-picker {
+  border-left: 2px solid var(--line);
+  padding-left: 0.75rem;
+  margin: 0.6rem 0 0.2rem;
+  gap: 0.15rem;
+}
+
+.level-picker > span {
+  font-weight: 600;
+}
+
+.level-picker .fineprint,
+.level-picker .empty-note,
+.level-picker .loading {
+  margin: 0.15rem 0 0;
+}
+
+.hint {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  max-width: 46rem;
+  margin: 0.2rem 0 0.6rem;
+}
+
 .tag-grid {
   display: flex;
   gap: 0.4rem;
@@ -690,6 +717,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  white-space: nowrap;
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -1208,4 +1236,109 @@ a:hover {
 .tl-handle {
   fill: transparent;
   cursor: ew-resize;
+}
+
+/* Derived rollup spans: a fact about children, drawn as a dashed shell. */
+.tl-item.is-derived .tl-track {
+  fill-opacity: 0.05;
+  stroke-dasharray: 5 4;
+  stroke-opacity: 0.75;
+  stroke-width: 1.4;
+}
+
+.tl-item.is-derived {
+  cursor: pointer;
+}
+
+/* ---------- item detail (drill-in) ---------- */
+
+.detail-crumbs {
+  font-size: 0.88rem;
+  margin: 0 0 0.5rem;
+}
+
+.detail-head {
+  max-width: none;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.detail-head h2 {
+  font-size: 1.45rem;
+}
+
+.detail-facts {
+  color: var(--accent);
+}
+
+.detail-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.detail-actions .tl-card-edit {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.detail-chart {
+  cursor: default;
+  margin-bottom: 1rem;
+}
+
+.detail-list {
+  max-width: 46rem;
+}
+
+.detail-list h3 {
+  margin: 1.25rem 0 0.4rem;
+}
+
+.detail-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.detail-list li {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-list li.done,
+.detail-list .done {
+  color: var(--ink-soft);
+}
+
+.detail-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--ink);
+}
+
+.detail-child:hover {
+  text-decoration: none;
+  color: var(--accent);
+}
+
+/* Areas within one pillar get a fainter divider than the pillars do. */
+.tl-lane-line.is-sub {
+  opacity: 0.4;
+  stroke-dasharray: 2 5;
+}
+
+/* Nested sub-lanes: the pillar names itself once, its areas indent. */
+.tl-lane-header.is-sub {
+  margin-left: 0.9rem;
+}
+
+.tl-lane-pillar {
+  color: var(--ink);
+  font-weight: 700;
+  margin-right: 0.15rem;
 }

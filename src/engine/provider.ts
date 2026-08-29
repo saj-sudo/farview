@@ -34,6 +34,16 @@ export interface TagDef {
   name: string;
 }
 
+/**
+ * A Capacities collection. Spaces often keep their taxonomy in one —
+ * a "Life Pillars" collection holding the pillar tags — so Farview can
+ * map a whole level by naming the collection instead of every tag.
+ */
+export interface CollectionDef {
+  id: string;
+  name: string;
+}
+
 export interface ObjectSummary {
   id: string;
   structureId: string;
@@ -66,8 +76,11 @@ export interface Provider {
   listStructures(): Promise<StructureDef[]>;
   listTags(): Promise<TagDef[]>;
 
+  listCollections(): Promise<CollectionDef[]>;
+
   listObjectsByStructure(structureId: string): AsyncIterable<ObjectSummary>;
   listObjectsByTag(tagId: string): AsyncIterable<ObjectSummary>;
+  listObjectsByCollection(collectionId: string): AsyncIterable<ObjectSummary>;
 
   /** Full object, or null when it no longer exists (deleted → pruned, §11). */
   getObject(id: string): Promise<FullObject | null>;

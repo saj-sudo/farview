@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeConfig } from '../../src/engine/config';
-import { classifyStatus, extractItem, extractMilestone } from '../../src/engine/extract';
+import {
+  classifyStatus,
+  extractAction,
+  extractItem,
+  extractMilestone,
+} from '../../src/engine/extract';
 import type { FullObject, StructureDef } from '../../src/engine/provider';
 import { resolveSchema } from '../../src/engine/resolve';
 import { propDef } from '../../src/providers/fixture/types';
@@ -124,6 +129,93 @@ describe('classifyStatus', () => {
     expect(classifyStatus(['LAUNCHED'], config).status).toBe('done');
     expect(classifyStatus(['rigging'], config).status).toBe('active');
     expect(classifyStatus([], config).status).toBe('unknown');
+  });
+});
+
+describe('extractAction', () => {
+  const actionStructures: StructureDef[] = [
+    ...structures,
+    {
+      id: 'st-chore',
+      title: 'Deck Chore',
+      pluralName: 'Deck Chores',
+      properties: [
+        propDef('p-slated', 'Slated For', 'date'),
+        propDef('p-state', 'State', 'label', ['On the List', 'Squared Away']),
+      ],
+    },
+  ];
+  const actionConfig = normalizeConfig({
+    types: { project: 'Refit', action: 'Deck Chore' },
+    properties: {
+      projectStart: 'Laid Down',
+      projectTarget: 'Launch Day',
+      projectStatus: 'Berth',
+      actionDate: 'Slated For',
+      actionStatus: 'State',
+    },
+    statusValues: { active: ['On the List'], done: ['Squared Away'] },
+  });
+  const actionResolved = resolveSchema(actionConfig, actionStructures, []);
+
+  it('reads the mapped date and done label', () => {
+    const action = extractAction(
+      {
+        id: 'ch1',
+        structureId: 'st-chore',
+        title: 'Wax the hull',
+        properties: {
+          'p-slated': { type: 'date', start: '2026-09-01', end: null },
+          'p-state': { type: 'label', names: ['Squared Away'] },
+        },
+      },
+      actionConfig,
+      actionResolved,
+    );
+    expect(action.target).toBe('2026-09-01');
+    expect(action.start).toBeNull(); // a lone date is the deadline
+    expect(action.done).toBe(true);
+  });
+
+  it('keeps a ranged date as a span', () => {
+    const action = extractAction(
+      {
+        id: 'ch2',
+        structureId: 'st-chore',
+        title: 'Careen over the tides',
+        properties: {
+          'p-slated': { type: 'date', start: '2026-09-01', end: '2026-09-04' },
+        },
+      },
+      actionConfig,
+      actionResolved,
+    );
+    expect(action.start).toBe('2026-09-01');
+    expect(action.target).toBe('2026-09-04');
+    expect(action.done).toBe(false);
+  });
+
+  it('falls back to any date and label when the action schema is unmapped', () => {
+    const bare = resolveSchema(
+      normalizeConfig({ types: { project: 'Refit', action: 'Deck Chore' } }),
+      actionStructures,
+      [],
+    );
+    const action = extractAction(
+      {
+        id: 'ch3',
+        structureId: 'st-chore',
+        title: 'Unmapped chore',
+        properties: {
+          whatever: { type: 'date', start: '2026-10-10', end: null },
+          state: { type: 'label', names: ['Completed'] }, // default done set
+        },
+      },
+      normalizeConfig({ types: { project: 'Refit', action: 'Deck Chore' } }),
+      bare,
+    );
+    expect(action.target).toBe('2026-10-10');
+    expect(action.done).toBe(true);
   });
 });
 

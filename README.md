@@ -2,7 +2,7 @@
 
 **See your goals across time, in Capacities.**
 
-![The Farview timeline: colored lanes of project bars around a vertical gradient line marking today](docs/timeline.png)
+![The Farview timeline: pillar lanes with their areas nested beneath, colored bars around a vertical gradient line marking today](docs/timeline.png)
 
 > **Disclaimer:** Farview is an independent community tool. It is not affiliated with, endorsed by, or sponsored by Capacities. Capacities is a trademark of its respective owners.
 
@@ -36,10 +36,40 @@ Farview has no idea what a "Project" is until you tell it. Setup reads your spac
 
 ![The horizons view: columns for Now, Quarter, Year, Long and Someday with goal-grouped cards](docs/horizons.png)
 
+## Pillars and areas — lanes two deep
+
+Plenty of spaces keep a two-level taxonomy of tags: broad **pillars** (Health,
+Work, Money) with **areas** inside them (Home, Learn & Grow, Legal & Admin).
+Farview reads both. Point each grouping level at a tag *collection* and it
+follows that collection live — add a tag there and a lane appears here — or
+hand-pick tags and click them into the order you want.
+
+- Every (pillar, area) pair gets its own lane, so an area named the same under
+  two pillars stays two lanes rather than merging into one.
+- The pillar's name prints once, at the top of its run; its areas indent
+  beneath it and **share its color**, so a pillar reads as one block down the
+  page instead of six unrelated hues.
+- Items tagged with a pillar but no area keep a lane at the bottom of that
+  pillar's run; anything untagged sits last of all.
+- One level is still fine: leave the second set to "Nothing — one level".
+
+## Goals → projects → actions
+
+If your space connects things — a project pointing at its goal, a goal or project listing its actions or sub-items — Farview maps those relations too (all optional, all by property name):
+
+- **Click into any goal or project** for its own page: a mini-timeline of the family (the item's bar, its projects, its actions), a breadcrumb up to its goal, and navigable lists of everything underneath.
+- **Actions** are the leaf level — one sitting to one day of work. Point the mapping at Capacities' built-in Tasks or any custom type; keep your day-to-day to-dos wherever they already live.
+- **Milestones stay milestones**: achievement markers drawn as ticks on a bar, on projects and goals alike — separate from actions on purpose.
+- **Progress is stated as facts** — "1 of 3 actions done · 2 of 4 projects completed" — never a percent bar.
+- **Undated but connected?** A goal or project with no dates of its own borrows the envelope of its dated children: a dashed shell on the timeline, always labeled as derived, gone the moment you set a real date.
+- With editing on, **+ Project / + Action on a detail page create children already linked** to that item.
+
+![A project's detail page: breadcrumb to its goal, elapsed facts, and a mini-timeline of its own actions](docs/detail.png)
+
 ## Getting started
 
 1. Visit the site and click **Connect to Capacities**. You approve read access and pick which space to share — all on the Capacities side.
-2. Map your space: pick your project type, its date properties, and (optionally) goals, milestones, and grouping. The preview shows your real timeline as you go.
+2. Map your space: pick your project type, its date properties, and (optionally) goals, milestones, and up to two levels of grouping. The preview shows your real timeline as you go.
 3. Save. That's it — the timeline and horizons views work from the same data, on desktop and phone.
 
 No account is needed to look around: **Try the demo** runs on a synthetic space, entirely in your tab.
