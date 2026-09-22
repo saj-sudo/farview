@@ -122,7 +122,15 @@ function ConnectedApp(props: { session: Session }) {
   const data = useTimelineData(session, config, resolved);
   const edit = useEditActions(session, resolved, data);
 
-  const updateConfig = (next: FarviewConfig): void => {
+  const updateConfig = (next: FarviewConfig, collectionTags: CollectionTags): void => {
+    // Settings loads the tags for a collection the boot pass never saw, and
+    // resolves its own preview against them. Fold them in on save or the
+    // timeline would resolve that level empty until the next reload.
+    setBoot((prev) =>
+      prev
+        ? { ...prev, collectionTags: { ...prev.collectionTags, ...collectionTags } }
+        : prev,
+    );
     setConfig(next);
     if (session.kind === 'live') saveStoredConfig(next);
   };
@@ -232,7 +240,7 @@ function ViewBody(props: {
   view: View;
   data: TimelineData;
   edit: EditActions | null;
-  onConfig: (config: FarviewConfig) => void;
+  onConfig: (config: FarviewConfig, collectionTags: CollectionTags) => void;
 }) {
   if (props.view === 'settings') {
     return (

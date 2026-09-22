@@ -37,7 +37,12 @@ export function Settings(props: {
   config: FarviewConfig | null;
   today: LocalDate;
   data: TimelineData;
-  onConfig: (config: FarviewConfig) => void;
+  /**
+   * Saving hands back the collection tags this screen loaded on demand:
+   * a level pointed at a collection the boot pass never fetched resolves
+   * empty everywhere else until they travel with the config.
+   */
+  onConfig: (config: FarviewConfig, collectionTags: CollectionTags) => void;
   onboarding: boolean;
 }) {
   const { boot } = props;
@@ -124,7 +129,7 @@ export function Settings(props: {
     resolved.types[role]?.structure ?? null;
 
   const save = (): void => {
-    props.onConfig(draft);
+    props.onConfig(draft, collectionMembers);
     setSavedNote(
       props.session.kind === 'demo'
         ? 'Applied for this demo session.'
