@@ -53,6 +53,8 @@ describe('runPool', () => {
     const w = deferredWorkers(10);
     const done = runPool([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], w.worker, () => {}, {
       initialConcurrency: 4,
+      // Isolate the concurrency target: dispatch pacing has its own tests.
+      initialIntervalMs: 0,
     });
     await w.tick();
     expect(w.startedCount()).toBe(4);
@@ -121,5 +123,52 @@ describe('runPool', () => {
     await expect(
       runPool([], () => Promise.resolve(1), () => {}),
     ).resolves.toBeUndefined();
+  });
+});
+
+describe('dispatch pacing', () => {
+  const paced = async (throttleFirst: boolean) => {
+    let clock = 0;
+    const sleeps: number[] = [];
+    const starts: number[] = [];
+    let fired = false;
+
+    await runPool(
+      [1, 2, 3, 4],
+      (n, ctx) => {
+        starts.push(clock);
+        if (throttleFirst && !fired) {
+          fired = true;
+          ctx.onRateLimited();
+        }
+        return Promise.resolve(n);
+      },
+      () => {},
+      {
+        initialConcurrency: 1,
+        maxConcurrency: 1,
+        initialIntervalMs: 1000,
+        sleep: (ms) => {
+          sleeps.push(ms);
+          clock += ms;
+          return Promise.resolve();
+        },
+      },
+    );
+    return { sleeps, starts };
+  };
+
+  it('spaces dispatches once an attempt is rate limited', async () => {
+    const { sleeps, starts } = await paced(true);
+    expect(sleeps.length).toBeGreaterThan(0);
+    // Concurrency alone cannot satisfy a per-minute quota; the gap can.
+    expect(starts[2]! - starts[1]!).toBe(1000);
+    expect(starts[3]! - starts[2]!).toBe(1000);
+  });
+
+  it('does not pace dispatches when nothing is rate limited', async () => {
+    const { sleeps, starts } = await paced(false);
+    expect(sleeps).toEqual([]);
+    expect(starts).toEqual([0, 0, 0, 0]);
   });
 });

@@ -181,7 +181,9 @@ export async function loadTimelineData(
       // silently (§11).
       progress();
     },
-    { signal: deps.signal },
+    // The pool paces dispatches after a 429; share the backoff's sleep so
+    // one injected clock covers both and tests never really wait.
+    { signal: deps.signal, ...(deps.backoff?.sleep ? { sleep: deps.backoff.sleep } : {}) },
   );
   flush();
   if (writes.length > 0) {
@@ -321,7 +323,11 @@ export async function loadActions(
         out.push(extractAction(obj, deps.config, deps.resolved));
       }
     },
-    { initialConcurrency: 2, ...(deps.signal ? { signal: deps.signal } : {}) },
+    {
+      initialConcurrency: 2,
+      ...(deps.signal ? { signal: deps.signal } : {}),
+      ...(deps.backoff?.sleep ? { sleep: deps.backoff.sleep } : {}),
+    },
   );
   if (writes.length > 0) {
     try {
@@ -400,7 +406,11 @@ export async function loadMilestones(
         out.push(extractMilestone(obj, deps.config));
       }
     },
-    { initialConcurrency: 2, signal: deps.signal },
+    {
+      initialConcurrency: 2,
+      signal: deps.signal,
+      ...(deps.backoff?.sleep ? { sleep: deps.backoff.sleep } : {}),
+    },
   );
   if (writes.length > 0) {
     try {
