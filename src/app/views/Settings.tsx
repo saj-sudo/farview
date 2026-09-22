@@ -884,7 +884,7 @@ function LivePreview(props: {
       cancelled = true;
       controller.abort();
     };
-  }, [resolved, projectMapped, props.session]);
+  }, [resolved, projectMapped, props.session, props.draft]);
 
   if (!projectMapped) return null;
 

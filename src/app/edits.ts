@@ -123,5 +123,5 @@ export function useEditActions(
         }
       },
     };
-  }, [editor, data, notice]);
+  }, [editor, data, notice, enqueue, resolved]);
 }
