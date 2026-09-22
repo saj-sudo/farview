@@ -31,13 +31,25 @@ import type { TimelineData } from '../useTimelineData';
 
 const EMPTY_MILESTONES: ReadonlyMap<string, never[]> = new Map();
 
+/** The collection keys a draft's grouping levels name, normalized. */
+function collectionKeysOf(draft: FarviewConfig): string[] {
+  return [draft.grouping.collection, draft.grouping.sub.collection]
+    .filter((c): c is string => c !== null)
+    .map((c) => c.trim().toLowerCase());
+}
+
 export function Settings(props: {
   session: Session;
   boot: Boot;
   config: FarviewConfig | null;
   today: LocalDate;
   data: TimelineData;
-  onConfig: (config: FarviewConfig) => void;
+  /**
+   * Saving hands back the collection tags this screen loaded on demand:
+   * a level pointed at a collection the boot pass never fetched resolves
+   * empty everywhere else until they travel with the config.
+   */
+  onConfig: (config: FarviewConfig, collectionTags: CollectionTags) => void;
   onboarding: boolean;
 }) {
   const { boot } = props;
@@ -59,7 +71,7 @@ export function Settings(props: {
   // most one page per type (§6 step 2).
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       for (const structure of customTypes) {
         let n = 0;
         try {
@@ -96,23 +108,20 @@ export function Settings(props: {
   );
   const requestedRef = useRef(new Set(Object.keys(boot.collectionTags)));
   useEffect(() => {
-    const wanted = [draft.grouping.collection, draft.grouping.sub.collection]
-      .filter((c): c is string => c !== null)
-      .map((c) => c.trim().toLowerCase())
-      .filter((key) => !requestedRef.current.has(key));
+    const wanted = collectionKeysOf(draft).filter((key) => !requestedRef.current.has(key));
     if (wanted.length === 0) return;
     for (const key of wanted) requestedRef.current.add(key);
-    let cancelled = false;
-    void loadCollectionTags(props.session.provider, draft).then((more) => {
-      if (cancelled) return;
-      // A collection the space won't list settles as empty rather than
-      // spinning forever: the picker then says so plainly.
-      const settled: CollectionTags = Object.fromEntries(wanted.map((k) => [k, []]));
+    // Every requested key must land, or the save guard below waits on a
+    // result that is never coming. A collection the space won't list and a
+    // request that fails outright both settle as empty, so the picker says
+    // so plainly either way. The merge is per key and additive, and each key
+    // is requested exactly once, so a superseded response can only fill a
+    // gap: there is nothing it could overwrite, and nothing to cancel.
+    const settled: CollectionTags = Object.fromEntries(wanted.map((k) => [k, []]));
+    const apply = (more: CollectionTags): void => {
       setCollectionMembers((prev) => ({ ...prev, ...settled, ...more }));
-    });
-    return () => {
-      cancelled = true;
     };
+    void loadCollectionTags(props.session.provider, draft).then(apply, () => apply({}));
   }, [draft.grouping.collection, draft.grouping.sub.collection, props.session, draft]);
 
   const resolved = useMemo(
@@ -123,8 +132,15 @@ export function Settings(props: {
   const structureFor = (role: TypeRole): StructureDef | null =>
     resolved.types[role]?.structure ?? null;
 
+  // Saving hands these tags to the timeline, so a level naming a collection
+  // still being read would resolve empty there. Wait for it rather than
+  // saving a mapping that silently points at nothing.
+  const unresolvedCollections = collectionKeysOf(draft).filter(
+    (key) => !(key in collectionMembers),
+  );
+
   const save = (): void => {
-    props.onConfig(draft);
+    props.onConfig(draft, collectionMembers);
     setSavedNote(
       props.session.kind === 'demo'
         ? 'Applied for this demo session.'
@@ -605,7 +621,11 @@ export function Settings(props: {
       />
 
       <div class="settings-actions">
-        <button class="primary" onClick={save} disabled={!resolved.types.project}>
+        <button
+          class="primary"
+          onClick={save}
+          disabled={!resolved.types.project || unresolvedCollections.length > 0}
+        >
           {props.onboarding ? 'Save and open the timeline' : 'Save'}
         </button>
         {!props.onboarding && <a href={HASH_FOR.timeline}>Back to the timeline</a>}
@@ -613,6 +633,9 @@ export function Settings(props: {
           Export / import
         </button>
       </div>
+      {unresolvedCollections.length > 0 && (
+        <p class="notice">Reading that collection. Saving will be ready in a moment.</p>
+      )}
       {savedNote && <p class="notice">{savedNote}</p>}
       {!resolved.types.project && (
         <p class="fineprint">
@@ -884,7 +907,7 @@ function LivePreview(props: {
       cancelled = true;
       controller.abort();
     };
-  }, [resolved, projectMapped, props.session]);
+  }, [resolved, projectMapped, props.session, props.draft]);
 
   if (!projectMapped) return null;
 

@@ -427,7 +427,12 @@ export function Timeline(props: {
     nudgeRef.current = base;
   };
 
-  useEffect(() => commitNudge, []); // flush a pending nudge on unmount
+  // Flush a pending nudge on unmount through the *latest* closure: capturing
+  // the first one would commit against a stale props.edit, and a connection
+  // that gained editing after mount would drop the write silently.
+  const commitNudgeRef = useRef(commitNudge);
+  commitNudgeRef.current = commitNudge;
+  useEffect(() => () => commitNudgeRef.current(), []);
 
   /* ---------------- selection + deep links ---------------- */
 

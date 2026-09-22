@@ -4,6 +4,12 @@
  * CapacitiesApiError with code cap_rate_limit_exceeded; on one of those
  * we back off exponentially with jitter and retry a few times before
  * giving up. Clock and sleep are injectable for tests.
+ *
+ * Every documented endpoint meters over a 60-second window, and the SDK
+ * discards response headers, so `reset` is not readable. The defaults
+ * are therefore sized so that even the shortest jittered run of retries
+ * outlasts a full window; a budget that expires inside one surfaces as
+ * silently dropped items rather than as an error.
  */
 
 export interface BackoffOptions {
@@ -29,9 +35,9 @@ export async function withBackoff<T>(
   fn: () => Promise<T>,
   opts: BackoffOptions = {},
 ): Promise<T> {
-  const maxRetries = opts.maxRetries ?? 4;
+  const maxRetries = opts.maxRetries ?? 7;
   const base = opts.baseDelayMs ?? 1000;
-  const max = opts.maxDelayMs ?? 30_000;
+  const max = opts.maxDelayMs ?? 60_000;
   const sleep = opts.sleep ?? defaultSleep;
   const random = opts.random ?? Math.random;
 

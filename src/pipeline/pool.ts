@@ -5,6 +5,13 @@
  * workers, halve the target on any rate-limited attempt, and creep
  * back up after a stretch of clean completions. Revisit if the SDK
  * ever exposes response headers.
+ *
+ * Concurrency alone cannot satisfy a *rate* limit: even one worker
+ * with no delay issues requests as fast as round-trips allow, which is
+ * far above a per-minute quota. So a rate-limited attempt also opens a
+ * minimum gap between dispatches, doubling while 429s keep arriving and
+ * decaying once they stop. The gap converges on whatever the endpoint's
+ * real quota is without naming a number here.
  */
 
 export interface PoolOptions {
@@ -12,7 +19,12 @@ export interface PoolOptions {
   maxConcurrency?: number;
   /** Clean completions required before raising concurrency by one. */
   recoveryStreak?: number;
+  /** First gap opened between dispatches once throttled. */
+  initialIntervalMs?: number;
+  /** Ceiling on the dispatch gap, so a run cannot stall indefinitely. */
+  maxIntervalMs?: number;
   signal?: AbortSignal | undefined;
+  sleep?: (ms: number) => Promise<void>;
 }
 
 export interface PoolContext {
@@ -34,22 +46,29 @@ export function runPool<I, O>(
 ): Promise<void> {
   const max = opts.maxConcurrency ?? 8;
   const recovery = opts.recoveryStreak ?? 20;
+  const firstInterval = opts.initialIntervalMs ?? 1000;
+  const maxInterval = opts.maxIntervalMs ?? 15_000;
+  const sleep = opts.sleep ?? ((ms) => new Promise<void>((r) => setTimeout(r, ms)));
   let target = Math.min(max, opts.initialConcurrency ?? 4);
   let next = 0;
   let active = 0;
   let cleanStreak = 0;
   let failure: unknown = null;
+  let intervalMs = 0;
+  let gated = false;
 
   const ctx: PoolContext = {
     onRateLimited: () => {
       target = Math.max(1, Math.floor(target / 2));
       cleanStreak = 0;
+      intervalMs = Math.min(maxInterval, intervalMs === 0 ? firstInterval : intervalMs * 2);
     },
   };
 
   return new Promise<void>((resolve, reject) => {
     const settle = (): void => {
       if (active > 0) return;
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- propagate the worker's own rejection value unchanged
       if (failure !== null) reject(failure);
       else resolve();
     };
@@ -60,6 +79,7 @@ export function runPool<I, O>(
         return;
       }
       while (active < target && next < inputs.length) {
+        if (gated) return; // waiting out the gap; the timer re-pumps
         const input = inputs[next]!;
         next += 1;
         active += 1;
@@ -67,8 +87,10 @@ export function runPool<I, O>(
           (result) => {
             active -= 1;
             cleanStreak += 1;
-            if (cleanStreak >= recovery && target < max) {
-              target += 1;
+            if (cleanStreak >= recovery) {
+              if (target < max) target += 1;
+              // Ease the dispatch gap back down the way it opened.
+              intervalMs = intervalMs <= firstInterval ? 0 : Math.floor(intervalMs / 2);
               cleanStreak = 0;
             }
             onResult(input, result);
@@ -80,6 +102,13 @@ export function runPool<I, O>(
             pump();
           },
         );
+        if (intervalMs > 0) {
+          gated = true;
+          void sleep(intervalMs).then(() => {
+            gated = false;
+            pump();
+          });
+        }
       }
       if (next >= inputs.length) settle();
     };

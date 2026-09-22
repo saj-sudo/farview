@@ -1,4 +1,9 @@
-import { CapacitiesApiError, CapacitiesClient, CapacitiesOAuthError } from '@capacities/api';
+import {
+  CapacitiesApiError,
+  CapacitiesClient,
+  CapacitiesErrorCode,
+  CapacitiesOAuthError,
+} from '@capacities/api';
 import { beginAuthorization } from '../auth/oauth';
 import { clearCredential, loadCredential, saveCredential } from '../auth/tokens';
 import { normalizeConfig } from '../engine/config';
@@ -187,7 +192,7 @@ export function setTokenEditing(on: boolean): boolean {
 
 /** A 403 that means "this connection was never granted write access". */
 export function isScopeInsufficiency(err: unknown): boolean {
-  return err instanceof CapacitiesApiError && err.code === 'cap_scope_insufficient';
+  return err instanceof CapacitiesApiError && err.code === CapacitiesErrorCode.ScopeInsufficient;
 }
 
 export function disconnect(): void {
@@ -204,6 +209,6 @@ export function isAuthLoss(err: unknown): boolean {
   return (
     err instanceof CapacitiesOAuthError ||
     (err instanceof CapacitiesApiError &&
-      (err.code === 'cap_not_authenticated' || err.status === 401))
+      (err.code === CapacitiesErrorCode.NotAuthenticated || err.status === 401))
   );
 }

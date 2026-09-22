@@ -1,6 +1,7 @@
 import {
   CapacitiesApiError,
   CapacitiesClient,
+  CapacitiesErrorCode,
   type GetObjectResponse,
 } from '@capacities/api';
 import {
@@ -130,7 +131,7 @@ export class CapacitiesAdapter implements Provider {
     try {
       res = await withBackoff(() => this.client.object.get({ id }));
     } catch (err) {
-      if (err instanceof CapacitiesApiError && err.code === 'cap_not_found') {
+      if (err instanceof CapacitiesApiError && err.code === CapacitiesErrorCode.NotFound) {
         return null; // deleted objects are pruned, never an error (§11)
       }
       throw err;
@@ -218,6 +219,9 @@ function titleOf(res: GetObjectResponse): string {
   return '';
 }
 
+const toLocalDate = (value: string | null | undefined): string | null =>
+  value ? value.slice(0, 10) : null;
+
 function simplifyProperties(
   properties: GetObjectResponse['properties'],
 ): Record<string, PropertyValue> {
@@ -227,8 +231,11 @@ function simplifyProperties(
       case 'date':
         out[propId] = {
           type: 'date',
-          start: value.date.start,
-          end: value.date.end,
+          // The API returns dates as full ISO strings (day-resolution ones
+          // at UTC midnight); the engine works in plain YYYY-MM-DD, so the
+          // conversion belongs here rather than at every comparison.
+          start: toLocalDate(value.date.start),
+          end: toLocalDate(value.date.end),
         };
         break;
       case 'label':

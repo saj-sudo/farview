@@ -3,7 +3,6 @@ import {
   addMonths,
   dateOfDayNumber,
   dayNumber,
-  isWeekend,
   MONTH_ABBR,
   MONTH_FULL,
   monthOf,
@@ -100,7 +99,7 @@ export function generateTicks(
 ): TickSet {
   const unit = unitFor(pxPerDay);
   const ticks: Tick[] = [];
-  let bands: Band[] = [];
+  let bands: Band[];
   const weekendBands: Band[] = [];
 
   if (unit === 'week') {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   resolveSchema,
   type CollectionTags,
@@ -71,9 +71,16 @@ function ConnectedApp(props: { session: Session }) {
   );
   const view = useView(config?.display.defaultView ?? 'timeline');
 
+  // Boot reads the config that exists when it runs, and must not re-run when
+  // the config changes: it would refetch the whole space (structures alone is
+  // 10 requests per minute) on every save. Settings tops up the collection
+  // tags a new mapping needs, so nothing here goes stale by waiting.
+  const configRef = useRef(config);
+  configRef.current = config;
+
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const [space, structures, tags, collections] = await Promise.all([
           session.provider.spaceInfo(),
@@ -82,8 +89,9 @@ function ConnectedApp(props: { session: Session }) {
           session.provider.listCollections().catch(() => [] as CollectionDef[]),
         ]);
         // Only the collections a mapped level names are expanded to tags.
-        const collectionTags = config
-          ? await loadCollectionTags(session.provider, config).catch(() => ({}))
+        const atBoot = configRef.current;
+        const collectionTags = atBoot
+          ? await loadCollectionTags(session.provider, atBoot).catch(() => ({}))
           : {};
         if (!cancelled) {
           setBoot({ space, structures, tags, collections, collectionTags });
@@ -114,7 +122,15 @@ function ConnectedApp(props: { session: Session }) {
   const data = useTimelineData(session, config, resolved);
   const edit = useEditActions(session, resolved, data);
 
-  const updateConfig = (next: FarviewConfig): void => {
+  const updateConfig = (next: FarviewConfig, collectionTags: CollectionTags): void => {
+    // Settings loads the tags for a collection the boot pass never saw, and
+    // resolves its own preview against them. Fold them in on save or the
+    // timeline would resolve that level empty until the next reload.
+    setBoot((prev) =>
+      prev
+        ? { ...prev, collectionTags: { ...prev.collectionTags, ...collectionTags } }
+        : prev,
+    );
     setConfig(next);
     if (session.kind === 'live') saveStoredConfig(next);
   };
@@ -224,7 +240,7 @@ function ViewBody(props: {
   view: View;
   data: TimelineData;
   edit: EditActions | null;
-  onConfig: (config: FarviewConfig) => void;
+  onConfig: (config: FarviewConfig, collectionTags: CollectionTags) => void;
 }) {
   if (props.view === 'settings') {
     return (

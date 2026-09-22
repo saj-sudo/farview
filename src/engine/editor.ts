@@ -98,12 +98,23 @@ export function datePropertyIds(
   };
 }
 
-/** The API's day-resolution date payload; null start clears the date. */
+/**
+ * The API's day-resolution date payload; null start clears the date.
+ * Day-resolution properties accept only UTC-midnight ISO strings — a bare
+ * YYYY-MM-DD is rejected with cap_invalid_input — so the engine's
+ * LocalDate is canonicalized here, at the edge where it becomes a write.
+ */
 export function dayPayload(date: LocalDate | null): {
   type: 'date';
   date: { dateResolution: 'day'; start: string | null };
 } {
-  return { type: 'date', date: { dateResolution: 'day', start: date } };
+  return {
+    type: 'date',
+    date: {
+      dateResolution: 'day',
+      start: date === null ? null : `${date.slice(0, 10)}T00:00:00.000Z`,
+    },
+  };
 }
 
 /**

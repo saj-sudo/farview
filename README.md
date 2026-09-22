@@ -1,5 +1,7 @@
 # Farview
 
+[![CI](https://github.com/saj-sudo/farview/actions/workflows/ci.yml/badge.svg)](https://github.com/saj-sudo/farview/actions/workflows/ci.yml)
+
 **See your goals across time, in Capacities.**
 
 ![The Farview timeline: pillar lanes with their areas nested beneath, colored bars around a vertical gradient line marking today](docs/timeline.png)

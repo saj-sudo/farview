@@ -92,7 +92,6 @@ export function NewItemDialog(props: {
           <input
             type="text"
             value={title}
-            // eslint-disable-next-line jsx-a11y/no-autofocus
             autofocus
             onInput={(e) => setTitle((e.target as HTMLInputElement).value)}
             onKeyDown={(e) => {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'preact/hooks';
+import { useMemo, useRef, useState } from 'preact/hooks';
 import {
   actionsPropertyId,
   applyDateChange,
@@ -11,6 +11,7 @@ import type { ResolvedSchema } from '../engine/resolve';
 import type { TimelineItem } from '../engine/types';
 import { isScopeInsufficiency, type Session } from './session';
 import type { TimelineData } from './useTimelineData';
+import { createWriteQueue, type WriteQueue } from './writeQueue';
 
 /**
  * The UI's write surface: optimistic apply, server write-through, and
@@ -39,6 +40,15 @@ export function useEditActions(
 ): EditActions | null {
   const [notice, setNotice] = useState<string | null>(null);
 
+  const queueRef = useRef<WriteQueue | null>(null);
+  if (queueRef.current === null) queueRef.current = createWriteQueue();
+  const enqueue = queueRef.current;
+
+  // Queued writes run after the render that scheduled them, so they read
+  // the item set through this ref rather than the captured `data`.
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
   const editor: Editor | null = useMemo(
     () => (resolved ? session.makeEditor(resolved) : null),
     [session, resolved],
@@ -63,7 +73,9 @@ export function useEditActions(
         const previous = item;
         data.upsertItem(applyDateChange(item, change)); // optimistic
         try {
-          const server = await editor.updateDates(item.id, item.kind, change);
+          const server = await enqueue(item.id, () =>
+            editor.updateDates(item.id, item.kind, change),
+          );
           data.applyObject(server, item.kind, { group: item.group, tags: item.tags });
           return true;
         } catch (err) {
@@ -84,11 +96,17 @@ export function useEditActions(
             if (parentItem && resolved) {
               const propId = actionsPropertyId(resolved, parentItem.kind);
               if (propId) {
-                const parentServer = await editor.setEntityProperty(
-                  parentItem.id,
-                  propId,
-                  [...parentItem.actionIds, server.id],
-                );
+                const parentServer = await enqueue(parentItem.id, () => {
+                  // Read the parent's links when the write actually runs:
+                  // an earlier queued create may have added ids since this
+                  // call was made, and the property is replaced wholesale.
+                  const current =
+                    dataRef.current.items.find((i) => i.id === parentItem.id) ?? parentItem;
+                  return editor.setEntityProperty(parentItem.id, propId, [
+                    ...current.actionIds,
+                    server.id,
+                  ]);
+                });
                 data.applyObject(parentServer, parentItem.kind, {
                   group: parentItem.group,
                   tags: parentItem.tags,
@@ -105,5 +123,5 @@ export function useEditActions(
         }
       },
     };
-  }, [editor, data, notice]);
+  }, [editor, data, notice, enqueue, resolved]);
 }

@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+
+const urlOf = (u: string | URL | Request): string =>
+  u instanceof Request ? u.url : String(u);
 import {
   beginAuthorization,
   completeAuthorization,
@@ -92,7 +95,7 @@ describe('scopes', () => {
       state: string;
     };
     const fetchFn = ((url: string | URL | Request) => {
-      if (String(url).includes('.well-known')) return Promise.resolve(metadataResponse);
+      if (urlOf(url).includes('.well-known')) return Promise.resolve(metadataResponse);
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ access_token: 'at', refresh_token: 'rt' }),
@@ -152,7 +155,7 @@ describe('completeAuthorization', () => {
   it('exchanges the code with no Authorization header', async () => {
     let tokenRequest: { url: string; init: RequestInit } | null = null;
     const fetchFn = ((url: string | URL | Request, init?: RequestInit) => {
-      const u = String(url);
+      const u = urlOf(url);
       if (u.includes('.well-known')) return Promise.resolve(metadataResponse);
       tokenRequest = { url: u, init: init! };
       return Promise.resolve({
@@ -220,7 +223,7 @@ describe('completeAuthorization', () => {
   it('falls back to documented endpoints when discovery is down', async () => {
     let tokenUrl = '';
     const fetchFn = ((url: string | URL | Request, init?: RequestInit) => {
-      const u = String(url);
+      const u = urlOf(url);
       if (u.includes('.well-known')) return Promise.reject(new Error('offline'));
       tokenUrl = u;
       void init;

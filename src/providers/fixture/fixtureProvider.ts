@@ -166,7 +166,11 @@ export function createFixtureEditor(
       | { type: 'label'; label: { id: string; name: string }[] }
       | { type: 'entity'; entity: { id: string }[] }
       | { type: 'title'; title: { value: string } };
-    if (p.type === 'date') return { type: 'date', start: p.date.start, end: null };
+    // Mirror the real adapter: writes go out as UTC-midnight ISO and come
+    // back narrowed to a plain day, so fixtures round-trip like the API.
+    if (p.type === 'date') {
+      return { type: 'date', start: p.date.start?.slice(0, 10) ?? null, end: null };
+    }
     if (p.type === 'label') return { type: 'label', names: p.label.map((l) => l.name) };
     if (p.type === 'entity') return { type: 'entity', ids: p.entity.map((e) => e.id) };
     return { type: 'text', value: p.title.value };
