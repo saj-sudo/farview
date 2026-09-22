@@ -95,4 +95,34 @@ describe('getObject simplification', () => {
     expect(obj.properties['p-links']).toEqual({ type: 'entity', ids: ['m1', 'm2'] });
     expect(obj.properties['p-weird']).toEqual({ type: 'other' });
   });
+
+  it("narrows the API's ISO dates to the engine's plain day form", async () => {
+    const client = stubClient({
+      object: {
+        get: () =>
+          Promise.resolve({
+            id: 'o1',
+            structureId: 'st-x',
+            properties: {
+              // The shape the real API returns for day-resolution dates.
+              'p-date': {
+                type: 'date',
+                date: {
+                  dateResolution: 'day',
+                  start: '2026-01-05T00:00:00.000Z',
+                  end: '2026-02-01T00:00:00.000Z',
+                },
+              },
+            },
+          }),
+      },
+    });
+    const adapter = new CapacitiesAdapter(client);
+    const obj = (await adapter.getObject('o1'))!;
+    expect(obj.properties['p-date']).toEqual({
+      type: 'date',
+      start: '2026-01-05',
+      end: '2026-02-01',
+    });
+  });
 });

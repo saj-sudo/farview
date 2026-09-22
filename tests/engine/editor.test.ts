@@ -34,9 +34,11 @@ describe('buildDatePatch', () => {
     const { resolved } = await setup();
     const patch = buildDatePatch(resolved, 'project', { target: '2026-12-01' as LocalDate });
     expect(Object.keys(patch)).toEqual(['p-launch']); // start untouched
+    // Day-resolution writes must be UTC midnight ISO; a bare YYYY-MM-DD
+    // is rejected by the API with cap_invalid_input.
     expect(patch['p-launch']).toEqual({
       type: 'date',
-      date: { dateResolution: 'day', start: '2026-12-01' },
+      date: { dateResolution: 'day', start: '2026-12-01T00:00:00.000Z' },
     });
   });
 
@@ -72,7 +74,7 @@ describe('buildCreateProperties', () => {
     });
     expect(properties['p-landfall']).toEqual({
       type: 'date',
-      date: { dateResolution: 'day', start: '2027-06-01' },
+      date: { dateResolution: 'day', start: '2027-06-01T00:00:00.000Z' },
     });
     const label = properties['p-reach'] as { label: { id: string }[] };
     expect(label.label[0]!.id).toBe('p-reach-opt-3'); // the stable option id
@@ -120,7 +122,7 @@ describe('parent linking', () => {
     expect(structureId).toBe('st-chore');
     expect(properties['p-slated']).toEqual({
       type: 'date',
-      date: { dateResolution: 'day', start: '2026-09-10' },
+      date: { dateResolution: 'day', start: '2026-09-10T00:00:00.000Z' },
     });
   });
 
