@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { runPool, type PoolContext } from '../../src/pipeline/pool';
 
-function deferredWorkers(count: number) {
+function deferredWorkers(_count: number) {
   const resolvers: (() => void)[] = [];
   const contexts: PoolContext[] = [];
   let active = 0;

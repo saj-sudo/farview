@@ -73,7 +73,7 @@ function ConnectedApp(props: { session: Session }) {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const [space, structures, tags, collections] = await Promise.all([
           session.provider.spaceInfo(),

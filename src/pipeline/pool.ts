@@ -68,6 +68,7 @@ export function runPool<I, O>(
   return new Promise<void>((resolve, reject) => {
     const settle = (): void => {
       if (active > 0) return;
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- propagate the worker's own rejection value unchanged
       if (failure !== null) reject(failure);
       else resolve();
     };

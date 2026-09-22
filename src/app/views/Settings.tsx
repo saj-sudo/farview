@@ -59,7 +59,7 @@ export function Settings(props: {
   // most one page per type (§6 step 2).
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    void (async () => {
       for (const structure of customTypes) {
         let n = 0;
         try {

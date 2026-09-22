@@ -29,7 +29,7 @@ const PATHS: Record<string, JSX.Element> = {
   ),
 };
 
-export function Icon({ name }: { name: keyof typeof PATHS | string }) {
+export function Icon({ name }: { name: string }) {
   const path = PATHS[name];
   if (!path) return null;
   return (

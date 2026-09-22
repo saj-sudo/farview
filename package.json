@@ -1,7 +1,7 @@
 {
   "name": "farview",
   "version": "0.4.0",
-  "description": "Farview: see your goals across time, in Capacities. A visual timeline of your goals and projects across planning horizons — read-only by default, with editing as an explicit opt-in. Disclaimer: Farview is an independent community tool. It is not affiliated with, endorsed by, or sponsored by Capacities. Capacities is a trademark of its respective owners.",
+  "description": "Farview: see your goals across time, in Capacities. A visual timeline of your goals and projects across planning horizons \u2014 read-only by default, with editing as an explicit opt-in. Disclaimer: Farview is an independent community tool. It is not affiliated with, endorsed by, or sponsored by Capacities. Capacities is a trademark of its respective owners.",
   "keywords": [
     "capacities",
     "timeline",
@@ -22,6 +22,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -31,9 +32,14 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@preact/preset-vite": "^2.9.0",
     "@types/node": "^26.3.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
     "typescript": "^5.6.0",
+    "typescript-eslint": "^8.70.1",
     "vite": "^7.0.0",
     "vitest": "^3.0.0"
   }

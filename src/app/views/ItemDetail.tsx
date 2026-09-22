@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { dayNumber, diffDays, formatLocalDate } from '../../engine/dates';
 import type { ResolvedSchema } from '../../engine/resolve';
 import { deriveSpan, factSentence, rollupFacts } from '../../engine/rollup';

@@ -65,7 +65,7 @@ export function useTimelineData(
     abortRef.current?.abort();
     abortRef.current = controller;
 
-    (async () => {
+    void (async () => {
       if (!cacheRef.current) {
         // The demo never persists; live sessions fall back to memory when
         // IndexedDB is unavailable and simply refetch more often.
