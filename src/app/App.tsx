@@ -31,6 +31,8 @@ import { ItemDetail } from './views/ItemDetail';
 import { Settings } from './views/Settings';
 import { Timeline } from './views/Timeline';
 
+const DISCLAIMER = 'Independent community tool. Not affiliated with Capacities.';
+
 /**
  * The app shell: sidebar + content, session bootstrap, auth-loss
  * handling. One dataset — loaded once through the pipeline — feeds both
@@ -172,6 +174,7 @@ function ConnectedApp(props: { session: Session }) {
           ) : (
             boot && <span class="space-name">{boot.space.title}</span>
           )}
+          <p class="disclaimer">{DISCLAIMER}</p>
         </div>
       </aside>
       <div class="content">
@@ -211,6 +214,9 @@ function ConnectedApp(props: { session: Session }) {
             />
           )}
         </main>
+        <footer class="app-foot">
+          <p class="disclaimer">{DISCLAIMER}</p>
+        </footer>
       </div>
     </div>
   );

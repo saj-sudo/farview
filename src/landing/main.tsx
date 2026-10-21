@@ -11,6 +11,7 @@ import decadeShot from '../../docs/decade.png';
 function Landing() {
   return (
     <main class="landing">
+      <div class="landing-art" aria-hidden="true" />
       <h1>Farview</h1>
       <p class="tagline">See your goals across time, in Capacities.</p>
       <p>

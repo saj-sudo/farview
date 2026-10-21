@@ -82,7 +82,10 @@ export function Connect(props: {
       )}
 
       <div class="demo-buttons">
-        <button onClick={demo('strangers')}>Try the demo</button>
+        {/* Without a client id the demo is the one thing to do here. */}
+        <button class={CLIENT_ID ? '' : 'primary'} onClick={demo('strangers')}>
+          Try the demo
+        </button>
         <button class="subtle" onClick={demo('minimal')}>
           Demo: a nearly empty space
         </button>
