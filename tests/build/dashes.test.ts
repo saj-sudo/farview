@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest';
 // with escapes so this file passes its own check.
 
 const root = join(import.meta.dirname, '..', '..');
-const BANNED = /[–—]/;
+const BANNED = /[\u2013\u2014]/;
 const SKIP = /(^|\/)package-lock\.json$|\.(png|jpe?g|gif|webp|ico|woff2?)$/;
 
 const files = execFileSync('git', ['ls-files'], { cwd: root, encoding: 'utf8' })
