@@ -127,7 +127,7 @@ export function buildStrangersSpace(today: LocalDate): FixtureSpace {
 
   const objects: FullObject[] = [
     // Spanning now: the flagship demo bar, with waypoints straddling today,
-    // a goal link, and its own chores — the full hierarchy in one item.
+    // a goal link, and its own chores: the full hierarchy in one item.
     refit('x-mainstay', 'Rebuild the Mainstay', {
       'p-laid': date(addDays(today, -60)),
       'p-launch': date(addDays(today, 90)),
@@ -371,8 +371,8 @@ export function strangersDemoConfig(): unknown {
     },
     grouping: {
       by: 'tag',
-      // The space's own taxonomy, read live from its collections —
-      // no ticking tags one by one.
+      // The space's own taxonomy, read live from its collections, so
+      // nobody ticks tags one by one.
       collection: 'Yard Pillars',
       values: [],
       sub: { by: 'tag', collection: 'Work Areas', values: [] },

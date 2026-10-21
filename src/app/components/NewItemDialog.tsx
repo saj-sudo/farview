@@ -145,7 +145,7 @@ export function NewItemDialog(props: {
           </button>
         </div>
         <p class="fineprint">
-          This writes one new object to your space — nothing else is touched.
+          This adds one new object to your space and changes nothing else.
         </p>
       </div>
     </div>

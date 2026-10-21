@@ -31,9 +31,11 @@ import { ItemDetail } from './views/ItemDetail';
 import { Settings } from './views/Settings';
 import { Timeline } from './views/Timeline';
 
+const DISCLAIMER = 'Independent community tool. Not affiliated with Capacities.';
+
 /**
  * The app shell: sidebar + content, session bootstrap, auth-loss
- * handling. One dataset — loaded once through the pipeline — feeds both
+ * handling. One dataset (loaded once through the pipeline) feeds both
  * the Timeline and Horizons views.
  */
 
@@ -172,13 +174,14 @@ function ConnectedApp(props: { session: Session }) {
           ) : (
             boot && <span class="space-name">{boot.space.title}</span>
           )}
+          <p class="disclaimer">{DISCLAIMER}</p>
         </div>
       </aside>
       <div class="content">
         {session.kind === 'demo' && (
           <p class="demo-banner">
-            A synthetic space — the Saltmarsh Boatyard. Nothing here is real,
-            and nothing leaves this tab.
+            This is a made-up space, the Saltmarsh Boatyard. Nothing here is
+            real, and nothing leaves this tab.
           </p>
         )}
         <main class="app-main">
@@ -211,6 +214,9 @@ function ConnectedApp(props: { session: Session }) {
             />
           )}
         </main>
+        <footer class="app-foot">
+          <p class="disclaimer">{DISCLAIMER}</p>
+        </footer>
       </div>
     </div>
   );

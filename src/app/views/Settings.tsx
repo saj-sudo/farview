@@ -22,8 +22,8 @@ import type { TimelineData } from '../useTimelineData';
 
 /**
  * Settings doubles as onboarding (spec §6): the form is built live from
- * the space's real types, properties, and tags — never a text field for
- * a name that a dropdown can offer — and the live preview at the bottom
+ * the space's real types, properties, and tags: never a text field for
+ * a name that a dropdown can offer: and the live preview at the bottom
  * renders the visitor's actual timeline before anything is saved. That
  * preview is what converts a skeptical visitor, and it costs nothing:
  * the data is already fetched.
@@ -144,7 +144,7 @@ export function Settings(props: {
     setSavedNote(
       props.session.kind === 'demo'
         ? 'Applied for this demo session.'
-        : 'Saved. Settings live in this browser only — export below to move them.',
+        : 'Saved. Settings live in this browser only. Use export below to move them.',
     );
   };
 
@@ -157,7 +157,7 @@ export function Settings(props: {
   /* ---------------- form pieces ---------------- */
 
   // Built-in Tasks (RootTask is an API constant, like RootPage) are a
-  // natural actions source for pro users — surfaced first for that role.
+  // natural actions source for pro users: surfaced first for that role.
   const taskType = boot.structures.find((s) => s.id === 'RootTask');
 
   const typeSelect = (role: TypeRole, label: string, hint: string) => (
@@ -261,11 +261,11 @@ export function Settings(props: {
     <section class="settings">
       <div class="view-head">
         <div>
-          <h2>{props.onboarding ? 'Welcome — map your space' : 'Settings'}</h2>
+          <h2>{props.onboarding ? 'Map your space' : 'Settings'}</h2>
           <p class="fineprint">
-            Farview works with <em>your</em> object types, not a fixed schema.
-            Everything below is read live from “{boot.space.title}”. Nothing is
-            written to your space — configuration lives in this browser.
+            Farview works with <em>your</em> object types. Everything below is
+            read live from “{boot.space.title}”. Nothing is written to your
+            space; these settings are kept in this browser.
           </p>
         </div>
       </div>
@@ -273,7 +273,7 @@ export function Settings(props: {
       <h3>Your space</h3>
       {customTypes.length === 0 ? (
         <p class="empty-note">
-          No custom object types here yet — Farview needs a type with dates to
+          No custom object types here yet. Farview needs a type with dates to
           place. Basic types (pages, tags, media) are hidden.
         </p>
       ) : (
@@ -286,12 +286,12 @@ export function Settings(props: {
         </div>
       )}
 
-      <h3>Projects — the one required mapping</h3>
+      <h3>Projects (required)</h3>
       <div class="field-row">
         {typeSelect(
           'project',
           'Which type holds your projects or work items?',
-          '“None of these” is a fine answer — but Farview has nothing to draw without one.',
+          'You can pick “None of these”, but Farview has nothing to draw without a type.',
         )}
       </div>
       {structureFor('project') && (
@@ -326,10 +326,10 @@ export function Settings(props: {
           </div>
         </>
       )}
-      {statusChecks('active', 'Which statuses count as active?', 'Unlisted statuses stay visible rather than vanish.')}
+      {statusChecks('active', 'Which statuses count as active?', 'Statuses you leave unticked still show on the timeline.')}
       {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
 
-      <h3>Goals — optional</h3>
+      <h3>Goals (optional)</h3>
       <div class="field-row">
         {typeSelect(
           'goal',
@@ -368,12 +368,12 @@ export function Settings(props: {
         </div>
       )}
 
-      <h3>Actions — optional</h3>
+      <h3>Actions (optional)</h3>
       <div class="field-row">
         {typeSelect(
           'action',
           'A type for actions or sub-items',
-          'The leaf level: Capacities’ built-in Tasks or any custom type. Keep your day-to-day to-dos wherever they live — this is for planning-sized pieces.',
+          'The smallest pieces of work: Capacities’ built-in Tasks or any custom type. Your day-to-day to-dos can stay where they are; this is for pieces you plan.',
         )}
         {structureFor('action') && (
           <>
@@ -411,10 +411,10 @@ export function Settings(props: {
 
       <h3>Grouping and color</h3>
       <p class="hint">
-        Lanes can nest two deep — a pillar, then the areas inside it. Point
-        each level at a tag collection and Farview follows that collection
-        as you add tags to it; hand-picked tags stay fixed until you change
-        them here.
+        Lanes can nest two deep: a pillar, then the areas inside it. Point
+        each level at a tag collection and Farview follows it as you add
+        tags. Tags you pick by hand stay as they are until you change them
+        here.
       </p>
       <div class="field-row">
         <label class="field">
@@ -431,7 +431,7 @@ export function Settings(props: {
               })
             }
           >
-            <option value="none">Nothing — one lane</option>
+            <option value="none">Nothing (one lane)</option>
             <option value="tag">Tags</option>
             <option value="property">A property</option>
             <option value="type">Object type</option>
@@ -474,7 +474,7 @@ export function Settings(props: {
                 })
               }
             >
-              <option value="none">Nothing — one level</option>
+              <option value="none">Nothing (one level)</option>
               <option value="tag">Tags (areas inside each lane)</option>
             </select>
           </label>
@@ -639,8 +639,8 @@ export function Settings(props: {
       {savedNote && <p class="notice">{savedNote}</p>}
       {!resolved.types.project && (
         <p class="fineprint">
-          Saving needs a project type mapped — that is the one thing Farview
-          cannot invent.
+          Map a project type to save. Farview can't work out that one by
+          itself.
         </p>
       )}
 
@@ -682,9 +682,8 @@ export function Settings(props: {
           {props.session.editingRequested ? (
             <>
               <p class="fineprint">
-                Editing is on: this connection can create goals and change
-                dates, always through your own explicit actions — never in
-                the background.
+                Editing is on. This connection can create goals and change
+                dates, and only does so when you make a change yourself.
               </p>
               <div class="settings-actions">
                 <button
@@ -700,10 +699,10 @@ export function Settings(props: {
           ) : (
             <>
               <p class="fineprint">
-                This connection is read-only — Farview cannot change anything
-                in your space. Enabling editing lets you add goals and adjust
-                dates from the timeline; with OAuth this reconnects so the
-                consent screen shows the wider grant.
+                This connection is read-only, so Farview can't change anything
+                in your space. Turning on editing lets you add goals and move
+                dates from the timeline. With OAuth this reconnects, so the
+                consent screen shows the extra access.
               </p>
               <div class="settings-actions">
                 <button
@@ -757,8 +756,8 @@ export function Settings(props: {
 
 /**
  * One level of the lane taxonomy. A level either follows a tag
- * collection — the space's own list, so lanes appear as tags are added
- * to it — or names tags by hand, clicked in the order the lanes should
+ * collection: the space's own list, so lanes appear as tags are added
+ * to it: or names tags by hand, clicked in the order the lanes should
  * sit. Nothing here is typed: every option comes from the real space.
  */
 function TagLevelPicker(props: {
@@ -799,7 +798,7 @@ function TagLevelPicker(props: {
           <p class="loading">Reading “{props.collection}”…</p>
         ) : members.length === 0 ? (
           <p class="empty-note">
-            “{props.collection}” has no tags in it yet — lanes appear here as
+            “{props.collection}” has no tags in it yet. Lanes appear here as
             you add some in Capacities.
           </p>
         ) : (
@@ -926,13 +925,13 @@ function LivePreview(props: {
 
   return (
     <div class="preview-block">
-      <h3>Live preview — your real timeline, before you save</h3>
+      <h3>Preview of your timeline</h3>
       {running && items === null ? (
         <p class="loading">Placing your items on the line…</p>
       ) : visible.length === 0 ? (
         <p class="empty-note">
-          Nothing dated to place with this mapping yet — check the date
-          property picks above.
+          Nothing with a date to place with this mapping yet. Check the date
+          properties you picked above.
         </p>
       ) : null}
       <div class="tl-wrap preview" ref={wrapRef}>

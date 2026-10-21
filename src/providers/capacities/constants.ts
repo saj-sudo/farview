@@ -1,6 +1,6 @@
 /**
  * API-defined basic structure ids. These are constants of the Capacities
- * API itself, present in every space — they are NOT user schema, and they
+ * API itself, present in every space: they are NOT user schema, and they
  * are the only structure ids permitted to appear in code (spec §4).
  */
 export const TAG_STRUCTURE_ID = 'RootTag';

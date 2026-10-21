@@ -3,7 +3,7 @@ import type { LocalDate, TimelineItem } from '../types';
 
 /**
  * Lane and row assignment. A lane is a group; rows within a lane are
- * greedy interval packing so bars never overlap — and the occupied
+ * greedy interval packing so bars never overlap: and the occupied
  * interval includes the label's reserved width, so labels never collide
  * either. Deterministic: sorted by effective start, id as tiebreak.
  */
@@ -23,7 +23,7 @@ export interface Lane {
   group: string | null;
   /** Second-level lane within `group` (an area under its pillar). */
   subGroup: string | null;
-  /** True for the first lane of each primary group — the header prints once. */
+  /** True for the first lane of each primary group: the header prints once. */
   firstOfGroup: boolean;
   rows: Placed[][];
   /** Items beyond maxRows, kept countable rather than silently dropped. */
@@ -62,7 +62,7 @@ export function place(item: TimelineItem, todayDay: number): Placed | null {
     usesDerived = true;
   }
   if (item.flags.targetBeforeStart) {
-    // Rendered as a point at the target (§11) — never swapped.
+    // Rendered as a point at the target (§11): never swapped.
     return { item, startDay, targetDay, effStart: targetDay!, effEnd: targetDay! + 1, usesDerived };
   }
   if (startDay !== null && targetDay !== null) {

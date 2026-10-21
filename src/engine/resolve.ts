@@ -9,7 +9,7 @@ import type { FarviewConfig, PropertyRole, TypeRole } from './types';
  * A missing mapping degrades: the affected level or feature contributes
  * nothing, the settings UI shows the message, and every message names
  * what was missing AND lists what exists. The one load-bearing mapping
- * is the project type — without it there is nothing to draw, so callers
+ * is the project type: without it there is nothing to draw, so callers
  * route to settings when `types.project` fails to resolve.
  */
 
@@ -219,7 +219,7 @@ export function resolveSchema(
   };
 }
 
-/** True when the one required mapping — the project type — is usable. */
+/** True when the one required mapping (the project type) is usable. */
 export function hasProjectType(resolved: ResolvedSchema): boolean {
   return resolved.types.project !== undefined;
 }

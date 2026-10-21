@@ -4,7 +4,7 @@ import type { LocalDate, TimelineItem } from '../../engine/types';
 
 /**
  * The narrow-viewport timeline (spec §9.3): a vertical list ordered by
- * date with a Today divider — not a squeezed horizontal axis. Same
+ * date with a Today divider: not a squeezed horizontal axis. Same
  * data, same cards, phone-sized reading.
  */
 
@@ -30,7 +30,7 @@ export function AgendaList(props: {
     if (!todayShown && date >= props.today) {
       rows.push(
         <li key="today-divider" class="agenda-today" aria-label="Today">
-          <span>— Today · {formatLocalDate(props.today)} —</span>
+          <span>Today · {formatLocalDate(props.today)}</span>
         </li>,
       );
       todayShown = true;
@@ -72,7 +72,7 @@ export function AgendaList(props: {
   if (!todayShown && dated.length > 0) {
     rows.push(
       <li key="today-divider" class="agenda-today">
-        <span>— Today · {formatLocalDate(props.today)} —</span>
+        <span>Today · {formatLocalDate(props.today)}</span>
       </li>,
     );
   }

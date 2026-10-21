@@ -42,7 +42,7 @@ describe('local dates', () => {
 describe('day arithmetic', () => {
   it('is immune to DST boundaries', () => {
     // US spring-forward 2026 is March 8. A calendar span across it is
-    // exact whole days — no 23-hour day can shorten it.
+    // exact whole days: no 23-hour day can shorten it.
     expect(diffDays(d('2026-03-10'), d('2026-03-05'))).toBe(5);
     expect(addDays(d('2026-03-07'), 3)).toBe('2026-03-10');
     // And across fall-back (Nov 1, 2026).

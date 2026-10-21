@@ -4,9 +4,9 @@ import { AXIS_H } from '../../engine/timeline/layout';
 import type { LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
 
 /**
- * Pure SVG rendering of a TimelineLayout. One bold move — the gradient
- * now-line — over a quiet scene: alternating calendar bands, hairline
- * grid, soft bars filled by elapsed time. The past sits under a single
+ * Pure SVG rendering of a TimelineLayout. One strong element, the today
+ * line, over a plain scene: alternating calendar bands, a hairline
+ * grid, bars filled by elapsed time. The past sits under a single
  * veil rect instead of per-item styling, so everything left of now
  * (gridlines included) recedes together.
  */
@@ -60,11 +60,6 @@ export function TimelineSvg(props: TimelineSvgProps) {
       aria-hidden="false"
     >
       <defs>
-        <linearGradient id="fv-now" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#2ab3a6" />
-          <stop offset="0.55" stop-color="#5b67e8" />
-          <stop offset="1" stop-color="#9a6ae8" />
-        </linearGradient>
         <linearGradient id="fv-fade" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stop-color="var(--bg)" stop-opacity="0" />
           <stop offset="1" stop-color="var(--bg)" stop-opacity="1" />
@@ -146,15 +141,8 @@ export function TimelineSvg(props: TimelineSvgProps) {
       {/* The now-line: the signature element. */}
       {layout.nowX >= 0 && layout.nowX <= layout.width && (
         <g class="tl-now">
-          <line x1={layout.nowX} y1={0} x2={layout.nowX} y2={chartH} class="tl-now-glow" />
-          <line
-            x1={layout.nowX}
-            y1={0}
-            x2={layout.nowX}
-            y2={chartH}
-            stroke="url(#fv-now)"
-            stroke-width="2"
-          />
+          <line x1={layout.nowX} y1={0} x2={layout.nowX} y2={chartH} class="tl-now-band" />
+          <line x1={layout.nowX} y1={0} x2={layout.nowX} y2={chartH} class="tl-now-line" />
           {chartH > 60 && (
             <g class="tl-now-pill">
               <rect x={layout.nowX - 46} y={6} width={92} height={20} rx={10} />
@@ -211,7 +199,7 @@ function Bar(props: {
       : 'move';
 
   // A derived span isn't this item's own date, so there is nothing to
-  // drag — set real dates (card or Capacities) to pin it first.
+  // drag: set real dates (card or Capacities) to pin it first.
   const canDrag =
     props.editable && !bar.done && !bar.derived && props.onDragStart !== undefined;
 
@@ -320,7 +308,7 @@ function Bar(props: {
         </>
       )}
 
-      {/* Overdue: a weight shift and a quiet diamond — never red (§9.3). */}
+      {/* Overdue: a weight shift and a quiet diamond: never red (§9.3). */}
       {bar.overdue && bar.kind !== 'point' && (
         <path
           d={`M ${bar.x + bar.w + 9} ${cy - 4.5} l 4.5 4.5 l -4.5 4.5 l -4.5 -4.5 Z`}

@@ -3,7 +3,7 @@ import type { ActionItem, LocalDate, TimelineItem } from './types';
 /**
  * Rollups, Life-OS style but guilt-free: facts about children, never a
  * percent-complete fiction. A derived span is the honest answer to "when
- * is this undated goal, really?" — the envelope of its dated children,
+ * is this undated goal, really?": the envelope of its dated children,
  * always labeled as derived and drawn dashed.
  */
 
@@ -48,7 +48,7 @@ export function rollupFacts(
   };
 }
 
-/** "1 of 2 projects completed · 2 of 6 actions done" — facts, or null. */
+/** "1 of 2 projects completed · 2 of 6 actions done": facts, or null. */
 export function factSentence(facts: RollupFacts): string | null {
   const parts: string[] = [];
   if (facts.projectsTotal > 0) {

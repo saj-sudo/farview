@@ -1,8 +1,8 @@
 import type { FullObject, PropertyDef, StructureDef, TagDef } from '../../engine/provider';
 
 /**
- * A synthetic space definition. Fixtures are always invented (spec §12) —
- * never derived from a real export — and double as the demo dataset and
+ * A synthetic space definition. Fixtures are always invented (spec §12)
+ * and never derived from a real export. They double as the demo dataset and
  * the test double.
  */
 export interface FixtureSpace {
@@ -21,7 +21,7 @@ export interface FixtureSpace {
 /**
  * Property-definition helper for fixture schemas: everything is
  * writable (like real custom-type properties), and label options get
- * deterministic ids derived from the property id — the same shape the
+ * deterministic ids derived from the property id: the same shape the
  * real structures endpoint returns.
  */
 export function propDef(

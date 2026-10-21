@@ -14,7 +14,7 @@ import type { FixtureSpace } from './types';
 /**
  * In-memory Provider over a FixtureSpace. Serves two roles: the "Try
  * the demo" mode in the app (no account, nothing leaves the tab) and
- * the test double for the pipeline tests — there is no vi.mock or HTTP
+ * the test double for the pipeline tests: there is no vi.mock or HTTP
  * stubbing anywhere; this interface seam is the mock.
  */
 
@@ -106,7 +106,7 @@ export class FixtureProvider implements Provider {
 
   /* ---------------- test helpers ---------------- */
 
-  /** Remove an object mid-test — simulates deletion between list and get. */
+  /** Remove an object mid-test: simulates deletion between list and get. */
   deleteObject(id: string): void {
     const i = this.space.objects.findIndex((x) => x.id === id);
     if (i >= 0) this.space.objects.splice(i, 1);
@@ -150,7 +150,7 @@ export class FixtureProvider implements Provider {
 }
 
 /**
- * In-memory Editor over a FixtureProvider — powers editing in the demo
+ * In-memory Editor over a FixtureProvider: powers editing in the demo
  * and the tests. It consumes the SAME payloads the real adapter sends
  * (via buildCreateProperties/buildDatePatch), converted back to the
  * simplified property shapes, so the pure builders get end-to-end

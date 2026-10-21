@@ -16,15 +16,15 @@ import {
 import type { LocalDate } from '../types';
 
 /**
- * Axis furniture, chosen by density rather than by zoom preset — so any
+ * Axis furniture, chosen by density rather than by zoom preset: so any
  * intermediate window (mid-animation, free wheel-zoom) still reads
  * correctly. Zooming out feels like detail condensing: weekdays give
  * way to months, months to quarters, quarters to years, years to the
  * shape of a decade.
  *
  *   pxPerDay ≥ 6      weeks + month bands + weekend stripes
- *   1.2 – 6           months + quarter structure
- *   0.35 – 1.2        quarters + year bands
+ *   1.2: 6           months + quarter structure
+ *   0.35: 1.2        quarters + year bands
  *   < 0.35            years + half-decade emphasis, year numerals in-band
  */
 
@@ -48,7 +48,7 @@ export interface TickSet {
   unit: TickUnit;
   ticks: Tick[];
   bands: Band[];
-  /** Saturday–Monday micro-stripes; only produced at week density. */
+  /** Saturday to Monday micro-stripes; only produced at week density. */
   weekendBands: Band[];
 }
 
@@ -175,8 +175,8 @@ export function generateTicks(
       }
     }
   } else {
-    // Decade scale: alternating year bands carry large quiet numerals —
-    // the structure IS the label. Majors emphasize half-decades.
+    // Decade scale: alternating year bands carry large faint numerals,
+    // so the structure IS the label. Majors emphasize half-decades.
     const yearPoints = [...boundaries(startDay, endDay, startOfYear, (d) => addMonths(d, 12))];
     bands = bandsFrom(
       yearPoints,

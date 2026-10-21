@@ -21,7 +21,7 @@ describe('memoryCache', () => {
     expect((await cache.get(['a'])).size).toBe(0);
   });
 
-  it('upserts idempotently — two tabs writing is harmless (§11)', async () => {
+  it('upserts idempotently: two tabs writing is harmless (§11)', async () => {
     const cache = memoryCache();
     await cache.put([rec('a', 100)]);
     await cache.put([rec('a', 200)]);

@@ -1,0 +1,17 @@
+// Cloudflare Workers serves the built site in dist/ as static assets.
+// There is no Worker script, and unknown paths return a 404.
+// Wrangler runs the build itself, so a fresh checkout deploys with no
+// separate build step.
+{
+  "name": "farview",
+  "compatibility_date": "2026-10-19",
+  "observability": { "enabled": true },
+  // Keeps the farview.<account>.workers.dev address off. Wrangler turns it
+  // on whenever this is unset.
+  "workers_dev": false,
+  "build": { "command": "npm run build" },
+  "assets": { "directory": "./dist" },
+  // Branch builds run `wrangler preview`, which needs this block. The site
+  // has no bindings or variables, so it stays empty.
+  "previews": {}
+}

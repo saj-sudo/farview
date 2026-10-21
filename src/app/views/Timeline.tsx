@@ -29,8 +29,8 @@ import { SomedayTray } from '../components/SomedayTray';
 import { TimelineSvg } from '../components/TimelineSvg';
 
 /**
- * The timeline view: zoom, pan, keyboard, selection — all the stateful
- * interaction over the pure layout. The chart is an SVG scene rebuilt
+ * The timeline view: zoom, pan, keyboard and selection, which is all the
+ * stateful interaction over the pure layout. The chart is an SVG scene rebuilt
  * from layoutTimeline() on every view change; lane headers are a sticky
  * HTML overlay; the card is an HTML dialog anchored to its bar.
  */
@@ -467,7 +467,7 @@ export function Timeline(props: {
 
   /* ---------------- editing ---------------- */
 
-  // The card always shows the LIVE item — an optimistic date change or
+  // The card always shows the LIVE item: an optimistic date change or
   // server confirmation must not leave a stale snapshot on screen.
   const liveSelected = selected
     ? (props.data.items.find((i) => i.id === selected.item.id) ?? selected.item)
@@ -631,7 +631,7 @@ export function Timeline(props: {
               {lane.label}
               <span class="tl-lane-count">{lane.count}</span>
               {lane.overflowCount > 0 && (
-                <span class="tl-lane-count">+{lane.overflowCount} more — zoom in</span>
+                <span class="tl-lane-count">+{lane.overflowCount} more, zoom in to see them</span>
               )}
             </div>
           ))}
@@ -685,17 +685,17 @@ function EmptyNote(props: { targetName: string; kind: 'none' | 'allUndated' }) {
     <div class="setup-card">
       <h3>Nothing to place yet</h3>
       <p>
-        No objects of the mapped type were found. Once something exists with a
-        date in “{props.targetName}”, it will land on this line — or revisit
-        Settings if the mapping looks wrong.
+        No objects of the mapped type were found. Once something has a date
+        in “{props.targetName}”, it shows up on this line. If the mapping
+        looks wrong, check Settings.
       </p>
     </div>
   ) : (
     <div class="setup-card">
       <h3>Everything is undated so far</h3>
       <p>
-        Farview places items by their dates, and none of these have one yet —
-        they are all in the Someday tray below. Add a date to “
+        Farview places items by their dates, and none of these have one yet,
+        so they are all in the Someday tray below. Add a date to “
         {props.targetName}” in Capacities and it appears on the line.
       </p>
     </div>

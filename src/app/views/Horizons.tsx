@@ -12,7 +12,7 @@ import type { TimelineData } from '../useTimelineData';
 
 /**
  * The Horizons view (spec §9.2): columns per bucket, ordered by
- * distance — Now, Quarter, Year, Long, Someday. The order IS the
+ * distance: Now, Quarter, Year, Long, Someday. The order IS the
  * sequence, so nothing is numbered. Cards group under goals when a
  * goal type is mapped; flat otherwise. Same dataset as the timeline.
  */
@@ -100,8 +100,8 @@ export function Horizons(props: {
         <div class="setup-card">
           <h3>Nothing to sort into horizons yet</h3>
           <p>
-            Once mapped objects exist, they land in these columns by how far
-            out their dates sit — and undated ones wait in Someday.
+            Once mapped objects exist, they go into these columns by how far
+            away their dates are. Undated ones go in Someday.
           </p>
         </div>
       ) : null}

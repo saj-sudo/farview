@@ -4,7 +4,7 @@ import { CapacitiesAdapter } from '../../src/providers/capacities/adapter';
 
 /**
  * Pagination termination (spec §12) and property simplification, against
- * a stubbed SDK client — the one test that exercises the cursor loop the
+ * a stubbed SDK client: the one test that exercises the cursor loop the
  * FixtureProvider abstracts away.
  */
 

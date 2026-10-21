@@ -2,7 +2,7 @@ import type { FullObject } from '../engine/provider';
 
 /**
  * The object cache (spec §5.4): list endpoints return no properties, so
- * every dated bar costs one GET — and caching those objects is what
+ * every dated bar costs one GET: and caching those objects is what
  * makes a warm visit paint instantly. Records carry their fetch time;
  * FRESHNESS IS DECIDED BY THE CALLER against the configured TTL, so the
  * cache itself needs no clock and tests can fake time freely.
@@ -24,7 +24,7 @@ export interface CachedRecord {
 
 export interface ObjectCache {
   get(ids: string[]): Promise<Map<string, CachedRecord>>;
-  /** Idempotent upsert — two tabs writing the same objects is harmless (§11). */
+  /** Idempotent upsert: two tabs writing the same objects is harmless (§11). */
   put(records: CachedRecord[]): Promise<void>;
   clear(): Promise<void>;
 }
@@ -65,7 +65,7 @@ function requestToPromise<T>(req: IDBRequest<T>): Promise<T> {
 /**
  * IndexedDB-backed cache, keyed by object id. Returns null when
  * IndexedDB is unavailable or refuses to open (private windows, blocked
- * site data) — callers fall back to memoryCache() silently; the app
+ * site data): callers fall back to memoryCache() silently; the app
  * just refetches more often.
  */
 export async function openIdbCache(): Promise<ObjectCache | null> {

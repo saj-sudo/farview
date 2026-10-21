@@ -5,13 +5,13 @@ import { propDef, type FixtureSpace } from './types';
 /**
  * The minimal fixture (spec §12): one custom type, one date property,
  * nothing else. Proves that a space with almost no structure still
- * renders a timeline — this is closer to most real spaces than any
+ * renders a timeline: this is closer to most real spaces than any
  * fully-mapped demo.
  */
 export function buildMinimalSpace(today: LocalDate): FixtureSpace {
   return {
     spaceId: 'fixture-minimal',
-    title: 'A Quiet Space',
+    title: 'A Small Slip',
     structures: [
       { id: 'RootPage', title: 'Page', pluralName: 'Pages', properties: [] },
       { id: 'RootTag', title: 'Tag', pluralName: 'Tags', properties: [] },

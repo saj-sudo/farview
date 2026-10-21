@@ -3,7 +3,7 @@ import { saveCredential } from '../auth/tokens';
 
 /**
  * The /callback page: finish the code exchange and hand off to /app/.
- * Kept tiny — it renders one status line and never sees space content.
+ * Kept tiny: it renders one status line and never sees space content.
  */
 
 const statusEl = document.querySelector('.callback-status p')!;

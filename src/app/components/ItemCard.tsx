@@ -5,7 +5,7 @@ import type { LocalDate, MilestoneItem, TimelineItem } from '../../engine/types'
 
 /**
  * The detail card: everything Farview knows about one item, and a deep
- * link into the real object — Farview is a lens, never an editor. All
+ * link into the real object: Farview is a lens, never an editor. All
  * copy is matter-of-fact; a passed target is a fact, not a verdict.
  */
 
@@ -71,9 +71,9 @@ export function ItemCard(props: ItemCardProps) {
           : item.target !== null
             ? `Target: ${formatLocalDate(item.target)}`
             : item.start !== null
-              ? `Started ${formatLocalDate(item.start)} — no target date`
+              ? `Started ${formatLocalDate(item.start)}, no target date`
               : item.derived !== null
-                ? `No dates of its own — its linked items span ${
+                ? `No dates of its own. Its linked items span ${
                     item.derived.start !== null ? formatLocalDate(item.derived.start) : '…'
                   } → ${
                     item.derived.target !== null
@@ -92,8 +92,8 @@ export function ItemCard(props: ItemCardProps) {
       )}
       {item.flags.targetBeforeStart && (
         <p class="fineprint">
-          The target date is before the start date — worth checking in
-          Capacities.
+          The target date is before the start date. You may want to check
+          it in Capacities.
         </p>
       )}
 

@@ -97,7 +97,7 @@ describe('resolveSchema', () => {
     expect(warning).toContain('"hull"');
   });
 
-  it('skips unmapped levels silently — project-only is the default', () => {
+  it('skips unmapped levels silently: project-only is the default', () => {
     const projectOnly = normalizeConfig({
       types: { project: 'Refit', goal: null, milestone: null },
       properties: {

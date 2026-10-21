@@ -10,7 +10,7 @@ import { disconnect, isAuthLoss, type Session } from './session';
 
 /**
  * The one place the pipeline meets Preact. Owns the abort lifecycle,
- * accumulates progressively-arriving items (keyed by id — duplicate
+ * accumulates progressively-arriving items (keyed by id, because duplicate
  * titles are common and meaningless, §11), and exposes refresh and
  * load-more.
  */
@@ -26,7 +26,7 @@ export interface TimelineData {
   loadMore: () => void;
   loadMilestones: (ids: string[]) => Promise<MilestoneItem[]>;
   loadActionItems: (ids: string[]) => Promise<ActionItem[]>;
-  /** One object by id, kind inferred from its structure — the detail
+  /** One object by id, kind inferred from its structure: the detail
    *  view's cold-start path for deep links. Upserts into the item set. */
   loadSingle: (id: string) => Promise<TimelineItem | null>;
   clearCache: () => Promise<void>;
