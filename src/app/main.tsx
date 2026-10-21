@@ -1,3 +1,4 @@
+import './zodConfig';
 import { render } from 'preact';
 import { App } from './App';
 
