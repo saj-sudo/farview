@@ -180,8 +180,8 @@ function ConnectedApp(props: { session: Session }) {
       <div class="content">
         {session.kind === 'demo' && (
           <p class="demo-banner">
-            A synthetic space — the Saltmarsh Boatyard. Nothing here is real,
-            and nothing leaves this tab.
+            This is a made-up space, the Saltmarsh Boatyard. Nothing here is
+            real, and nothing leaves this tab.
           </p>
         )}
         <main class="app-main">

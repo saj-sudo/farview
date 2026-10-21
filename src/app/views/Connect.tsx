@@ -38,19 +38,18 @@ export function Connect(props: {
       <h1>Farview</h1>
       <p class="tagline">See your goals across time, in Capacities.</p>
       <p>
-        Your projects and goals on one timeline — a line for today, bars
-        stretching toward their target dates, horizons from this month out to
-        the far end of the decade. Farview reads your space from this browser
-        only: there is no server, no account, and no tracking.
+        Your projects and goals on one timeline, with a line for today and a
+        bar for each project running toward its target date. Farview reads
+        your space from this browser. There is no server and no account.
       </p>
 
       <p class="readonly-note">
         <span class="lock">Read-only by default.</span>
         <span>
-          A plain connect asks for read access and nothing else — it cannot
-          create, change, or delete anything, and the consent screen will
-          show it. Editing (adding goals, adjusting dates) is a separate,
-          explicit opt-in below.
+          A plain connection asks for read access only, so Farview can't
+          create, change or delete anything, and the consent screen shows
+          that. Editing (adding goals, moving dates) is a separate choice
+          below.
         </span>
       </p>
 
@@ -60,24 +59,24 @@ export function Connect(props: {
             Connect to Capacities
           </button>
           <p class="fineprint">
-            You choose which space to share on the Capacities side. You can
-            revoke access at any time in Capacities under Settings&nbsp;→
-            Capacities API&nbsp;→ Connections — nothing here can stop you.
+            You pick which space to share on the Capacities side. You can
+            revoke access any time in Capacities under Settings&nbsp;→
+            Capacities API&nbsp;→ Connections.
           </p>
           <p class="fineprint">
             Want to add goals and drag dates from the timeline?{' '}
             <button class="subtle" onClick={() => void connect({ editing: true })}>
               Connect with editing
-            </button>{' '}
-            — this asks for write access too, and the consent screen will say
+            </button>
+            . This asks for write access too, and the consent screen will say
             so. You can switch back to read-only from Settings any time.
           </p>
         </>
       ) : (
         <p class="notice">
-          This build has no OAuth client configured, so the one-click connect
-          is not available yet. The demo below needs nothing; a personal API
-          token (advanced, further down) connects your real space.
+          One-click connect isn't set up on this build yet. You can try the
+          demo, or connect your own space with a personal API token under
+          Advanced, further down.
         </p>
       )}
 
@@ -98,10 +97,10 @@ export function Connect(props: {
       <details class="advanced">
         <summary>Advanced: connect with a personal API token</summary>
         <p class="fineprint">
-          In the Capacities app: Settings → Capacities API → create a token —
-          read access is enough for viewing — then paste it here. The token
-          stays in this browser’s storage; treat it like a password, and
-          revoke it in the same settings screen whenever you like.
+          In the Capacities app, go to Settings → Capacities API and create a
+          token. Read access is enough for viewing. Paste it here. The token
+          stays in this browser’s storage, so treat it like a password. You
+          can revoke it in the same settings screen whenever you like.
         </p>
         <label class="field checkbox">
           <input
@@ -110,8 +109,8 @@ export function Connect(props: {
             onChange={() => setTokenWrite((v) => !v)}
           />
           <span class="fineprint">
-            My token has write access — enable editing (adding goals,
-            adjusting dates).
+            My token has write access. Turn on editing (adding goals, moving
+            dates).
           </span>
         </label>
         <div class="token-row">

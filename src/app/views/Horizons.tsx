@@ -100,8 +100,8 @@ export function Horizons(props: {
         <div class="setup-card">
           <h3>Nothing to sort into horizons yet</h3>
           <p>
-            Once mapped objects exist, they land in these columns by how far
-            out their dates sit — and undated ones wait in Someday.
+            Once mapped objects exist, they go into these columns by how far
+            away their dates are. Undated ones go in Someday.
           </p>
         </div>
       ) : null}

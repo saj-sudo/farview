@@ -63,7 +63,7 @@ export function useEditActions(
           'editing from Settings to make changes here.';
       }
       if (err instanceof EditNotPossibleError) return err.message;
-      return 'Saving to Capacities failed — the change was not applied.';
+      return 'Saving to Capacities failed, so the change was not applied.';
     };
 
     return {

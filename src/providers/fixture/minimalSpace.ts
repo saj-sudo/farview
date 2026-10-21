@@ -11,7 +11,7 @@ import { propDef, type FixtureSpace } from './types';
 export function buildMinimalSpace(today: LocalDate): FixtureSpace {
   return {
     spaceId: 'fixture-minimal',
-    title: 'A Quiet Space',
+    title: 'A Small Slip',
     structures: [
       { id: 'RootPage', title: 'Page', pluralName: 'Pages', properties: [] },
       { id: 'RootTag', title: 'Tag', pluralName: 'Tags', properties: [] },

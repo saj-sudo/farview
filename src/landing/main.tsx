@@ -15,66 +15,64 @@ function Landing() {
       <h1>Farview</h1>
       <p class="tagline">See your goals across time, in Capacities.</p>
       <p>
-        Your notes know what you are building — but notes have no horizon.
-        Farview lays your projects and goals out on a timeline: a line for
-        today, bars stretching toward their targets, and one smooth zoom from
-        this quarter to the shape of your decade. No canvas to arrange, no
-        project manager to migrate into, nothing to duplicate.
+        Capacities holds your projects and goals, but it has no timeline.
+        Farview reads them and lays them out on one: a line for today, a bar
+        for each project running toward its target date, and a zoom that
+        goes from this quarter out to the next ten years.
       </p>
       <p>
         <a class="cta" href="/app/">
           Open Farview
         </a>
         <a class="cta-secondary" href="/app/">
-          Try the demo — no account needed
+          Try the demo (no account needed)
         </a>
       </p>
       <img
         src={timelineShot}
-        alt="The Farview timeline: colored lanes of project bars around a vertical gradient line marking today, with goals flying small pennants above."
+        alt="The Farview timeline for a synthetic boatyard: lanes of teal and sunflower bars, a sunflower band marking today, and small flags for goals."
       />
 
-      <h2>Read-only by default</h2>
+      <h2>Read-only unless you turn on editing</h2>
       <p>
-        A plain connect asks Capacities for{' '}
-        <strong>read access and nothing else</strong> — it cannot create,
-        change, or delete anything in your space, and the OAuth consent
-        screen will show you exactly that. If you want to plan from the
-        timeline, a separate opt-in unlocks editing: add goals, drag bars to
-        move their dates. Even then, every write is a direct action of yours
-        — never a background sync — and nothing is ever deleted. Every card
-        still deep-links into Capacities, where the full editing lives.
+        A plain connection asks Capacities for{' '}
+        <strong>read access only</strong>. Farview can't create, change or
+        delete anything in your space, and the Capacities consent screen
+        says so. If you want to plan from the timeline, you can turn on
+        editing separately. Then you can add goals and drag bars to change
+        their dates. Every change comes from something you did, like a drag
+        or a click on Save. Farview never deletes anything, and every card
+        links back to the object in Capacities.
       </p>
 
-      <h2>No backend. Really none.</h2>
+      <h2>No server</h2>
       <p>
-        This site is static files. Your notes travel from your browser to
-        Capacities and nowhere else — there is no server to trust, no account
-        to create, no analytics, no tracking. The access token stays in your
-        browser, and you can revoke it any time in Capacities under
-        Settings&nbsp;→ Capacities API&nbsp;→ Connections.
+        The site is a set of static files. Your notes go from your browser to
+        Capacities and nowhere else. There's no account to make and no
+        analytics. The access token stays in your browser, and you can revoke
+        it in Capacities under Settings&nbsp;→ Capacities API&nbsp;→
+        Connections.
       </p>
 
-      <h2>Your object types, not ours</h2>
+      <h2>Works with the types you already have</h2>
       <p>
-        No Goal type? Most spaces have none, and Farview is at home there:
-        point it at whatever type holds your work — Projects, Undertakings,
-        Refits — and whichever date properties you actually use. Setup reads
-        your space's real types and previews your real timeline before you
-        save a thing. Two minutes, once.
+        Most spaces don't have a Goal type, and you don't need one. Point
+        Farview at whichever type holds your work (Projects, Refits, anything)
+        and the date properties you actually use. Setup reads your space and
+        shows a preview of your timeline before you save anything.
       </p>
 
-      <h2>Quarters, years, decades</h2>
+      <h2>From this quarter to the next decade</h2>
       <p>
-        One keystroke moves between the week-by-week texture of this quarter
-        and the long arcs of the next ten years. Bars fill with{' '}
-        <em>elapsed time</em>, not pretend percent-complete; work past its
-        target gets a quiet marker, never a red alarm; undated items wait
-        visibly in a Someday tray instead of disappearing.
+        Switch between quarter, year, three years and decade. A bar fills as
+        time passes, so you can see how much of its window is used up. When
+        something passes its target date it gets a small marker and a plain
+        note. Items with no dates go to a Someday tray, so nothing drops off
+        the page.
       </p>
       <img
         src={decadeShot}
-        alt="The decade zoom: alternating year bands with large quiet year numerals, project dots and multi-year arcs, and goal pennants."
+        alt="The decade zoom: alternating year bands with faint year numbers, short bars and dots for projects, and flags for goals."
       />
 
       <footer>

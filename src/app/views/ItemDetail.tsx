@@ -147,7 +147,7 @@ export function ItemDetail(props: {
   if (!id) {
     return (
       <p class="empty-note">
-        No item to show — pick one from the <a href={HASH_FOR.timeline}>timeline</a>.
+        No item to show. Pick one from the <a href={HASH_FOR.timeline}>timeline</a>.
       </p>
     );
   }
@@ -261,9 +261,9 @@ export function ItemDetail(props: {
               : item.target !== null
                 ? `Target: ${formatLocalDate(item.target)}`
                 : item.start !== null
-                  ? `Started ${formatLocalDate(item.start)} — no target date`
+                  ? `Started ${formatLocalDate(item.start)}, no target date`
                   : selfDerived
-                    ? `No dates of its own — its children span ${
+                    ? `No dates of its own. Its children span ${
                         selfDerived.start ? formatLocalDate(selfDerived.start) : '…'
                       } → ${selfDerived.target ? formatLocalDate(selfDerived.target) : '…'}`
                     : 'No dates yet'}
@@ -429,8 +429,8 @@ export function ItemDetail(props: {
       {undatedChildren.length > 0 && (
         <p class="fineprint">
           {undatedChildren.length} undated{' '}
-          {undatedChildren.length === 1 ? 'child waits' : 'children wait'} off the
-          line — dates in Capacities (or here) place them.
+          {undatedChildren.length === 1 ? 'child is' : 'children are'} off the
+          line. Give them dates in Capacities (or here) to place them.
         </p>
       )}
       {childProjects.length === 0 &&
@@ -440,7 +440,7 @@ export function ItemDetail(props: {
           <p class="empty-note">
             Nothing linked here yet
             {canAddAction || canAddProject
-              ? ' — the buttons above create children already connected.'
+              ? '. The buttons above add children that are already linked.'
               : '.'}
           </p>
         )}

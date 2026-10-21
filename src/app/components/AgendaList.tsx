@@ -30,7 +30,7 @@ export function AgendaList(props: {
     if (!todayShown && date >= props.today) {
       rows.push(
         <li key="today-divider" class="agenda-today" aria-label="Today">
-          <span>— Today · {formatLocalDate(props.today)} —</span>
+          <span>Today · {formatLocalDate(props.today)}</span>
         </li>,
       );
       todayShown = true;
@@ -72,7 +72,7 @@ export function AgendaList(props: {
   if (!todayShown && dated.length > 0) {
     rows.push(
       <li key="today-divider" class="agenda-today">
-        <span>— Today · {formatLocalDate(props.today)} —</span>
+        <span>Today · {formatLocalDate(props.today)}</span>
       </li>,
     );
   }
