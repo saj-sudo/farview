@@ -12,6 +12,7 @@ npm run dev     # local dev server
 npm run lint    # eslint, warnings fail
 npm test        # vitest, node environment
 npm run build   # typecheck + production build
+npm run smoke   # after a build: the built site in Chromium
 ```
 
 You don't need an OAuth client id for development. The demo mode (made-up spaces) and the personal-token path both work without one.
@@ -33,6 +34,8 @@ You don't need an OAuth client id for development. The demo mode (made-up spaces
 Every change in behaviour needs a test, and features must pass against the fixture spaces in `src/providers/fixture/`: the Saltmarsh Boatyard (with type and property names unlike any real space), the minimal space and the empty space. Together they check the main promise. If something only works with the author's own schema, it doesn't work.
 
 There are no component tests. The UI layer is kept thin, so the type checker and the fixture-driven engine tests carry most of the weight. Timeline visuals are decided in `src/engine/timeline/` so they can be tested without a DOM.
+
+One browser check runs in CI: `npm run smoke` serves the built site, opens every page and demo view at phone and desktop size in Chromium, and fails on any console error, uncaught exception or CSP violation. It checks that pages load cleanly and nothing more. Locally it needs a build first, and Chromium from `npx playwright install chromium`.
 
 ## Conduct
 

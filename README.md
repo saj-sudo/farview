@@ -92,6 +92,7 @@ npm install
 npm run dev     # local dev server
 npm test        # vitest, node environment, no browser needed
 npm run build   # typecheck + production build
+npm run smoke   # after a build: every page and demo view in Chromium
 ```
 
 The test suite runs the whole engine and fetch pipeline against made-up fixture spaces. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules that count as build failures.

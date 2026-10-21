@@ -6,6 +6,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **Add Farview to your home screen.** The site now has a web manifest and
+  app icons, so a phone or desktop browser can install it. It opens straight
+  into the app, in its own window. The CSP allows the manifest
+  (`manifest-src 'self'`) and still loads nothing from other origins.
+- A link to farview.dev now shows a preview card (title, description and a
+  picture of the demo timeline) where it's shared.
+- A smoke test in CI opens the built site in Chromium at phone and desktop
+  size and fails on any console error or CSP violation.
+
 ### Changed
 
 - **New look.** A layout that sits comfortably next to Capacities (white and
