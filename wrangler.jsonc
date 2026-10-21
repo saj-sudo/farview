@@ -1,9 +1,12 @@
 // Cloudflare Workers serves the built site in dist/ as static assets.
 // There is no Worker script. Unknown paths fall back to the landing page.
+// Wrangler runs the build itself, so a fresh checkout deploys with no
+// separate build step.
 {
   "name": "farview",
   "compatibility_date": "2026-10-19",
   "observability": { "enabled": true },
+  "build": { "command": "npm run build" },
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
