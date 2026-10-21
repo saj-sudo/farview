@@ -2,7 +2,7 @@
   <style>.ink { mix-blend-mode: multiply; }</style>
   <rect class="ink" x="176" y="92" width="34" height="328" rx="17" fill="#ffb511"/>
   <rect class="ink" x="104" y="146" width="232" height="46" rx="23" fill="#00838a"/>
-  <rect class="ink" x="144" y="233" width="280" height="46" rx="23" fill="#1c3a44"/>
+  <rect class="ink" x="144" y="233" width="280" height="46" rx="23" fill="#2f7a8c"/>
   <rect class="ink" x="88" y="320" width="192" height="46" rx="23" fill="#5fb3b0"/>
   <rect x="186" y="98" width="14" height="316" rx="7" fill="#3f3e43"/>
 </svg>
