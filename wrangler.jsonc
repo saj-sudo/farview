@@ -10,5 +10,8 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
-  }
+  },
+  // Branch builds run `wrangler preview`, which needs this block. The site
+  // has no bindings or variables, so it stays empty.
+  "previews": {}
 }
