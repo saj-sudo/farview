@@ -83,7 +83,7 @@ npm install
 VITE_CAPACITIES_CLIENT_ID=your-client-id npm run build
 ```
 
-The output in `dist/` is a static site, so any static host works with no server functions. `/`, `/app/` and `/callback/` are real directories, so no rewrite rules are needed. The client id is public by design (a PKCE public client has no client secret). Register your own redirect URI with Capacities by email; see [developers.capacities.io](https://developers.capacities.io).
+The output in `dist/` is a static site, so any static host works with no server functions. `/`, `/app/` and `/callback/` are real directories, so no rewrite rules are needed. On Cloudflare Workers, the `wrangler.jsonc` in the repo serves `dist/` as static assets. The client id is public by design (a PKCE public client has no client secret). Register your own redirect URI with Capacities by email; see [developers.capacities.io](https://developers.capacities.io).
 
 ## Development
 
