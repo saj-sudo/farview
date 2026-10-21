@@ -1,65 +1,106 @@
-/* Farview — designed to feel at home next to Capacities: quiet neutral
-   surfaces, a blue-violet accent, soft-bordered cards, an app-like sans
-   stack, and first-class dark mode. Shares its visual language with its
-   sibling, Yesteryear: the past is quiet, the future gets the color. */
+/* Farview: Capacities-native structure with two riso inks.
+   The surfaces, sans, radii and sidebar rhythm sit comfortably next to
+   Capacities; the colour comes from two inks, teal and sunflower, that
+   overprint where they meet. Flat inks are for fills; text in an ink
+   colour uses the darker --ink*-text tokens so it passes AA.
+   Sibling of Yesteryear: same token names, type scale, spacing and radii;
+   different inks. */
 
 :root {
-  --bg: #f7f7f8;
+  /* Surfaces and text. */
+  --bg: #ffffff;
   --surface: #ffffff;
-  --line: #e4e4e7;
-  --ink: #1a1a1e;
-  --ink-soft: #6e6e78;
-  --accent: #5b67e8;
-  --accent-soft: #eceefc;
-  --focus: rgba(91, 103, 232, 0.55);
-  --shadow: 0 1px 2px rgba(20, 20, 30, 0.05);
-}
+  --wash: #faf9f7;
+  --line: #ebe9e6;
+  --line-strong: #dcd9d4;
+  --field-border: #8a878e;
+  --ink: #1c1b20;
+  --ink-soft: #57555b;
+  --charcoal: #3f3e43;
+  --on-charcoal: #ffffff;
+  --on-charcoal-ink: #ffb511;
 
-:root {
-  --teal: #2ab3a6;
-  --teal-soft: #e2f5f3;
-  --amber: #d99a2b;
-  --amber-soft: #faf1de;
-  --rose: #e06a8f;
-  --grad: linear-gradient(135deg, #2ab3a6 0%, #5b67e8 55%, #9a6ae8 100%);
+  /* The two inks. */
+  --ink1: #00838a;
+  --ink2: #ffb511;
+  --ink1-text: #006168;
+  --ink2-text: #7a5a06;
+  --ink1-tint: #dcefef;
+  --ink2-tint: #fff1c9;
+
+  --accent: var(--ink1-text);
+  --accent-soft: var(--ink1-tint);
+  --focus: #006168;
+  --shadow: 0 1px 2px rgba(28, 27, 32, 0.05), 0 4px 14px rgba(28, 27, 32, 0.05);
+  --shadow-lift: 0 12px 36px rgba(28, 27, 32, 0.16);
+  --dots: radial-gradient(rgba(28, 27, 32, 0.12) 1px, transparent 1.3px) 0 0 / 6px 6px;
+  --blend: multiply;
 
   /* Timeline furniture: alternating calendar bands and the past veil. */
-  --band: rgba(26, 26, 30, 0.03);
-  --veil: rgba(247, 247, 248, 0.42);
+  --band: rgba(28, 27, 32, 0.022);
+  --veil: rgba(255, 255, 255, 0.35);
 
-  /* Group hues, assigned deterministically to timeline lanes. */
-  --g1: #5b67e8;
-  --g2: #2ab3a6;
-  --g3: #d99a2b;
-  --g4: #e06a8f;
-  --g5: #9a6ae8;
-  --g6: #64748b;
+  /* Lane hues, assigned to lanes by the engine (src/engine/timeline/colors.ts).
+     Two inks and their overprints; no red. */
+  --g1: #00838a;
+  --g2: #e8a200;
+  --g3: #4f8f4a;
+  --g4: #1c3a44;
+  --g5: #5fb3b0;
+  --g6: #8c8a90;
+
+  /* Shared with Yesteryear. */
+  --font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --text-xs: 0.78rem;
+  --text-sm: 0.88rem;
+  --text-md: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.6rem;
+  --text-2xl: clamp(2.4rem, 6vw, 3.4rem);
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161619;
-    --surface: #1f1f24;
-    --line: #2c2c33;
-    --ink: #e8e8ec;
-    --ink-soft: #9a9aa5;
-    --accent: #8b93f8;
-    --accent-soft: #26283c;
-    --focus: rgba(139, 147, 248, 0.6);
+    --bg: #1b1a1e;
+    --surface: #222125;
+    --wash: #1f1e22;
+    --line: #313035;
+    --line-strong: #3d3c42;
+    --field-border: #76747c;
+    --ink: #ecebef;
+    --ink-soft: #a6a4ab;
+    --charcoal: #ecebef;
+    --on-charcoal: #1b1a1e;
+    --on-charcoal-ink: #1b1a1e;
+    --ink1: #3fc1c4;
+    --ink2: #ffc845;
+    --ink1-text: #6fd6d8;
+    --ink2-text: #ffd56e;
+    --ink1-tint: #173537;
+    --ink2-tint: #3a3015;
+    --focus: #6fd6d8;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-    --teal: #4fd0c3;
-    --teal-soft: #16332f;
-    --amber: #e8b45c;
-    --amber-soft: #33290f;
-    --rose: #f08bab;
-    --band: rgba(232, 232, 236, 0.04);
-    --veil: rgba(22, 22, 25, 0.5);
-    --g1: #8b93f8;
-    --g2: #4fd0c3;
-    --g3: #e8b45c;
-    --g4: #f08bab;
-    --g5: #b38df2;
-    --g6: #94a3b8;
+    --shadow-lift: 0 12px 36px rgba(0, 0, 0, 0.5);
+    --dots: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.3px) 0 0 / 6px 6px;
+    --blend: screen;
+    --band: rgba(236, 235, 239, 0.03);
+    --veil: rgba(27, 26, 30, 0.45);
+    --g1: #3fc1c4;
+    --g2: #ffc845;
+    --g3: #86c27c;
+    --g4: #9fb6c0;
+    --g5: #86d6d3;
+    --g6: #8c8a90;
   }
 }
 
@@ -69,32 +110,33 @@
 
 html {
   font-size: 15px;
+  background: var(--bg);
 }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family:
-    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
-    Roboto, sans-serif;
+  font-family: var(--font);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4 {
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
-h2 { font-size: 1.25rem; }
-h3 { font-size: 1rem; }
+h1 { font-size: var(--text-2xl); }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-md); letter-spacing: -0.01em; }
 
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -110,16 +152,17 @@ button {
   font: inherit;
   color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
   padding: 0.45rem 0.95rem;
   cursor: pointer;
-  box-shadow: var(--shadow);
+  font-weight: 500;
+  box-shadow: 0 1px 1px rgba(28, 27, 32, 0.04);
   transition: border-color 120ms ease, background 120ms ease;
 }
 
 button:hover:not(:disabled) {
-  border-color: var(--accent);
+  background: var(--wash);
 }
 
 button:disabled {
@@ -127,12 +170,19 @@ button:disabled {
   cursor: default;
 }
 
+/* The one obvious action on a screen: charcoal, with the second ink
+   printed slightly off register behind it. */
 button.primary {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-  font-weight: 500;
+  background: var(--charcoal);
+  color: var(--on-charcoal);
+  border-color: var(--charcoal);
   padding: 0.55rem 1.3rem;
+  box-shadow: 3px 3px 0 var(--ink2);
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--charcoal);
+  box-shadow: 4px 4px 0 var(--ink2);
 }
 
 button.subtle {
@@ -145,7 +195,7 @@ button.subtle {
 }
 
 a {
-  color: var(--accent);
+  color: var(--ink1-text);
   text-decoration: none;
 }
 
@@ -155,13 +205,13 @@ a:hover {
 
 .fineprint {
   color: var(--ink-soft);
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
 }
 
 .notice {
-  background: var(--accent-soft);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  background: var(--ink2-tint);
+  border: 0;
+  border-radius: var(--radius);
   padding: 0.55rem 0.9rem;
   margin: 0.75rem 0;
   font-size: 0.9rem;
@@ -174,12 +224,12 @@ a:hover {
 
 .chip {
   display: inline-block;
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-radius: 999px;
-  padding: 0.05rem 0.55rem;
-  font-size: 0.78rem;
-  font-weight: 500;
+  background: var(--ink1-tint);
+  color: var(--ink1-text);
+  border-radius: var(--radius-sm);
+  padding: 0.05rem 0.5rem;
+  font-size: var(--text-xs);
+  font-weight: 600;
 }
 
 /* ---------- connect ---------- */
@@ -196,21 +246,20 @@ a:hover {
 }
 
 .readonly-note {
-  display: flex;
-  gap: 0.6rem;
-  align-items: baseline;
-  background: var(--teal-soft);
+  display: block;
+  background: var(--ink1-tint);
   color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 0;
+  border-radius: var(--radius);
   padding: 0.7rem 1rem;
   margin: 1.25rem 0;
   font-size: 0.92rem;
 }
 
 .readonly-note .lock {
-  color: var(--teal);
+  color: var(--ink1-text);
   font-weight: 700;
+  margin-right: 0.35rem;
 }
 
 .demo-buttons {
@@ -243,8 +292,8 @@ a:hover {
   font: inherit;
   color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
   padding: 0.45rem 0.7rem;
 }
 
@@ -259,10 +308,10 @@ a:hover {
   flex: 0 0 13rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  padding: 1.1rem 0.9rem;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-3);
   border-right: 1px solid var(--line);
-  background: var(--surface);
+  background: var(--wash);
   position: sticky;
   top: 0;
   height: 100vh;
@@ -272,17 +321,20 @@ a:hover {
   font-weight: 700;
   color: var(--ink);
   font-size: 1.05rem;
-  padding: 0.2rem 0.6rem;
+  letter-spacing: -0.01em;
+  padding: 0.2rem 0.55rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
 }
 
+/* Two inks, slightly off register: the mark is the palette. */
 .brand-mark {
   width: 14px;
   height: 14px;
-  border-radius: 5px;
-  background: var(--grad);
+  border-radius: 50%;
+  background: var(--ink1);
+  box-shadow: 4px 2px 0 var(--ink2);
   flex: 0 0 auto;
 }
 
@@ -294,9 +346,9 @@ a:hover {
 
 .sidebar nav a {
   color: var(--ink-soft);
-  padding: 0.4rem 0.6rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.93rem;
   display: flex;
   align-items: center;
   gap: 0.55rem;
@@ -304,39 +356,60 @@ a:hover {
 
 .sidebar nav a .icon {
   flex: 0 0 auto;
-  opacity: 0.75;
+  color: var(--ink1);
+}
+
+.sidebar nav a:nth-of-type(2) .icon {
+  color: var(--ink2);
+}
+
+.sidebar nav a:nth-of-type(3) .icon {
+  color: var(--ink-soft);
 }
 
 .sidebar nav a:hover {
-  background: var(--bg);
+  background: rgba(28, 27, 32, 0.05);
   text-decoration: none;
 }
 
 .sidebar nav a.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-weight: 500;
+  background: var(--ink2-tint);
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .sidebar-foot {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  padding: 0 0.6rem;
+  gap: var(--space-2);
+  padding: 0 0.55rem;
 }
 
 .demo-badge {
   display: flex;
   gap: 0.4rem;
   align-items: baseline;
-  font-size: 0.8rem;
-  color: var(--accent);
+  font-size: 0.82rem;
+  color: var(--ink1-text);
+  font-weight: 600;
 }
 
 .space-name {
   color: var(--ink-soft);
   font-size: 0.82rem;
+}
+
+/* The independence line stays in view on every screen. */
+.disclaimer {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.app-foot {
+  display: none;
 }
 
 .content {
@@ -345,14 +418,17 @@ a:hover {
 }
 
 .demo-banner {
-  color: var(--ink-soft);
+  margin: 0;
+  color: var(--ink);
   font-size: 0.85rem;
+  text-align: center;
   padding: 0.5rem 1.5rem;
+  background: var(--dots), var(--ink2-tint);
   border-bottom: 1px solid var(--line);
 }
 
 .app-main {
-  padding: 1.5rem;
+  padding: var(--space-5) var(--space-6);
   max-width: 78rem;
   margin: 0 auto;
 }
@@ -365,12 +441,10 @@ a:hover {
     flex: none;
     height: auto;
     position: static;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.75rem;
+    gap: var(--space-2);
     border-right: none;
     border-bottom: 1px solid var(--line);
-    padding: 0.6rem 0.9rem;
+    padding: var(--space-3) var(--space-4) var(--space-2);
   }
   .sidebar nav {
     flex-direction: row;
@@ -382,6 +456,14 @@ a:hover {
   }
   .sidebar-foot {
     display: none;
+  }
+  .app-main {
+    padding: var(--space-4);
+  }
+  .app-foot {
+    display: block;
+    padding: var(--space-4);
+    border-top: 1px solid var(--line);
   }
 }
 
@@ -400,23 +482,13 @@ a:hover {
 }
 
 .setup-card {
-  position: relative;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.1rem 1.3rem;
   max-width: 40rem;
   margin: 1rem 0 1.5rem;
   box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.setup-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: var(--grad);
 }
 
 .setup-card h3 {
@@ -426,7 +498,7 @@ a:hover {
 .setup-card p {
   margin: 0.3rem 0 0.8rem;
   color: var(--ink-soft);
-  font-size: 0.92rem;
+  font-size: var(--text-sm);
 }
 
 /* ---------- settings + onboarding forms ---------- */
@@ -466,8 +538,8 @@ a:hover {
   font: inherit;
   color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
   padding: 0.35rem 0.55rem;
   max-width: 16rem;
 }
@@ -511,8 +583,8 @@ a:hover {
 }
 
 .tag-chip {
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-sm);
   padding: 0.15rem 0.75rem;
   cursor: pointer;
   user-select: none;
@@ -521,9 +593,10 @@ a:hover {
 }
 
 .tag-chip.on {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-soft);
+  border-color: var(--ink1);
+  color: var(--ink1-text);
+  background: var(--ink1-tint);
+  font-weight: 600;
 }
 
 .tag-chip input {
@@ -542,12 +615,12 @@ a:hover {
 
 .transfer textarea {
   width: 100%;
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--mono);
   font-size: 0.8rem;
   background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
   margin-bottom: 0.6rem;
   padding: 0.5rem;
 }
@@ -558,46 +631,70 @@ a:hover {
 .callback-status {
   max-width: 42rem;
   margin: 0 auto;
-  padding: 3.5rem 1.25rem;
+  padding: var(--space-6) 1.25rem 3.5rem;
+}
+
+/* The printed horizon: the one loud thing on the site. Full bleed. */
+.landing-art {
+  height: clamp(150px, 24vw, 300px);
+  margin: 0 calc(50% - 50vw) var(--space-6);
+  margin-top: calc(-1 * var(--space-6));
+  background: url('/art/landing.svg') center / cover no-repeat;
+}
+
+.landing h1 {
+  margin: 0 0 var(--space-2);
+  line-height: 1.05;
 }
 
 .landing img {
   max-width: 100%;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  margin: 1.5rem 0;
-  box-shadow: var(--shadow);
+  border-radius: var(--radius-lg);
+  margin: var(--space-5) 0;
+  box-shadow: var(--shadow-lift);
 }
 
 .landing .tagline {
   color: var(--ink-soft);
-  margin-top: -0.5rem;
-  font-size: 1.1rem;
+  margin-top: 0;
+  font-size: var(--text-lg);
 }
 
 .landing .cta {
   display: inline-block;
-  background: var(--accent);
-  color: #fff;
-  border-radius: 8px;
-  padding: 0.6rem 1.4rem;
-  margin-right: 0.9rem;
-  font-weight: 500;
+  background: var(--charcoal);
+  color: var(--on-charcoal);
+  border-radius: var(--radius);
+  padding: 0.65rem 1.4rem;
+  margin: 0 1.1rem var(--space-2) 0;
+  font-weight: 600;
+  box-shadow: 4px 4px 0 var(--ink2);
 }
 
 .landing .cta:hover {
   text-decoration: none;
-  opacity: 0.92;
+  box-shadow: 5px 5px 0 var(--ink2);
 }
 
 .landing .cta-secondary {
-  color: var(--accent);
+  color: var(--ink1-text);
+  font-weight: 500;
+}
+
+.landing h2 {
+  font-size: var(--text-lg);
+  margin: var(--space-6) 0 var(--space-2);
 }
 
 .landing footer {
   margin-top: 3rem;
   border-top: 1px solid var(--line);
   padding-top: 1rem;
+}
+
+body:has(.landing) {
+  overflow-x: hidden;
 }
 
 /* ---------- timeline: toolbar, chart, card, tray ---------- */
@@ -623,34 +720,52 @@ a:hover {
   font-size: 0.88rem;
 }
 
+/* Zoom is one segmented control; Today and + New sit beside it. */
 .tl-zoom {
   display: flex;
-  gap: 0.3rem;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  flex-wrap: wrap;
 }
 
 .tl-zoom-chip {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   padding: 0.25rem 0.8rem;
-  border-radius: 999px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
   box-shadow: none;
+  color: var(--ink-soft);
+}
+
+.tl-zoom-chip:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .tl-zoom-chip.active {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-soft);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: inset 0 -3px 0 var(--ink2), 0 1px 2px rgba(28, 27, 32, 0.12);
 }
 
 .tl-zoom-chip.today {
   margin-left: 0.4rem;
-  font-weight: 500;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .tl-wrap {
   position: relative;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
   overflow: hidden;
   cursor: grab;
@@ -682,10 +797,11 @@ a:hover {
 }
 
 .tl-svg text.tl-band-label {
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 800;
   letter-spacing: -0.03em;
-  fill: var(--line);
+  fill: var(--ink);
+  fill-opacity: 0.06;
   text-anchor: middle;
   pointer-events: none;
 }
@@ -701,7 +817,6 @@ a:hover {
 
 .tl-lane-line {
   stroke: var(--line);
-  opacity: 0.8;
 }
 
 .tl-lane-headers {
@@ -711,6 +826,7 @@ a:hover {
   pointer-events: none;
 }
 
+/* Lanes read like Capacities object types: a coloured mark, then the name. */
 .tl-lane-header {
   position: absolute;
   left: 10px;
@@ -718,40 +834,44 @@ a:hover {
   align-items: center;
   gap: 0.4rem;
   white-space: nowrap;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
-  border-radius: 999px;
-  padding: 0.05rem 0.55rem 0.05rem 0.35rem;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0.05rem 0.5rem 0.05rem 0.35rem;
 }
 
 .tl-lane-dot {
-  width: 8px;
-  height: 8px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
+  box-shadow: 2px 1px 0 var(--ink2);
   flex: 0 0 auto;
 }
 
 .tl-lane-count {
-  font-weight: 400;
-  letter-spacing: normal;
-  text-transform: none;
+  font-weight: 500;
   color: var(--ink-soft);
-  opacity: 0.85;
 }
 
-/* Bars: the track wears its hue faintly; the elapsed fill wears it fully. */
+/* Bars: the track wears its hue faintly; the elapsed fill wears it fully.
+   Both print as ink, so where bars and the today band cross they overprint. */
 .tl-item {
   cursor: pointer;
   outline: none;
 }
 
+.tl-item path,
+.tl-item rect,
+.tl-item circle {
+  mix-blend-mode: var(--blend);
+}
+
 .tl-track {
-  fill-opacity: 0.16;
-  stroke-opacity: 0.35;
+  fill-opacity: 0.3;
+  stroke-opacity: 0;
   stroke-width: 1;
 }
 
@@ -761,7 +881,12 @@ a:hover {
 }
 
 .tl-fill {
-  fill-opacity: 0.85;
+  fill-opacity: 0.95;
+}
+
+/* A bar that carries its own name gets a lighter fill so ink reads on it. */
+.tl-item:has(.tl-label.inside) .tl-fill {
+  fill-opacity: 0.5;
 }
 
 .tl-item.is-done .tl-track,
@@ -815,7 +940,9 @@ a:hover {
 }
 
 .tl-label.inside {
-  font-weight: 500;
+  font-weight: 600;
+  stroke: none;
+  fill: var(--ink);
 }
 
 .tl-item:focus-visible .tl-track,
@@ -843,35 +970,40 @@ a:hover {
   pointer-events: none;
 }
 
-.tl-now-glow {
-  stroke: var(--accent);
-  stroke-width: 6;
-  opacity: 0.1;
+/* Today: a sunflower band printed under an ink rule. */
+.tl-now-band {
+  stroke: var(--ink2);
+  stroke-width: 12;
+  opacity: 0.9;
+  mix-blend-mode: var(--blend);
+}
+
+.tl-now-line {
+  stroke: var(--ink);
+  stroke-width: 2;
 }
 
 .tl-now-pill rect {
-  fill: var(--surface);
-  stroke: var(--line);
+  fill: var(--charcoal);
 }
 
 .tl-now-pill text {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   text-anchor: middle;
-  fill: var(--accent);
+  fill: var(--on-charcoal-ink);
 }
 
 /* Axis labels. */
 .tl-axis-major {
   font-size: 11px;
-  font-weight: 600;
-  fill: var(--ink-soft);
+  font-weight: 700;
+  fill: var(--ink);
 }
 
 .tl-axis-minor {
   font-size: 10px;
   fill: var(--ink-soft);
-  opacity: 0.8;
 }
 
 /* The item card. */
@@ -895,9 +1027,9 @@ a:hover {
 .tl-card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 0.9rem 1.1rem;
-  box-shadow: 0 8px 28px rgba(20, 20, 30, 0.16);
+  box-shadow: var(--shadow-lift);
 }
 
 .tl-card-head {
@@ -943,7 +1075,7 @@ a:hover {
 }
 
 .tl-ms-dot {
-  color: var(--accent);
+  color: var(--ink1);
   margin-right: 0.35rem;
 }
 
@@ -955,8 +1087,9 @@ a:hover {
 /* Someday tray. */
 .someday {
   margin: 1rem 0;
-  border: 1px dashed var(--line);
-  border-radius: 10px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--wash);
   padding: 0.5rem 0.9rem;
 }
 
@@ -983,9 +1116,9 @@ a:hover {
 
 .someday-item {
   box-shadow: none;
-  font-size: 0.88rem;
+  font-size: var(--text-sm);
   padding: 0.2rem 0.7rem;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
 }
 
 /* The agenda list (narrow viewports). */
@@ -996,20 +1129,25 @@ a:hover {
 }
 
 .agenda-month {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-soft);
   padding: 0.9rem 0 0.25rem;
 }
 
+/* Today in the agenda: the same sunflower band as on the chart. */
 .agenda-today {
-  color: var(--accent);
-  font-size: 0.82rem;
-  font-weight: 600;
+  color: var(--ink);
+  background: var(--ink2-tint);
+  box-shadow: inset 0 0 0 1px var(--ink2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 700;
   text-align: center;
-  padding: 0.6rem 0;
+  padding: 0.35rem 0;
+  margin: var(--space-2) 0;
 }
 
 .agenda-item {
@@ -1020,7 +1158,9 @@ a:hover {
   text-align: left;
   margin: 0.25rem 0;
   padding: 0.6rem 0.85rem;
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .agenda-title {
@@ -1029,9 +1169,9 @@ a:hover {
 
 .agenda-meter {
   display: block;
-  height: 3px;
+  height: 4px;
   border-radius: 999px;
-  background: var(--accent-soft);
+  background: var(--ink1-tint);
   overflow: hidden;
   margin-top: 0.25rem;
 }
@@ -1039,7 +1179,7 @@ a:hover {
 .agenda-meter span {
   display: block;
   height: 100%;
-  background: var(--accent);
+  background: var(--ink1);
   border-radius: 999px;
 }
 
@@ -1066,21 +1206,28 @@ a:hover {
   padding: 0.75rem 0 1.25rem;
 }
 
+/* Horizons: open columns on the wash, cards on top. Now gets the
+   sunflower header so the nearest horizon is the first thing you see. */
 .hz-column {
   flex: 1 0 13rem;
   max-width: 18rem;
-  background: var(--surface);
+  background: var(--wash);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 0.8rem 0.9rem;
-  box-shadow: var(--shadow);
   min-height: 8rem;
+}
+
+.hz-column:first-child h3 {
+  color: var(--ink);
+  box-shadow: inset 0 -3px 0 var(--ink2);
+  padding-bottom: 0.3rem;
 }
 
 .hz-column.someday-col {
   background: transparent;
   border-style: dashed;
-  box-shadow: none;
+  border-color: var(--line-strong);
 }
 
 .hz-column h3 {
@@ -1089,8 +1236,8 @@ a:hover {
   align-items: baseline;
   gap: 0.5rem;
   color: var(--ink-soft);
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -1103,14 +1250,15 @@ a:hover {
   text-align: left;
   margin: 0 0 0.5rem;
   padding: 0.55rem 0.7rem;
-  border-radius: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
   box-shadow: var(--shadow);
-  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
-.hz-card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(20, 20, 30, 0.08);
+.hz-card:hover:not(:disabled) {
+  background: var(--surface);
+  border-color: var(--line-strong);
 }
 
 .hz-card.is-done {
@@ -1118,11 +1266,11 @@ a:hover {
 }
 
 .hz-title {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .hz-goal-group {
-  border-left: 3px solid var(--g5);
+  border-left: 3px solid var(--ink1);
   padding-left: 0.55rem;
   margin: 0 0 0.75rem;
 }
@@ -1140,7 +1288,7 @@ a:hover {
 }
 
 .hz-flag {
-  color: var(--g5);
+  color: var(--ink1);
   margin-right: 0.35rem;
 }
 
@@ -1165,7 +1313,7 @@ a:hover {
 .dialog-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(20, 20, 30, 0.35);
+  background: rgba(28, 27, 32, 0.35);
   display: grid;
   place-items: center;
   z-index: 40;
@@ -1175,11 +1323,11 @@ a:hover {
 .dialog {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.1rem 1.3rem;
   width: 26rem;
   max-width: 100%;
-  box-shadow: 0 12px 40px rgba(20, 20, 30, 0.25);
+  box-shadow: var(--shadow-lift);
 }
 
 .dialog h3 {
@@ -1204,16 +1352,23 @@ a:hover {
   font-size: 0.85rem;
   color: var(--ink);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-sm);
   padding: 0.25rem 0.4rem;
   max-width: 100%;
 }
 
 .tl-zoom-chip.tl-new {
   margin-left: 0.4rem;
-  border-color: var(--teal);
-  color: var(--teal);
+  background: var(--charcoal);
+  color: var(--on-charcoal);
+  font-weight: 600;
+  box-shadow: 3px 3px 0 var(--ink2);
+}
+
+.tl-zoom-chip.tl-new:hover:not(:disabled) {
+  background: var(--charcoal);
+  color: var(--on-charcoal);
 }
 
 .hz-add {
@@ -1269,7 +1424,8 @@ a:hover {
 }
 
 .detail-facts {
-  color: var(--accent);
+  color: var(--ink1-text);
+  font-weight: 500;
 }
 
 .detail-actions {
@@ -1323,7 +1479,7 @@ a:hover {
 
 .detail-child:hover {
   text-decoration: none;
-  color: var(--accent);
+  color: var(--ink1-text);
 }
 
 /* Areas within one pillar get a fainter divider than the pillars do. */
