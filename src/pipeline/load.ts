@@ -67,7 +67,7 @@ export async function loadTimelineData(
   const { provider, cache, config, resolved } = deps;
   const offset = opts.offset ?? 0;
 
-  /* 1 — enumerate: summaries are {id, structureId, title}, nothing more. */
+  /* 1. Enumerate: summaries are {id, structureId, title}, nothing more. */
   const kindOf = new Map<string, 'project' | 'goal'>();
   const summaries: ObjectSummary[] = [];
   const seen = new Set<string>();
@@ -88,7 +88,7 @@ export async function loadTimelineData(
     }
   }
 
-  /* 2 — tag membership: list results carry no tags, so grouping by tag
+  /* 2. Tag membership: list results carry no tags, so grouping by tag
      means one cheap summary listing per configured tag (not per object). */
   const membership = new Map<string, string[]>();
   const groupingTagNames = [...resolved.groupValues, ...resolved.subGroupValues];
@@ -106,7 +106,7 @@ export async function loadTimelineData(
   }
   const tagsOf = (id: string): string[] => membership.get(id) ?? [];
 
-  /* 3 — the ceiling: a huge space must not produce a five-minute first run. */
+  /* 3. The ceiling: a huge space must not produce a five-minute first run. */
   const slice = summaries.slice(offset, offset + config.display.fetchCeiling);
   const total = summaries.length;
   const remaining = Math.max(0, total - offset - slice.length);
@@ -116,7 +116,7 @@ export async function loadTimelineData(
   const progress = (): void =>
     hooks.onProgress({ done, total: slice.length });
 
-  /* 4 — cache split: fresh records render before any network round-trip. */
+  /* 4. Cache split: fresh records render before any network round-trip. */
   const cached = await cache.get(slice.map((s) => s.id));
   const ttl = config.display.cacheTtlMinutes;
   const freshItems: TimelineItem[] = [];
@@ -135,7 +135,7 @@ export async function loadTimelineData(
   if (freshItems.length > 0) hooks.onItems(freshItems);
   progress();
 
-  /* 5 — enrich through the adaptive pool, emitting in small batches. */
+  /* 5. Enrich through the adaptive pool, emitting in small batches. */
   const buffer: TimelineItem[] = [];
   const writes: CachedRecord[] = [];
   const collected: TimelineItem[] = [...freshItems];
@@ -201,7 +201,7 @@ export async function loadTimelineData(
     );
   }
 
-  /* 6 — derived spans: an undated item whose children carry dates gets
+  /* 6. Derived spans: an undated item whose children carry dates gets
      the children's envelope, stated as derived and drawn dashed. Goals
      borrow their loaded projects for free; anything still undated gets a
      bounded child-fetch pass so the extra cost stays small. */
@@ -243,7 +243,7 @@ function emptyResult(nowMs: number): LoadResult {
 
 /**
  * Resolve the tag collections a config names into their member tag
- * names — the live read that lets a space map a whole grouping level
+ * names: the live read that lets a space map a whole grouping level
  * by naming its own collection ("Life Pillars") instead of listing
  * every tag. Only the named collections are fetched, so the cost is
  * one listing per mapped level, not per collection in the space.
@@ -282,7 +282,7 @@ export async function loadCollectionTags(
 }
 
 /**
- * Actions — the hierarchy's leaf — fetched lazily (a detail view, a
+ * Actions (the hierarchy's leaf) fetched lazily (a detail view, a
  * derived-span pass), cache-first, through a small pool. Same shape as
  * milestones: never part of the initial enumeration.
  */
@@ -340,7 +340,7 @@ export async function loadActions(
 }
 
 /**
- * One item by id, as a full TimelineItem — the detail view's cold-start
+ * One item by id, as a full TimelineItem: the detail view's cold-start
  * path when a deep link arrives before (or without) the main load.
  */
 export async function loadItem(
@@ -365,7 +365,7 @@ export async function loadItem(
 }
 
 /**
- * Milestones are objects behind an entity property (§8.1) — an opt-in
+ * Milestones are objects behind an entity property (§8.1): an opt-in
  * enhancement fetched lazily when a card is expanded, never during the
  * initial load. Cache-first, small pool.
  */

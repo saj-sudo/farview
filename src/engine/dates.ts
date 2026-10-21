@@ -3,7 +3,7 @@ import type { LocalDate } from './types';
 /**
  * All calendar math for the engine. A LocalDate is a plain YYYY-MM-DD
  * string in the *user's* timezone (§11: local date, never UTC). Date.UTC
- * is used below purely as an arithmetic substrate for day counting — the
+ * is used below purely as an arithmetic substrate for day counting: the
  * user's timezone only ever matters when deriving "today", which happens
  * once in todayInZone() and is injected everywhere else. Because every
  * computation runs on UTC milliseconds over calendar dates, DST cannot
@@ -84,7 +84,7 @@ export function dayOf(date: LocalDate): number {
 /* ------------------------------------------------------------------ */
 
 /**
- * Days since 1970-01-01 as an integer — the timeline's x-axis unit.
+ * Days since 1970-01-01 as an integer: the timeline's x-axis unit.
  * The scale works in day numbers so pan/zoom is plain arithmetic and
  * timezone never re-enters after "today" is derived.
  */

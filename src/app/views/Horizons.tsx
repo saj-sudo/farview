@@ -12,7 +12,7 @@ import type { TimelineData } from '../useTimelineData';
 
 /**
  * The Horizons view (spec §9.2): columns per bucket, ordered by
- * distance — Now, Quarter, Year, Long, Someday. The order IS the
+ * distance: Now, Quarter, Year, Long, Someday. The order IS the
  * sequence, so nothing is numbered. Cards group under goals when a
  * goal type is mapped; flat otherwise. Same dataset as the timeline.
  */

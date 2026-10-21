@@ -22,8 +22,8 @@ import type { TimelineData } from '../useTimelineData';
 
 /**
  * Settings doubles as onboarding (spec §6): the form is built live from
- * the space's real types, properties, and tags — never a text field for
- * a name that a dropdown can offer — and the live preview at the bottom
+ * the space's real types, properties, and tags: never a text field for
+ * a name that a dropdown can offer: and the live preview at the bottom
  * renders the visitor's actual timeline before anything is saved. That
  * preview is what converts a skeptical visitor, and it costs nothing:
  * the data is already fetched.
@@ -157,7 +157,7 @@ export function Settings(props: {
   /* ---------------- form pieces ---------------- */
 
   // Built-in Tasks (RootTask is an API constant, like RootPage) are a
-  // natural actions source for pro users — surfaced first for that role.
+  // natural actions source for pro users: surfaced first for that role.
   const taskType = boot.structures.find((s) => s.id === 'RootTask');
 
   const typeSelect = (role: TypeRole, label: string, hint: string) => (
@@ -756,8 +756,8 @@ export function Settings(props: {
 
 /**
  * One level of the lane taxonomy. A level either follows a tag
- * collection — the space's own list, so lanes appear as tags are added
- * to it — or names tags by hand, clicked in the order the lanes should
+ * collection: the space's own list, so lanes appear as tags are added
+ * to it: or names tags by hand, clicked in the order the lanes should
  * sit. Nothing here is typed: every option comes from the real space.
  */
 function TagLevelPicker(props: {

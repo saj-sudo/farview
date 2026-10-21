@@ -24,7 +24,7 @@ import { createWriteQueue, type WriteQueue } from './writeQueue';
 export interface EditActions {
   updateDates: (item: TimelineItem, change: DateChange) => Promise<boolean>;
   /**
-   * Create an item; with a parentItem, link it — a project sets its
+   * Create an item; with a parentItem, link it: a project sets its
    * goal at create, an action is appended to the parent's actions
    * entity property afterwards (the parent owns that relation).
    */

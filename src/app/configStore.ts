@@ -2,7 +2,7 @@ import { normalizeConfig } from '../engine/config';
 import type { FarviewConfig } from '../engine/types';
 
 /**
- * Config persistence (spec §10): browser storage only, by design — there
+ * Config persistence (spec §10): browser storage only, by design. There
  * is no state object in the user's space because Farview cannot write.
  * Clearing browser data costs a two-minute remap; export/import in
  * Settings makes that avoidable.

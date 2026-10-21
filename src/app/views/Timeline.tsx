@@ -29,8 +29,8 @@ import { SomedayTray } from '../components/SomedayTray';
 import { TimelineSvg } from '../components/TimelineSvg';
 
 /**
- * The timeline view: zoom, pan, keyboard, selection — all the stateful
- * interaction over the pure layout. The chart is an SVG scene rebuilt
+ * The timeline view: zoom, pan, keyboard and selection, which is all the
+ * stateful interaction over the pure layout. The chart is an SVG scene rebuilt
  * from layoutTimeline() on every view change; lane headers are a sticky
  * HTML overlay; the card is an HTML dialog anchored to its bar.
  */
@@ -467,7 +467,7 @@ export function Timeline(props: {
 
   /* ---------------- editing ---------------- */
 
-  // The card always shows the LIVE item — an optimistic date change or
+  // The card always shows the LIVE item: an optimistic date change or
   // server confirmation must not leave a stale snapshot on screen.
   const liveSelected = selected
     ? (props.data.items.find((i) => i.id === selected.item.id) ?? selected.item)

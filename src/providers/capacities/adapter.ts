@@ -25,14 +25,14 @@ import { withBackoff } from './rateLimit';
 
 /**
  * The one place the engine's Provider interface meets the Capacities
- * SDK. Read-only throughout — the Provider interface has no write
+ * SDK. Read-only throughout: the Provider interface has no write
  * method, matching the api:read-only OAuth scope (spec §0b). All calls
  * go through rate-limit backoff.
  *
  * List endpoints return `{id, structureId, title}` summaries only, so
  * dates cost one GET per object (spec §5.4). If a future API version
  * adds properties or timestamps to list results, most of src/pipeline
- * can be deleted — revisit this when the API changes.
+ * can be deleted: revisit this when the API changes.
  */
 export class CapacitiesAdapter implements Provider {
   private readonly client: CapacitiesClient;
@@ -150,7 +150,7 @@ export class CapacitiesAdapter implements Provider {
  * The write side of the seam, created ONLY when the user connected with
  * editing (spec change: read-only by default, writes behind explicit
  * opt-in). Each call is one POST/PATCH carrying every changed property
- * at once — the rate limit is ~30 req/min, so writes stay single-shot.
+ * at once: the rate limit is ~30 req/min, so writes stay single-shot.
  * A missing scope surfaces as CapacitiesApiError 'cap_scope_insufficient'
  * and the UI downgrades rather than retrying.
  */

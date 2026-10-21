@@ -18,7 +18,7 @@ export interface BackoffOptions {
   maxDelayMs?: number;
   sleep?: (ms: number) => Promise<void>;
   random?: () => number;
-  /** Called once per rate-limited attempt — the pipeline's throttle signal. */
+  /** Called once per rate-limited attempt: the pipeline's throttle signal. */
   onRateLimited?: () => void;
 }
 

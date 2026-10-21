@@ -2,8 +2,8 @@ import { propDef, type FixtureSpace } from './types';
 
 /**
  * The empty fixture (spec §12): types exist, but there is not a single
- * object. The app must show a useful empty state, not a broken chart —
- * this is many users' actual first experience.
+ * object. The app must show a useful empty state here, because this is
+ * many users' actual first experience.
  */
 export function buildEmptySpace(): FixtureSpace {
   return {

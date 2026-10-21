@@ -1,7 +1,7 @@
 import type { TimelineItem } from '../../engine/types';
 
 /**
- * The Someday tray (§8.2): undated items live here, visibly — silently
+ * The Someday tray (§8.2): undated items live here, in view. Silently
  * losing a user's item from a view is worse than showing a gap.
  */
 export function SomedayTray(props: {

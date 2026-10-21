@@ -5,7 +5,7 @@ import type { LocalDate, MilestoneItem, TimelineItem } from '../../engine/types'
 
 /**
  * The detail card: everything Farview knows about one item, and a deep
- * link into the real object — Farview is a lens, never an editor. All
+ * link into the real object: Farview is a lens, never an editor. All
  * copy is matter-of-fact; a passed target is a fact, not a verdict.
  */
 

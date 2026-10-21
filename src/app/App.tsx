@@ -35,7 +35,7 @@ const DISCLAIMER = 'Independent community tool. Not affiliated with Capacities.'
 
 /**
  * The app shell: sidebar + content, session bootstrap, auth-loss
- * handling. One dataset — loaded once through the pipeline — feeds both
+ * handling. One dataset (loaded once through the pipeline) feeds both
  * the Timeline and Horizons views.
  */
 

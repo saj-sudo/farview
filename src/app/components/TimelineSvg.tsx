@@ -4,9 +4,9 @@ import { AXIS_H } from '../../engine/timeline/layout';
 import type { LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
 
 /**
- * Pure SVG rendering of a TimelineLayout. One bold move — the gradient
- * now-line — over a quiet scene: alternating calendar bands, hairline
- * grid, soft bars filled by elapsed time. The past sits under a single
+ * Pure SVG rendering of a TimelineLayout. One strong element, the today
+ * line, over a plain scene: alternating calendar bands, a hairline
+ * grid, bars filled by elapsed time. The past sits under a single
  * veil rect instead of per-item styling, so everything left of now
  * (gridlines included) recedes together.
  */
@@ -199,7 +199,7 @@ function Bar(props: {
       : 'move';
 
   // A derived span isn't this item's own date, so there is nothing to
-  // drag — set real dates (card or Capacities) to pin it first.
+  // drag: set real dates (card or Capacities) to pin it first.
   const canDrag =
     props.editable && !bar.done && !bar.derived && props.onDragStart !== undefined;
 
@@ -308,7 +308,7 @@ function Bar(props: {
         </>
       )}
 
-      {/* Overdue: a weight shift and a quiet diamond — never red (§9.3). */}
+      {/* Overdue: a weight shift and a quiet diamond: never red (§9.3). */}
       {bar.overdue && bar.kind !== 'point' && (
         <path
           d={`M ${bar.x + bar.w + 9} ${cy - 4.5} l 4.5 4.5 l -4.5 4.5 l -4.5 -4.5 Z`}

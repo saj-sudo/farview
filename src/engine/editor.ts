@@ -3,7 +3,7 @@ import type { FullObject } from './provider';
 import type { LocalDate, TimelineItem } from './types';
 
 /**
- * The write seam — deliberately narrow. Farview is read-only by
+ * The write seam: deliberately narrow. Farview is read-only by
  * default; an Editor exists only when the user explicitly connected
  * with editing, and every method here corresponds to a direct user
  * gesture (a drag, a save button, a create dialog). There are no
@@ -25,12 +25,12 @@ export interface NewItemSpec {
   title: string;
   start: LocalDate | null;
   target: LocalDate | null;
-  /** Horizon label name (goals, property mode) — matched against the labelSet. */
+  /** Horizon label name (goals, property mode): matched against the labelSet. */
   horizonLabel?: string | null;
   /**
    * Link at birth: a new project under a goal sets projectGoal on
    * create. (A new action is linked afterwards by patching the parent's
-   * actions entity property — the parent owns that relation.)
+   * actions entity property: the parent owns that relation.)
    */
   parent?: { kind: ItemKind; id: string } | null;
 }
@@ -41,7 +41,7 @@ export interface Editor {
   /** Patch only the changed date properties; resolves to the fresh object. */
   updateDates(id: string, kind: ItemKind, change: DateChange): Promise<FullObject>;
   /**
-   * Replace one entity property's reference list — used solely to
+   * Replace one entity property's reference list: used solely to
    * append a just-created child to its parent's actions. Callers pass
    * the full id list (existing + new); nothing here removes links.
    */
@@ -62,7 +62,7 @@ export class EditNotPossibleError extends Error {}
 
 /**
  * The optimistic local view of a date change: same item, new dates,
- * flags recomputed — what the UI shows while the PATCH is in flight.
+ * flags recomputed: what the UI shows while the PATCH is in flight.
  */
 export function applyDateChange(item: TimelineItem, change: DateChange): TimelineItem {
   const start = change.start === undefined ? item.start : change.start;
@@ -100,8 +100,8 @@ export function datePropertyIds(
 
 /**
  * The API's day-resolution date payload; null start clears the date.
- * Day-resolution properties accept only UTC-midnight ISO strings — a bare
- * YYYY-MM-DD is rejected with cap_invalid_input — so the engine's
+ * Day-resolution properties accept only UTC-midnight ISO strings: a bare
+ * YYYY-MM-DD is rejected with cap_invalid_input: so the engine's
  * LocalDate is canonicalized here, at the edge where it becomes a write.
  */
 export function dayPayload(date: LocalDate | null): {
@@ -120,7 +120,7 @@ export function dayPayload(date: LocalDate | null): {
 /**
  * Build the properties record for a date patch: only the properties the
  * change actually names, so an untouched date is never rewritten.
- * Throws readably when a change targets an unmapped property — the UI
+ * Throws readably when a change targets an unmapped property: the UI
  * should not have offered the affordance, but a stranger's config can
  * always surprise.
  */
@@ -155,8 +155,8 @@ export function buildDatePatch(
 
 /**
  * Build the properties record for a new item: title (via the type's
- * title-typed property), any provided dates, and — for goals in
- * property mode — the horizon label resolved to its stable option id.
+ * title-typed property), any provided dates, and: for goals in
+ * property mode: the horizon label resolved to its stable option id.
  */
 export function buildCreateProperties(
   resolved: ResolvedSchema,

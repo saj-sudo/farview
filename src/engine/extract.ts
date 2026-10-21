@@ -11,9 +11,9 @@ import type {
 
 /**
  * FullObject → TimelineItem: the one place raw API property payloads
- * become the engine's normalized shape. Everything here is defensive —
- * a stranger's space can put anything in any property — and nothing is
- * ever silently dropped for being odd: unknown statuses stay visible,
+ * become the engine's normalized shape. Everything here is defensive,
+ * because a stranger's space can put anything in any property, and nothing
+ * is ever silently dropped for being odd: unknown statuses stay visible,
  * reversed dates are flagged rather than swapped (§11), undated items
  * flow through to the Someday tray (§8.2).
  */
@@ -39,7 +39,7 @@ function entityProp(obj: FullObject, propId: string | undefined): string[] {
 
 /**
  * Classify a status label against the configured value sets. Matching is
- * case-insensitive. A label in neither set — or no label at all — is
+ * case-insensitive. A label in neither set (or no label at all) is
  * 'unknown' and treated as visible: hiding a user's item because their
  * space has a status the config never heard of would be silent data loss.
  */
@@ -64,7 +64,7 @@ export function classifyStatus(
 /**
  * Assign the item's lane/color group per the grouping config.
  * Tag membership is injected because full objects do not reliably carry
- * tags — the pipeline builds a membership map from the per-tag list
+ * tags: the pipeline builds a membership map from the per-tag list
  * endpoints instead (one cheap summary listing per configured tag).
  */
 export function assignGroup(
@@ -159,7 +159,7 @@ export function extractItem(
  * An action object → the hierarchy's leaf: a real (possibly ranged)
  * date and a done flag. Mapped properties first; when the action type's
  * schema is unmapped, fall back to the first date property and any
- * label matching the configured done values — same forgiving posture
+ * label matching the configured done values: same forgiving posture
  * as milestones.
  */
 export function extractAction(

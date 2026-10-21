@@ -14,11 +14,11 @@
 export type LocalDate = string & { readonly __localDate?: never };
 
 /**
- * Roles a mapped object type can play (spec §8). Only `project` — the
- * middle of the hierarchy — is required; most spaces have no Goal type
+ * Roles a mapped object type can play (spec §8). Only `project`: the
+ * middle of the hierarchy: is required; most spaces have no Goal type
  * at all, and project-only is the default experience, not a fallback.
  * `action` is the optional leaf level (Capacities' built-in Tasks or
- * any custom type); `milestone` stays a separate concept — achievement
+ * any custom type); `milestone` stays a separate concept: achievement
  * markers, not work items.
  */
 export type TypeRole = 'goal' | 'project' | 'milestone' | 'action';
@@ -82,7 +82,7 @@ export interface FarviewConfig {
     /** Tag names (grouping by tag) or label values (by property), in lane order. */
     values: string[];
     /**
-     * A tag collection whose members supply `values` live — how spaces
+     * A tag collection whose members supply `values` live: how spaces
      * that keep their taxonomy in a collection ("Life Pillars") map it
      * without ticking every tag by hand. Takes precedence over values.
      */
@@ -114,7 +114,7 @@ export interface FarviewConfig {
 export type ItemStatus = 'active' | 'done' | 'unknown';
 
 /**
- * One dated (or deliberately undated) thing on the timeline — the
+ * One dated (or deliberately undated) thing on the timeline: the
  * engine's normalized view of a project or goal.
  */
 export interface TimelineItem {
@@ -144,14 +144,14 @@ export interface TimelineItem {
   actionIds: string[];
   /**
    * Rollup span derived from dated children when the item itself is
-   * undated — a fact stated as such, drawn dashed, never a real date.
+   * undated: a fact stated as such, drawn dashed, never a real date.
    */
   derived: { start: LocalDate | null; target: LocalDate | null } | null;
   /** The explicit horizon label when horizons.mode === 'property'. */
   horizonLabel: string | null;
 }
 
-/** An action resolved from its own object — the leaf level of the hierarchy. */
+/** An action resolved from its own object: the leaf level of the hierarchy. */
 export interface ActionItem {
   id: string;
   title: string;
@@ -160,7 +160,7 @@ export interface ActionItem {
   done: boolean;
 }
 
-/** A milestone resolved from its own object (lazy, opt-in — §8.1). */
+/** A milestone resolved from its own object (lazy, opt-in: §8.1). */
 export interface MilestoneItem {
   id: string;
   title: string;

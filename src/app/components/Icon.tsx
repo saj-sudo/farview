@@ -2,7 +2,7 @@ import type { JSX } from 'preact';
 
 /**
  * Tiny inline icon set (16px, stroke = currentColor) so the sidebar can
- * carry glyphs without any external asset — the CSP stays 'self'-only.
+ * carry glyphs without any external asset: the CSP stays 'self'-only.
  */
 
 const PATHS: Record<string, JSX.Element> = {

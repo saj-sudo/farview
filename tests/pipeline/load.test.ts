@@ -18,7 +18,7 @@ import {
 } from '../../src/providers/fixture/strangersSpace';
 
 // End-to-end over the stranger's space: every assertion here holds
-// against a schema the code has never heard of — the premise's guard.
+// against a schema the code has never heard of: the premise's guard.
 
 const TODAY = '2026-08-25' as LocalDate;
 const noSleep = { sleep: () => Promise.resolve() };
@@ -82,7 +82,7 @@ describe('loadTimelineData on the stranger\'s space', () => {
     expect(voyage.horizonLabel).toBe('Beyond the Chart');
 
     // The hierarchy's wiring: projectGoal links, action links on both
-    // levels, and goal milestones — all via mapped entity properties.
+    // levels, and goal milestones: all via mapped entity properties.
     expect(mainstay.goalId).toBe('v-atoll');
     expect(mainstay.actionIds).toEqual(['ch-partners', 'ch-brightwork', 'ch-halyard']);
     expect(byId.get('x-replank')!.goalId).toBe('v-circumnavigate');
@@ -144,7 +144,7 @@ describe('loadTimelineData on the stranger\'s space', () => {
     const callsAfterCold = provider.getObjectCalls;
     expect(callsAfterCold).toBe(19); // 17 items + 2 chores for the derived pass
 
-    // Warm: everything fresh, zero GETs — and items still arrive.
+    // Warm: everything fresh, zero GETs, and items still arrive.
     nowMs += 10 * 60_000;
     const warm = collector();
     await loadTimelineData(deps, warm.hooks);
@@ -162,7 +162,7 @@ describe('loadTimelineData on the stranger\'s space', () => {
     expect(provider.getObjectCalls).toBe(callsAfterCold + 36);
   });
 
-  it('rides out scripted 429s — progressive render continues', async () => {
+  it('rides out scripted 429s: progressive render continues', async () => {
     const { provider, config, resolved } = await setup();
     provider.failPlan.set('x-mainstay', 2);
     provider.failPlan.set('v-atoll', 1);

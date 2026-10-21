@@ -4,10 +4,10 @@ import { challengeS256, generateState, generateVerifier } from './pkce';
  * Browser-side OAuth 2.1 authorization-code flow against Capacities
  * (spec §7.2). Endpoints come from server metadata rather than being
  * hardcoded; the documented paths are only the fallback when discovery
- * is unreachable. There is no client secret — this is a public client —
+ * is unreachable. There is no client secret (this is a public client),
  * and the token exchange sends no Authorization header.
  *
- * Scopes: read-only is the DEFAULT and the trust story — a plain
+ * Scopes: read-only is the DEFAULT and the basis of trust. A plain
  * connect grants `api:read` and nothing else. Editing is an explicit,
  * separate opt-in that requests `api:write` too, and the consent
  * screen shows the difference. No code path may silently widen a
@@ -100,7 +100,7 @@ export class OAuthCallbackError extends Error {}
 
 /**
  * Handle the redirect back from Capacities: verify state, exchange the
- * code for tokens. Send no Authorization header — public client.
+ * code for tokens. Send no Authorization header: public client.
  */
 export async function completeAuthorization(opts: {
   params: URLSearchParams;

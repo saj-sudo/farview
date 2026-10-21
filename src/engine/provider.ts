@@ -5,7 +5,7 @@
  *
  * The shapes here are deliberately simpler than the API's: the adapter
  * flattens property payloads into what placement and display actually
- * need. Read-only by construction — this interface has no write method,
+ * need. Read-only by construction: this interface has no write method,
  * and adding one would break the product's identity (spec §0b).
  */
 
@@ -35,8 +35,8 @@ export interface TagDef {
 }
 
 /**
- * A Capacities collection. Spaces often keep their taxonomy in one —
- * a "Life Pillars" collection holding the pillar tags — so Farview can
+ * A Capacities collection. Spaces often keep their taxonomy in one
+ * (a "Life Pillars" collection holding the pillar tags), so Farview can
  * map a whole level by naming the collection instead of every tag.
  */
 export interface CollectionDef {

@@ -7,12 +7,12 @@ import type {
 } from './types';
 
 /**
- * Config lives in browser storage only — Farview never writes to the
+ * Config lives in browser storage only: Farview never writes to the
  * user's space (spec §0b), so there is no state object to sync. Losing
  * it costs a two-minute remap; export/import exists so it is avoidable.
  *
- * `normalizeConfig` accepts anything — an older version, a hand-edited
- * export, partial garbage — and returns a complete valid config:
+ * `normalizeConfig` accepts anything (an older version, a hand-edited
+ * export, partial garbage) and returns a complete valid config:
  * unknown fields dropped, missing fields defaulted, numbers clamped.
  * Validation is hand-rolled rather than schema-library-driven on
  * purpose: dependency discipline is a security requirement (spec §3).

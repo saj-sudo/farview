@@ -48,7 +48,7 @@ describe('minimal space', () => {
 });
 
 describe('empty space', () => {
-  it('loads zero items without throwing — the empty state\'s data shape', async () => {
+  it('loads zero items without throwing: the empty state\'s data shape', async () => {
     const provider = new FixtureProvider(buildEmptySpace());
     const resolved = resolveSchema(
       config,

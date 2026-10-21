@@ -1,6 +1,6 @@
 /**
  * The timeline's coordinate system. The continuous axis unit is the
- * integer dayNumber (days since 1970) — timezone enters exactly once,
+ * integer dayNumber (days since 1970): timezone enters exactly once,
  * when the caller derives "today", and everything here is arithmetic.
  * View state is center-anchored so preset zooms stay where the user is
  * looking, and fractional days are allowed for smooth panning.
@@ -23,7 +23,7 @@ export type ZoomPresetId = 'quarter' | 'year' | 'threeYears' | 'decade';
 
 /**
  * Zoom presets (spec §9.1 plus the Decade view): how many days the
- * window holds. The decade preset is first-class — years become the
+ * window holds. The decade preset is first-class: years become the
  * unit, and the view reads as the shape of a decade, not a squeezed
  * year.
  */
@@ -68,7 +68,7 @@ export function pan(view: ViewState, dxPx: number, widthPx: number): ViewState {
 
 /**
  * Zoom to a new window size, keeping `anchorDay` at the same on-screen
- * position — the cursor for wheel zoom, the now-line for preset taps.
+ * position: the cursor for wheel zoom, the now-line for preset taps.
  */
 export function zoomTo(
   view: ViewState,
@@ -83,7 +83,7 @@ export function zoomTo(
 
 /** The smallest and largest windows continuous zoom may reach. */
 export const MIN_DAYS_VISIBLE = 28;
-export const MAX_DAYS_VISIBLE = 36530; // a century — beyond Decade, but bounded
+export const MAX_DAYS_VISIBLE = 36530; // a century: beyond Decade, but bounded
 
 export function clampZoom(daysVisible: number): number {
   return Math.min(MAX_DAYS_VISIBLE, Math.max(MIN_DAYS_VISIBLE, daysVisible));

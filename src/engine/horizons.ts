@@ -3,14 +3,14 @@ import type { ResolvedSchema } from './resolve';
 import type { FarviewConfig, LocalDate, TimelineItem } from './types';
 
 /**
- * Horizon derivation (spec §8.2) — the design that makes Farview work
+ * Horizon derivation (spec §8.2): the design that makes Farview work
  * on a space with zero custom setup. Horizons are derived from date
  * distance by default:
  *
  *   daysOut = targetDate - today
  *   bucket  = first bucket where daysOut <= maxDays (null = catch-all)
  *
- * Overdue items (negative daysOut) land in the first bucket — they are
+ * Overdue items (negative daysOut) land in the first bucket: they are
  * the nearest work there is. Undated items go to a visible Someday
  * tray, never dropped: silently losing an item from a view is worse
  * than showing a gap. A space with an explicit horizon property can
@@ -61,7 +61,7 @@ export interface HorizonColumn {
  * Column labels in distance order. Derived mode: the configured buckets.
  * Property mode: the horizon property's own labelSet order, with any
  * labels seen on items but missing from the set appended. Someday is
- * always last — the order is the sequence, no numbering needed (§9.2).
+ * always last: the order is the sequence, no numbering needed (§9.2).
  */
 export function columnLabels(
   config: FarviewConfig,

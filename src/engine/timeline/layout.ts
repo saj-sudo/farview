@@ -8,7 +8,7 @@ import { generateTicks, type TickSet } from './ticks';
 /**
  * Compose scale + ticks + lanes into render-ready geometry. Pure: the
  * SVG component maps this straight to elements, and every visual rule
- * that matters — elapsed fill, clamping, label placement, dot collapse —
+ * that matters (elapsed fill, clamping, label placement, dot collapse)
  * is decided (and therefore tested) here, not in the DOM.
  */
 
@@ -33,9 +33,9 @@ export interface BarGeometry {
   w: number;
   y: number;
   h: number;
-  /** Elapsed time as a fraction of the span — never completion % (§9.3). */
+  /** Elapsed time as a fraction of the span: never completion % (§9.3). */
   elapsedFrac: number;
-  /** Pixel width of the elapsed fill, measured from x — clamp-safe. */
+  /** Pixel width of the elapsed fill, measured from x: clamp-safe. */
   fillW: number;
   clampedLeft: boolean;
   clampedRight: boolean;
@@ -147,7 +147,7 @@ export function layoutTimeline(
       subGroup: isGoals ? null : lane.subGroup,
       firstOfGroup: isGoals ? true : lane.firstOfGroup,
       // The lane's own name: its area when nested, else its pillar. A
-      // pillar's leftovers — tagged with it but with no area — trail its
+      // pillar's leftovers (tagged with it but with no area) trail its
       // areas as "Other" rather than repeating the pillar's name.
       label: isGoals
         ? 'Goals'
@@ -225,7 +225,7 @@ function barGeometry(
   else if (isOpenEnded) kind = 'openEnded';
 
   // The fill must end at *today's pixel*, not at a fraction of the
-  // clamped width — a multi-year bar clipped by the viewport would
+  // clamped width: a multi-year bar clipped by the viewport would
   // otherwise show a fictional amount of elapsed time.
   let fillW = 0;
   if (usesDerived) {

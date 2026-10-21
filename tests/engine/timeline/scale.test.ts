@@ -23,7 +23,7 @@ describe('scale', () => {
     expect(scale.pxPerDay).toBeCloseTo(1000 / 365);
   });
 
-  it('opens on ~6 months back, 12 forward — now-line a third in', () => {
+  it('opens on ~6 months back, 12 forward: now-line a third in', () => {
     const view = defaultView(TODAY_DAY);
     const scale = createScale(view, 900);
     expect(scale.startDay).toBeCloseTo(TODAY_DAY - 183);

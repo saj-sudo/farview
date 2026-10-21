@@ -4,7 +4,7 @@ import type { LocalDate, TimelineItem } from '../../engine/types';
 
 /**
  * The narrow-viewport timeline (spec §9.3): a vertical list ordered by
- * date with a Today divider — not a squeezed horizontal axis. Same
+ * date with a Today divider: not a squeezed horizontal axis. Same
  * data, same cards, phone-sized reading.
  */
 

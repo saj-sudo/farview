@@ -20,8 +20,8 @@ import type { Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
 
 /**
- * The drill-in page — the Life-OS moment: click into a goal or project
- * and get its own timeline. The item's bar sits on top; its projects
+ * The drill-in page. Click into a goal or project and get its own
+ * timeline. The item's bar sits on top; its projects
  * and actions fill the lanes below; facts (never percents) sum up the
  * children; and with editing on, new children are born already linked.
  */

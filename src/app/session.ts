@@ -48,7 +48,7 @@ export interface Session {
   demoConfig: FarviewConfig | null;
   /**
    * True only when the user explicitly connected with editing. Actual
-   * capability is confirmed lazily — a 403 cap_scope_insufficient
+   * capability is confirmed lazily: a 403 cap_scope_insufficient
    * downgrades the UI rather than erroring.
    */
   editingRequested: boolean;
@@ -180,7 +180,7 @@ export function connectWithToken(apiToken: string, wantsWrite: boolean): void {
 /**
  * Flip editing on a personal-token credential in place (the token's real
  * permissions were chosen in Capacities; this only gates the UI).
- * Returns false for OAuth credentials — those change scope by
+ * Returns false for OAuth credentials: those change scope by
  * reconnecting, so the consent screen always reflects the grant.
  */
 export function setTokenEditing(on: boolean): boolean {
@@ -200,7 +200,7 @@ export function disconnect(): void {
 }
 
 /**
- * True when an error means "the connection is gone" — revoked access,
+ * True when an error means "the connection is gone": revoked access,
  * an expired refresh token, or a revoked/invalid personal token.
  * Callers clear the credential and show Connect again rather than
  * error-looping (§11).

@@ -107,7 +107,7 @@ describe('packLanes', () => {
   it('nests sub-lanes under their pillar, in configured then alpha order', () => {
     // A two-level taxonomy: pillar tags on the first level, area tags on
     // the second. Each (pillar, area) pair earns its own lane, and the
-    // pillar's name prints once — on the first lane of its run.
+    // pillar's name prints once: on the first lane of its run.
     const items = [
       item({ id: 'a', group: 'Health', subGroup: 'Home', target: '2026-09-01' }),
       item({ id: 'b', group: 'Health', subGroup: 'Aesthetic', target: '2026-09-01' }),
