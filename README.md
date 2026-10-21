@@ -4,85 +4,77 @@
 
 **See your goals across time, in Capacities.**
 
-![The Farview timeline: pillar lanes with their areas nested beneath, colored bars around a vertical gradient line marking today](docs/timeline.png)
+![The Farview timeline on the synthetic Saltmarsh Boatyard demo: lanes of teal and sunflower bars grouped by pillar and area, a sunflower band with an ink line marking today, and small flags for goals. A banner at the top says the space is made up.](docs/timeline.png)
 
 > **Disclaimer:** Farview is an independent community tool. It is not affiliated with, endorsed by, or sponsored by Capacities. Capacities is a trademark of its respective owners.
 
-Notes are where plans get written, and where they quietly lose their shape: Capacities has no timeline, no Gantt view, no canvas — so the question "what does my year actually look like?" has no answer short of moving everything into a project manager. Farview answers it in place. Connect a space, and your projects and goals appear on a timeline — a single line marking today, bars stretching toward their targets, and one smooth zoom from this quarter out to the shape of your decade.
+You write your plans down in Capacities, but Capacities has no timeline or Gantt view. If you want to see what your year looks like, you have to move everything into a project manager. Farview shows it where it already is. Connect a space and your projects and goals appear on a timeline: a line for today, a bar for each project running toward its target date, and a zoom that goes from this quarter out to the next ten years.
 
-## Read-only by default — editing is an explicit opt-in
+## Read-only by default, editing if you ask for it
 
-A plain connect requests **`api:read` and nothing else**: Farview cannot create, modify, or delete anything in your space, and the OAuth consent screen shows you exactly that.
+A plain connection asks for **`api:read` and nothing else**. Farview can't create, change or delete anything in your space, and the OAuth consent screen shows exactly that.
 
-If you *want* to plan from the timeline, a separate **Connect with editing** path (or a Settings toggle, which reconnects) also requests `api:write` — again, visibly, on the consent screen. With editing on you can add goals and projects from the view, drag bars to move or resize their dates, and edit dates precisely on any card. Two rules never bend:
+If you want to plan from the timeline, **Connect with editing** (or the toggle in Settings, which reconnects) also asks for `api:write`, and the consent screen says so. With editing on, you can add goals and projects from the timeline, drag bars to move or resize their dates, and type exact dates on any card. Two rules always hold:
 
-- **Every write is a direct action of yours** — a drag you dropped, a save you clicked. There are no background writes, no sync, no cleanup, nothing on a timer.
-- **Nothing is ever deleted.** Farview creates objects and changes date properties; removing things stays in Capacities, where it belongs.
+- **Every write comes from something you did**, like a drag you finished or a Save you clicked. Nothing syncs in the background and nothing runs on a timer.
+- **Nothing is ever deleted.** Farview creates objects and changes date properties. Removing things stays in Capacities.
 
-Switch back to read-only any time from Settings, and revoke Farview's access entirely in Capacities under **Settings → Capacities API → Connections**.
+You can switch back to read-only in Settings, and revoke Farview's access in Capacities under **Settings → Capacities API → Connections**.
 
-## No backend, no telemetry
+## No server and no tracking
 
-The site is plain static files. OAuth happens in your browser, the token stays in your browser, and every API call goes from your browser straight to `api.capacities.io`. There is no server, no database, no account, no analytics, and no tracking — nothing of yours passes through anything the maintainer controls, because there is nothing to pass through.
+The site is a set of static files. OAuth runs in your browser, the token stays in your browser, and every API call goes from your browser to `api.capacities.io`. There is no server, database, account or analytics, so nothing of yours passes through anything the maintainer runs.
 
-Honest tradeoff, stated rather than hidden: browser-stored tokens are reachable by any script that runs on the page. That is why Farview bundles everything, loads no third-party scripts, and ships a strict Content-Security-Policy (enforced by a test). The blast radius is also smaller than for most tools — the token is read-only unless you explicitly opted into editing.
+The tradeoff is that a token kept in the browser can be read by any script running on the page. That's why Farview bundles everything, loads no third-party scripts, and sends a strict Content-Security-Policy, which a test checks. The token is also read-only unless you turned on editing.
 
-## Works with *your* object types, not mine
+## Works with your object types
 
-Farview has no idea what a "Project" is until you tell it. Setup reads your space's **actual** types and properties — whatever you named them — and asks three questions: which type holds your work, which property is the start date, which is the target. A Goal type is optional (most spaces have none), milestones are optional, grouping by tag or property is optional. The live preview renders your real timeline before you save anything.
+Farview doesn't assume your space has a "Project" type. Setup reads the types and properties your space actually has, whatever you named them, and asks three questions: which type holds your work, which property is the start date, and which is the target date. A Goal type is optional (most spaces don't have one), and so are milestones and grouping by tag or property. A preview shows your own timeline before you save.
 
-- **Horizons are derived from dates** — Now, Quarter, Year, Long — so a space with zero custom setup still gets a meaningful view. Spaces with an explicit horizon property can use their own labels instead.
-- **Undated items are never dropped.** They wait, visibly, in a Someday tray.
-- **Progress bars show elapsed time, not completion percent** — elapsed vs. remaining is a fact; percent-complete on a personal goal is a fiction.
-- **Nothing turns red.** Work past its target gets a quiet marker and a matter-of-fact note.
+- **Horizons come from the dates**: Now, Quarter, Year and Long. A space with no extra setup still gets a useful view. If your goals already have a horizon property, Farview can use its labels instead.
+- **Items without dates stay visible** in a Someday tray.
+- **Bars show how much time has passed**, from start to target. Farview doesn't show a percent complete, because a percentage on a personal goal is a guess.
+- **Nothing turns red.** Work past its target date gets a small marker and a plain note.
 
-![The horizons view: columns for Now, Quarter, Year, Long and Someday with goal-grouped cards](docs/horizons.png)
+![The Horizons view: columns for Now, Quarter, Year, Long and Someday, with goals heading the projects under them.](docs/horizons.png)
 
-## Pillars and areas — lanes two deep
+## Pillars and areas: lanes two levels deep
 
-Plenty of spaces keep a two-level taxonomy of tags: broad **pillars** (Health,
-Work, Money) with **areas** inside them (Home, Learn & Grow, Legal & Admin).
-Farview reads both. Point each grouping level at a tag *collection* and it
-follows that collection live — add a tag there and a lane appears here — or
-hand-pick tags and click them into the order you want.
+Many spaces sort tags in two levels: broad **pillars** (Health, Work, Money) with **areas** inside them (Home, Learning, Admin). Farview can read both. Point each level at a tag *collection* and Farview follows it, so adding a tag there adds a lane here. You can also pick tags by hand and click them into the order you want.
 
-- Every (pillar, area) pair gets its own lane, so an area named the same under
-  two pillars stays two lanes rather than merging into one.
-- The pillar's name prints once, at the top of its run; its areas indent
-  beneath it and **share its color**, so a pillar reads as one block down the
-  page instead of six unrelated hues.
-- Items tagged with a pillar but no area keep a lane at the bottom of that
-  pillar's run; anything untagged sits last of all.
-- One level is still fine: leave the second set to "Nothing — one level".
+- Every (pillar, area) pair gets its own lane, so an area name used under two pillars stays two lanes.
+- The pillar's name shows once, at the top of its group. Its areas sit indented under it and share its colour, so each pillar reads as one block.
+- Items tagged with a pillar but no area get a lane at the bottom of that pillar. Untagged items go last.
+- One level is fine too: set the second level to "Nothing (one level)".
 
-## Goals → projects → actions
+## Goals, projects and actions
 
-If your space connects things — a project pointing at its goal, a goal or project listing its actions or sub-items — Farview maps those relations too (all optional, all by property name):
+If your space links things together, like a project pointing at its goal or a goal listing its actions, Farview can map those links too. Every one is optional and mapped by property name.
 
-- **Click into any goal or project** for its own page: a mini-timeline of the family (the item's bar, its projects, its actions), a breadcrumb up to its goal, and navigable lists of everything underneath.
-- **Actions** are the leaf level — one sitting to one day of work. Point the mapping at Capacities' built-in Tasks or any custom type; keep your day-to-day to-dos wherever they already live.
-- **Milestones stay milestones**: achievement markers drawn as ticks on a bar, on projects and goals alike — separate from actions on purpose.
-- **Progress is stated as facts** — "1 of 3 actions done · 2 of 4 projects completed" — never a percent bar.
-- **Undated but connected?** A goal or project with no dates of its own borrows the envelope of its dated children: a dashed shell on the timeline, always labeled as derived, gone the moment you set a real date.
-- With editing on, **+ Project / + Action on a detail page create children already linked** to that item.
+- **Click into any goal or project** for its own page: a small timeline of the item with its projects and actions, a breadcrumb up to its goal, and lists of everything under it.
+- **Actions** are the smallest level, about a sitting to a day of work. Map them to Capacities' built-in Tasks or any custom type. Your day-to-day to-dos can stay where they are.
+- **Milestones** are drawn as ticks on a bar, on projects and goals alike. They are separate from actions.
+- **Progress is stated as counts**, like "1 of 3 actions done · 2 of 4 projects completed".
+- **A goal or project with no dates of its own** takes its span from its dated children. It shows as a dashed outline, always labelled as derived, and goes away once you give it real dates.
+- With editing on, **+ Project and + Action on a detail page** create children that are already linked to that item.
 
-![A project's detail page: breadcrumb to its goal, elapsed facts, and a mini-timeline of its own actions](docs/detail.png)
+![A project's detail page: a breadcrumb up to its goal, its dates and progress counts, and a small timeline of its own actions.](docs/detail.png)
 
 ## Getting started
 
-1. Visit the site and click **Connect to Capacities**. You approve read access and pick which space to share — all on the Capacities side.
-2. Map your space: pick your project type, its date properties, and (optionally) goals, milestones, and up to two levels of grouping. The preview shows your real timeline as you go.
-3. Save. That's it — the timeline and horizons views work from the same data, on desktop and phone.
+1. Open the site and click **Connect to Capacities**. You approve read access and pick which space to share, all on the Capacities side.
+2. Map your space: your project type, its date properties, and optionally goals, milestones and up to two levels of grouping. The preview shows your own timeline as you go.
+3. Save. The timeline and Horizons views use the same data, on desktop and on phone.
 
-No account is needed to look around: **Try the demo** runs on a synthetic space, entirely in your tab.
+You don't need an account to look around: **Try the demo** runs on a made-up space, entirely in your tab.
 
-### Try it today with a personal token
+### Use it now with a personal token
 
-Until the hosted OAuth client is live (registration with Capacities is by email), you can run Farview against your own space with a personal API token: in Capacities, **Settings → Capacities API** → create a token (read access is enough for viewing; give it write access and tick the editing box if you want to plan from the timeline), then use the *Advanced* section on the connect screen. The token stays in your browser; revoke it in the same settings screen whenever you like.
+Until the hosted OAuth client is live (registration with Capacities is by email), you can run Farview against your own space with a personal API token. In Capacities, go to **Settings → Capacities API** and create a token. Read access is enough for viewing; give it write access and tick the editing box if you want to plan from the timeline. Then paste it in the *Advanced* section on the Connect screen. The token stays in your browser, and you can revoke it in the same settings screen.
 
 ## Built on the official API
 
-Farview uses the official Capacities API and the `@capacities/api` SDK — not the app's internal endpoints, which change without warning. Dates live in object properties, and list endpoints return summaries only, so Farview fetches objects individually behind a progressive renderer: the axis and now-line paint immediately, bars fill in as they arrive, everything is cached in your browser (default 60 minutes) with a visible "last refreshed" and a manual refresh, and large spaces are capped per run with a "load more".
+Farview uses the official Capacities API and the `@capacities/api` SDK. It doesn't use the app's internal endpoints, which can change without notice. Dates live in object properties and list endpoints return summaries only, so Farview fetches each object on its own and draws as results arrive: the axis and today line appear first and bars fill in after. Everything is cached in your browser (60 minutes by default), with a "last refreshed" time and a Refresh link. Large spaces are capped per run, with a "load more".
 
 ## Deploying your own
 
@@ -91,20 +83,20 @@ npm install
 VITE_CAPACITIES_CLIENT_ID=your-client-id npm run build
 ```
 
-The output in `dist/` is a static site — any static host works, no server functions needed. `/`, `/app/`, and `/callback/` are real directories, so no rewrite rules are required. The client id is public by design (PKCE public client; no client secret exists). Register your own redirect URI with Capacities by email — see [developers.capacities.io](https://developers.capacities.io).
+The output in `dist/` is a static site, so any static host works with no server functions. `/`, `/app/` and `/callback/` are real directories, so no rewrite rules are needed. The client id is public by design (a PKCE public client has no client secret). Register your own redirect URI with Capacities by email; see [developers.capacities.io](https://developers.capacities.io).
 
 ## Development
 
 ```
 npm install
 npm run dev     # local dev server
-npm test        # vitest, node environment — no browser needed
+npm test        # vitest, node environment, no browser needed
 npm run build   # typecheck + production build
 ```
 
-The test suite runs the whole engine and fetch pipeline against synthetic fixture spaces — see [CONTRIBUTING.md](CONTRIBUTING.md) for the rules that are treated as build failures.
+The test suite runs the whole engine and fetch pipeline against made-up fixture spaces. See [CONTRIBUTING.md](CONTRIBUTING.md) for the rules that count as build failures.
 
-Farview looks forward. Its sibling, [Yesteryear](https://github.com/saj-sudo/yesteryear), looks back — resurfacing your older notes on a gentle cadence. They share an architecture, not a codebase.
+Farview looks forward. Its sibling, [Yesteryear](https://github.com/saj-sudo/yesteryear), looks back and brings your older notes back on a schedule. The two share an architecture and keep separate codebases.
 
 ## License
 

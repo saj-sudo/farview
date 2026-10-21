@@ -4,13 +4,37 @@ All notable changes to Farview are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0] — 2026-08-29
+## [Unreleased]
+
+### Changed
+
+- **New look.** A layout that sits comfortably next to Capacities (white and
+  warm off-white surfaces, the system font, soft corners, a familiar
+  sidebar) printed in two riso inks, teal and sunflower. Timeline bars
+  overprint, today is a sunflower band under an ink line, and lanes read
+  like Capacities object types. Dark mode follows the system setting.
+- The disclaimer now stays visible in the app: in the sidebar on desktop and
+  in a footer on phone. The landing page opens with printed horizon art.
+- Labels inside timeline bars no longer look doubled, and form fields meet
+  WCAG AA contrast for their borders.
+- Without an OAuth client configured, "Try the demo" is the main action on
+  the Connect screen.
+- All interface text, the README and CONTRIBUTING are rewritten in plainer
+  words. A test now fails the build if an em or en dash comes back.
+
+### Fixed
+
+- Every page under `/app/` logged a CSP violation because zod probes for
+  `eval` support. zod now runs in its `jitless` mode, so the probe never
+  runs.
+
+## [0.4.0] - 2026-08-29
 
 ### Added
 
 - **Two-level lanes: pillars and areas.** Both grouping levels can now be
-  mapped, and each one can either follow a tag **collection** — the space's own
-  list, so lanes appear as you add tags to it — or use tags picked by hand in
+  mapped, and each one can either follow a tag **collection** (the space's own
+  list, so lanes appear as you add tags to it) or use tags picked by hand in
   lane order. Every (pillar, area) pair becomes its own lane; a repeated area
   name under two pillars stays two lanes.
 - Sub-lanes indent under their pillar, which names itself once per run, and
@@ -18,21 +42,21 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Lane order is configured-first, then alphabetical, with untagged lanes last
   within their pillar and the ungrouped lane last of all.
 
-## [0.3.0] — 2026-08-26
+## [0.3.0] - 2026-08-26
 
 ### Added
 
-- **Item detail pages** — click into any goal or project (`#/item?id=…`, linked
+- **Item detail pages.** Click into any goal or project (`#/item?id=…`, linked
   from every card) for its own mini-timeline: the item's bar, its linked
   projects and actions in their own lanes, milestone ticks, a breadcrumb up to
   its goal, navigable children lists, and fact rollups ("1 of 3 actions done ·
-  2 of 4 projects completed" — counts, never percents).
+  2 of 4 projects completed": counts, never percents).
 - **Mapped relations** (all optional, resolved by name like everything else):
   a project's goal link, actions on projects and goals, and milestone markers
   on goals. The new actions level can point at Capacities' built-in Tasks or
-  any custom type — or stay unmapped and invisible.
+  any custom type, or stay unmapped and invisible.
 - **Derived spans**: an undated goal or project with dated children borrows
-  their envelope as a dashed shell on the main timeline — labeled as derived,
+  their envelope as a dashed shell on the main timeline, labeled as derived,
   never filled, never "overdue", gone once a real date is set. Horizon columns
   bucket by the derived date instead of Someday.
 - With editing on, detail pages create **pre-linked children**: a new project
@@ -41,7 +65,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Horizons goal-grouping now prefers real goal links over the shared-group
   fallback; the Saltmarsh demo gained Deck Chores and a fully linked hierarchy.
 
-## [0.2.0] — 2026-08-25
+## [0.2.0] - 2026-08-25
 
 ### Added
 
@@ -62,10 +86,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - The product rule "Farview never writes" became "read-only by default;
-  writes only behind an explicit opt-in and a user gesture" — documented in
-  the README and CONTRIBUTING, guarded by the scope tests.
+  writes only behind an explicit opt-in and a user gesture". It is
+  documented in the README and CONTRIBUTING and guarded by the scope tests.
 
-## [0.1.0] — 2026-08-25
+## [0.1.0] - 2026-08-25
 
 ### Added
 
@@ -85,14 +109,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The fetch pipeline for the API's summary-only list endpoints: fetch
   ceiling with load-more, IndexedDB object cache with TTL and manual
   refresh, adaptive enrichment concurrency that backs off on rate limits,
-  and progressive rendering — the axis paints before the first object lands.
+  and progressive rendering, so the axis paints before the first object lands.
 - Milestones as a lazy, opt-in enhancement: entity-referenced objects are
   fetched when a card is expanded and drawn as tick marks along the bar.
 - Someday tray for undated items, agenda list for narrow viewports, keyboard
   navigation (pan, zoom, walk items), reduced-motion support, and empty
   states for unmapped, undated, and empty spaces.
-- Synthetic fixture spaces — the Saltmarsh Boatyard (deliberately alien
-  schema), a minimal space, and an empty space — doubling as demo data and
+- Synthetic fixture spaces (the Saltmarsh Boatyard with its unfamiliar
+  schema, a minimal space, and an empty space) that double as demo data and
   the test seam for the engine and pipeline suites.
 - Strict CSP on every page, enforced by a build test; MIT license; landing
   page and documentation.
