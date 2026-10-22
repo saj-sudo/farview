@@ -32,6 +32,9 @@ import type { TimelineData } from '../useTimelineData';
  * the data is already fetched.
  */
 
+/** How Capacities' own screens would describe each kind of property. */
+const PROPERTY_KIND_NAME: Record<string, string> = { date: 'date', label: 'labels', entity: 'linked objects' };
+
 const EMPTY_MILESTONES: ReadonlyMap<string, never[]> = new Map();
 
 /** The collection keys a draft's grouping levels name, normalized. */
@@ -221,6 +224,12 @@ export function Settings(props: {
           ))}
         </select>
         {hint && <small>{hint}</small>}
+        {options.length === 0 && (
+          <small>
+            “{home.title}” has no {PROPERTY_KIND_NAME[propType] ?? propType} property yet. In Capacities, open the
+            type’s settings and choose Add property.
+          </small>
+        )}
       </label>
     );
   };
@@ -303,90 +312,10 @@ export function Settings(props: {
     );
   }
 
-  /* ---------------- live preview ---------------- */
-
-  return (
-    <section class="settings">
-      <div class="view-head">
-        <div>
-          <h1>{props.onboarding ? 'Map your space' : 'Settings'}</h1>
-          <p class="fineprint">
-            Farview works with <em>your</em> object types. Everything below is
-            read live from “{boot.space.title}”. Nothing is written to your
-            space; these settings are kept in this browser.
-          </p>
-        </div>
-      </div>
-
-      {!props.onboarding && offer && useSuggestion && (
-        <MappingSuggestions
-          suggestion={offer}
-          spaceTitle={boot.space.title}
-          firstRun={false}
-          onUse={useSuggestion}
-          onSkip={skipSuggestion}
-        />
-      )}
-
-      <h2>Your space</h2>
-      {customTypes.length === 0 ? (
-        <p class="empty-note">
-          No custom object types here yet. Farview needs a type with dates to
-          place. Basic types (pages, tags, media) are hidden.
-        </p>
-      ) : (
-        <div class="tag-grid">
-          {customTypes.map((s) => (
-            <span key={s.id} class="chip">
-              {s.title} · {countLabel(s.id)}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <h2>Projects (required)</h2>
-      <div class="field-row">
-        {typeSelect(
-          'project',
-          'Which type holds your projects or work items?',
-          'You can pick “None of these”, but Farview has nothing to draw without a type.',
-        )}
-      </div>
-      {structureFor('project') && (
-        <>
-          <div class="field-row">
-            {propertySelect('projectStart', 'Start date', 'project', 'date')}
-            {propertySelect('projectTarget', 'Target date', 'project', 'date', 'Items are placed by this date.')}
-            {propertySelect('projectStatus', 'Status', 'project', 'label')}
-          </div>
-          <div class="field-row">
-            {propertySelect(
-              'projectGoal',
-              'Goal link',
-              'project',
-              'entity',
-              'The property pointing at the project’s goal.',
-            )}
-            {propertySelect(
-              'projectActions',
-              'Actions',
-              'project',
-              'entity',
-              'Sub-items; shown on the project’s detail page.',
-            )}
-            {propertySelect(
-              'projectMilestones',
-              'Milestones',
-              'project',
-              'entity',
-              'Achievement markers, drawn as ticks on the bar.',
-            )}
-          </div>
-        </>
-      )}
-      {statusChecks('active', 'Which statuses count as active?', 'Statuses you leave unticked still show on the timeline.')}
-      {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
-
+  // Everything past the project type and its dates is optional, so the first
+  // screen folds it away.
+  const optional = (
+    <>
       <h2>Goals (optional)</h2>
       <div class="field-row">
         {typeSelect(
@@ -661,6 +590,104 @@ export function Settings(props: {
           <small>IANA name, e.g. Europe/Berlin. The now-line sits on your local today.</small>
         </label>
       </div>
+
+    </>
+  );
+
+  /* ---------------- live preview ---------------- */
+
+  return (
+    <section class="settings">
+      <div class="view-head">
+        <div>
+          <h1>{props.onboarding ? 'Map your space' : 'Settings'}</h1>
+          <p class="fineprint">
+            Farview works with <em>your</em> object types. Everything below is
+            read live from “{boot.space.title}”. Nothing is written to your
+            space; these settings are kept in this browser.
+          </p>
+        </div>
+      </div>
+
+      {!props.onboarding && offer && useSuggestion && (
+        <MappingSuggestions
+          suggestion={offer}
+          spaceTitle={boot.space.title}
+          firstRun={false}
+          onUse={useSuggestion}
+          onSkip={skipSuggestion}
+        />
+      )}
+
+      <h2>Your space</h2>
+      {customTypes.length === 0 ? (
+        <p class="empty-note">
+          No custom object types here yet. Farview needs a type with dates to
+          place. In Capacities, open Settings → Object Types and choose + New
+          Type, then pick a prebuilt type such as Project from the gallery or
+          create your own. Basic types (pages, tags, media) are hidden here.
+        </p>
+      ) : (
+        <div class="tag-grid">
+          {customTypes.map((s) => (
+            <span key={s.id} class="chip">
+              {s.title} · {countLabel(s.id)}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <h2>Projects (required)</h2>
+      <div class="field-row">
+        {typeSelect(
+          'project',
+          'Which type holds your projects or work items?',
+          'You can pick “None of these”, but Farview has nothing to draw without a type.',
+        )}
+      </div>
+      {structureFor('project') && (
+        <>
+          <div class="field-row">
+            {propertySelect('projectStart', 'Start date', 'project', 'date')}
+            {propertySelect('projectTarget', 'Target date', 'project', 'date', 'Items are placed by this date.')}
+            {propertySelect('projectStatus', 'Status', 'project', 'label')}
+          </div>
+          <div class="field-row">
+            {propertySelect(
+              'projectGoal',
+              'Goal link',
+              'project',
+              'entity',
+              'The property pointing at the project’s goal.',
+            )}
+            {propertySelect(
+              'projectActions',
+              'Actions',
+              'project',
+              'entity',
+              'Sub-items; shown on the project’s detail page.',
+            )}
+            {propertySelect(
+              'projectMilestones',
+              'Milestones',
+              'project',
+              'entity',
+              'Achievement markers, drawn as ticks on the bar.',
+            )}
+          </div>
+        </>
+      )}
+      {statusChecks('active', 'Which statuses count as active?', 'Statuses you leave unticked still show on the timeline.')}
+      {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
+
+      {props.onboarding ? (
+        <details class="more-options">
+          <summary>More options: goals, actions, grouping and display</summary>
+          {optional}
+        </details>
+      ) : (
+        optional
+      )}
 
       {resolved.warnings.length > 0 && (
         <div class="notice">

@@ -1776,3 +1776,18 @@ body:has(.landing) {
   align-items: center;
   flex-wrap: wrap;
 }
+
+/* The optional part of the mapping form, folded away on the first screen. */
+.more-options {
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 1rem;
+  background: var(--wash);
+}
+
+.more-options > summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}

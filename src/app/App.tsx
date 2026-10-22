@@ -235,7 +235,9 @@ function MappingBroken(props: { resolved: ResolvedSchema }) {
         <p key={w}>{w}</p>
       ))}
       <p>
-        <a href={HASH_FOR.settings}>Open Settings</a> to remap.
+        <a href={HASH_FOR.settings}>Open Settings</a> and pick the type again.
+        This happens when a type or property is renamed or deleted in
+        Capacities.
       </p>
     </div>
   );

@@ -84,11 +84,21 @@ If your space links things together, like a project pointing at its goal or a go
 
 A switch in the sidebar (at the bottom of the page on a phone) sets light, dark or automatic.
 
+## What you need in Capacities
+
+Farview needs one object type whose objects have a date, such as a Project type with a start date and a target date.
+
+- **No such type yet?** In Capacities, open **Settings → Object Types**, choose **+ New Type**, and pick a prebuilt type such as Project from the gallery, or create your own.
+- **A type with no date?** Open the type's settings, choose **Add property**, and add a date property.
+- **Goals, milestones and tags are optional.** Most spaces have no Goal type, and you don't need one.
+
 ## Getting started
 
 1. Open the site and click **Connect to Capacities**. You approve read access and pick which space to share, on the Capacities side.
-2. Map your space: your project type, its date properties, and optionally goals, milestones and up to two levels of grouping. The preview shows your own timeline as you go.
-3. Save. The timeline and Horizons views use the same data, on desktop and on phone.
+2. Tick what Farview found in your space, such as "Your projects are Project". If it can't tell, or you pick **Set it up by hand**, choose your project type and its date properties. The preview shows your own timeline as you go.
+3. Open the timeline. The timeline and Horizons views use the same data, on desktop and on phone. Goals, milestones and up to two levels of grouping are optional, and live under **More options** in Settings.
+
+![The first screen on a synthetic space: "Your projects are Project", ticked, with its start, target and status properties, and a button that opens the timeline.](docs/setup.png)
 
 You don't need an account to look around: **Try the demo** runs on a made-up space, entirely in your tab.
 

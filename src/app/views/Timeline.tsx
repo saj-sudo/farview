@@ -828,8 +828,8 @@ function EmptyNote(props: { targetName: string; kind: 'none' | 'allUndated' }) {
       <h3>Nothing to place yet</h3>
       <p>
         No objects of the mapped type were found. Once something has a date
-        in “{props.targetName}”, it shows up on this line. If the mapping
-        looks wrong, check Settings.
+        in “{props.targetName}”, it shows up on this line. Create one in
+        Capacities, or check the mapping in Settings.
       </p>
     </div>
   ) : (

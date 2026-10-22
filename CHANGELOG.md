@@ -18,6 +18,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   or you pick "Set it up by hand", you get the form as before. The same offer
   shows at the top of Settings until it is used or skipped. Anything already
   mapped to a type your space has is left alone.
+- **The by-hand form starts shorter.** On the first screen, goals, actions,
+  grouping and display fold under "More options", so the project type and its
+  dates come first.
+- **Hints in Capacities' words.** An empty space says how to make a type
+  (Settings → Object Types → + New Type, then pick a prebuilt type such as
+  Project), and a type with no date says to open its settings and choose Add
+  property. The README and landing page have a "What you need in Capacities"
+  section with the same steps.
 - A demo, "a first setup in a new space", shows that first screen on a space
   built like a standard Capacities Project type.
 - **Drag a Someday item onto the timeline.** With editing on, items in the

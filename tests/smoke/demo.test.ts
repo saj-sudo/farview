@@ -287,5 +287,13 @@ it('shows the form when the offer is set aside', async () => {
   await page.getByRole('button', { name: STANDARD, exact: true }).click();
   await page.getByRole('button', { name: 'Set it up by hand', exact: true }).click();
   await page.getByRole('heading', { name: 'Map your space' }).waitFor();
+  // The required part is open; goals, actions, grouping and display are folded away.
+  await page.getByRole('heading', { name: 'Projects (required)' }).waitFor();
+  const more = page.locator('details.more-options');
+  expect(await more.count()).toBe(1);
+  expect(await more.getAttribute('open')).toBeNull();
+  expect(await page.getByRole('heading', { name: 'Grouping and color' }).isVisible()).toBe(false);
+  await more.locator('summary').click();
+  expect(await page.getByRole('heading', { name: 'Grouping and color' }).isVisible()).toBe(true);
   await page.close();
 });
