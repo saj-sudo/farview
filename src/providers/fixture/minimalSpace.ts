@@ -30,7 +30,7 @@ export function buildMinimalSpace(today: LocalDate): FixtureSpace {
       {
         id: 'u-past',
         structureId: 'st-undertaking',
-        title: 'The one already behind us',
+        title: 'Scrape and paint the hull',
         properties: {
           'p-bywhen': { type: 'date', start: addDays(today, -40), end: null },
         },
@@ -38,7 +38,7 @@ export function buildMinimalSpace(today: LocalDate): FixtureSpace {
       {
         id: 'u-future',
         structureId: 'st-undertaking',
-        title: 'The one still ahead',
+        title: 'Re-rig the dinghy for spring',
         properties: {
           'p-bywhen': { type: 'date', start: addDays(today, 40), end: null },
         },
@@ -46,7 +46,7 @@ export function buildMinimalSpace(today: LocalDate): FixtureSpace {
       {
         id: 'u-someday',
         structureId: 'st-undertaking',
-        title: 'The one with no date yet',
+        title: 'Build a rope locker',
         properties: {},
       },
     ],

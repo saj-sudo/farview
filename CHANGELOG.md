@@ -33,6 +33,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- The nearly empty demo space has plain project names (scrape and paint the
+  hull, re-rig the dinghy) instead of names that described what they test.
 - **New look.** A layout that sits comfortably next to Capacities (white and
   warm off-white surfaces, the system font, soft corners, a familiar
   sidebar) printed in two riso inks, teal and sunflower. Timeline bars
