@@ -58,7 +58,7 @@ Every change in behaviour needs a test, and features must pass against the fixtu
 
 There are no component tests. The UI layer is kept thin, so the type checker and the fixture-driven engine tests carry most of the weight. Timeline visuals are decided in `src/engine/timeline/` so they can be tested without a DOM.
 
-One browser check runs in CI: `npm run smoke` serves the built site, opens every page and demo view at phone and desktop size in Chromium, and fails on any console error, uncaught exception or CSP violation. It checks that pages load cleanly and nothing more. Locally it needs a build first, and Chromium from `npx playwright install chromium`.
+One browser check runs in CI: `npm run smoke` serves the built site, opens every page and demo view at phone and desktop size in Chromium, and fails on any console error, uncaught exception or CSP violation. It also runs axe-core on each page in light and dark and fails on any WCAG A or AA violation, so new views start with a heading, named controls and enough contrast. It checks that pages load cleanly and nothing more. Locally it needs a build first, and Chromium from `npx playwright install chromium`.
 
 ## Conduct
 

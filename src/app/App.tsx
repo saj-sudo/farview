@@ -181,10 +181,10 @@ function ConnectedApp(props: { session: Session }) {
       </aside>
       <div class="content">
         {session.kind === 'demo' && (
-          <p class="demo-banner">
+          <aside class="demo-banner" aria-label="Demo space">
             This is a made-up space, the Saltmarsh Boatyard. Nothing here is
             real, and nothing leaves this tab.
-          </p>
+          </aside>
         )}
         <main class="app-main">
           {loadError && (
@@ -271,27 +271,33 @@ function ViewBody(props: {
   switch (props.view) {
     case 'timeline':
       return (
-        <Timeline
-          session={props.session}
-          config={props.config}
-          resolved={props.resolved}
-          today={props.today}
-          data={props.data}
-          edit={props.edit}
-          loadMilestones={props.data.loadMilestones}
-        />
+        <>
+          <h1 class="sr-only">Timeline</h1>
+          <Timeline
+            session={props.session}
+            config={props.config}
+            resolved={props.resolved}
+            today={props.today}
+            data={props.data}
+            edit={props.edit}
+            loadMilestones={props.data.loadMilestones}
+          />
+        </>
       );
     case 'horizons':
       return (
-        <Horizons
-          session={props.session}
-          config={props.config}
-          resolved={props.resolved}
-          today={props.today}
-          data={props.data}
-          edit={props.edit}
-          loadMilestones={props.data.loadMilestones}
-        />
+        <>
+          <h1 class="sr-only">Horizons</h1>
+          <Horizons
+            session={props.session}
+            config={props.config}
+            resolved={props.resolved}
+            today={props.today}
+            data={props.data}
+            edit={props.edit}
+            loadMilestones={props.data.loadMilestones}
+          />
+        </>
       );
     case 'item':
       return (

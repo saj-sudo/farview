@@ -1,4 +1,5 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import { chromium, type Browser, type Page } from 'playwright';
 import { preview, type PreviewServer } from 'vite';
@@ -17,6 +18,8 @@ const VIEWPORTS = [
   { name: 'phone', width: 390, height: 844 },
   { name: 'desktop', width: 1280, height: 800 },
 ];
+
+const axeSource = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 
 let server: PreviewServer;
 let browser: Browser;
@@ -102,5 +105,72 @@ it('serves the manifest and its icons', async () => {
   for (const icon of icons) {
     expect((await page.request.get(`${base}${icon.src}`)).status(), icon.src).toBe(200);
   }
+  await page.close();
+});
+
+interface AxeViolation {
+  id: string;
+  help: string;
+  nodes: { target: string[] }[];
+}
+
+/** WCAG A and AA plus axe's best practices, on whatever the page shows now. */
+async function violationsOn(page: Page): Promise<string[]> {
+  await page.evaluate(axeSource);
+  const found = await page.evaluate(async () => {
+    const axe = (window as unknown as { axe: { run: (c: Document, o: object) => Promise<{ violations: AxeViolation[] }> } }).axe;
+    const result = await axe.run(document, {
+      runOnly: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'],
+    });
+    return result.violations;
+  });
+  return found.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(' ')).slice(0, 3).join(', ')})`);
+}
+
+describe.each(['light', 'dark'] as const)('accessibility in %s', (colorScheme) => {
+  it.each(VIEWPORTS)('has no axe violations on any page at $name size', async (viewport) => {
+    const page = await browser.newPage({ viewport, colorScheme });
+    const problems: string[] = [];
+    await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+    problems.push(...(await violationsOn(page)).map((v) => `landing: ${v}`));
+    await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+    await page.waitForTimeout(500);
+    for (const view of [...VIEWS, '#/item?id=x-mainstay']) {
+      await page.evaluate((hash) => {
+        location.hash = hash;
+      }, view);
+      await page.waitForTimeout(500);
+      problems.push(...(await violationsOn(page)).map((v) => `${view}: ${v}`));
+    }
+    if (viewport.width < 500) {
+      await page.evaluate(() => {
+        location.hash = '#/timeline';
+      });
+      await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+      await page.locator('svg.tl-svg').waitFor();
+      problems.push(...(await violationsOn(page)).map((v) => `phone timeline: ${v}`));
+    }
+    await page.close();
+    expect(problems).toEqual([]);
+  });
+});
+
+it('moves the theme choice with the arrow keys and keeps one option in the tab order', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  const radio = (name: string) => page.getByRole('radio', { name, exact: true });
+  await radio('Auto').focus();
+  await page.keyboard.press('ArrowRight');
+  expect(await radio('Light').getAttribute('aria-checked')).toBe('true');
+  expect(await page.evaluate(() => document.documentElement.dataset['theme'])).toBe('light');
+  await page.keyboard.press('End');
+  expect(await radio('Dark').getAttribute('aria-checked')).toBe('true');
+  await page.keyboard.press('ArrowRight');
+  expect(await radio('Auto').getAttribute('aria-checked')).toBe('true');
+  expect(await page.evaluate(() => document.documentElement.dataset['theme'])).toBeUndefined();
+  const tabbable = await page.locator('.theme-choice:visible [role=radio][tabindex="0"]').count();
+  expect(tabbable).toBe(1);
   await page.close();
 });
