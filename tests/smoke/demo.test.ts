@@ -55,6 +55,16 @@ async function watch(page: Page): Promise<string[]> {
   return problems;
 }
 
+/**
+ * The timeline has finished loading. The axis paints first, and the status line
+ * reads "0 items placed" before the load starts, so anything that counts bars or
+ * pillar chips must wait for a real count in the status line.
+ */
+async function timelineSettled(page: Page): Promise<void> {
+  await page.locator('svg.tl-svg').waitFor();
+  await page.locator('.refresh-bar .fineprint', { hasText: /^[1-9]\d* items placed/ }).waitFor();
+}
+
 describe.each(VIEWPORTS)('on $name', (viewport) => {
   it('loads the landing page and the callback without errors', async () => {
     const page = await browser.newPage({ viewport });
@@ -180,7 +190,7 @@ it('focuses on one pillar, remembers it and brings the others back', async () =>
   const problems = await watch(page);
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  await page.locator('svg.tl-svg').waitFor();
+  await timelineSettled(page);
   const group = page.getByRole('group', { name: 'Focus on a pillar' });
   const chips = group.getByRole('button');
   expect(await chips.count()).toBeGreaterThan(2);
@@ -195,7 +205,7 @@ it('focuses on one pillar, remembers it and brings the others back', async () =>
   expect(during).toBeLessThan(before);
 
   await page.reload({ waitUntil: 'networkidle' });
-  await page.locator('svg.tl-svg').waitFor();
+  await timelineSettled(page);
   expect(await headers.count()).toBe(during);
   expect(await group.getByRole('button', { name: new RegExp(`^${name}`) }).getAttribute('aria-pressed')).toBe('true');
 
@@ -210,7 +220,7 @@ it('drags a Someday item onto the timeline and gives it dates', async () => {
   const problems = await watch(page);
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  await page.locator('svg.tl-svg').waitFor();
+  await timelineSettled(page);
   const tray = page.locator('details.someday');
   await tray.locator('summary').click();
   const item = tray.locator('.someday-item.draggable').first();
@@ -238,7 +248,7 @@ it('drops nothing when a Someday item is released away from the timeline', async
   const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  await page.locator('svg.tl-svg').waitFor();
+  await timelineSettled(page);
   const tray = page.locator('details.someday');
   await tray.locator('summary').click();
   const item = tray.locator('.someday-item.draggable').first();
@@ -277,8 +287,7 @@ it('opens the timeline with one tick on a standard setup', async () => {
   const projects = page.getByRole('checkbox', { name: /Your projects are “Project”/ });
   expect(await projects.isChecked()).toBe(true); // a name it knows starts ticked
   await page.getByRole('button', { name: 'Use these and open the timeline', exact: true }).click();
-  await page.locator('svg.tl-svg').waitFor();
-  // The axis paints first and the bars arrive as the items load.
+  await timelineSettled(page);
   await page.locator('g.tl-item').nth(3).waitFor();
   await page.close();
   expect(problems).toEqual([]);
