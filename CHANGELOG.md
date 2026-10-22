@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Light, Dark or Auto.** A small switch in the sidebar (at the bottom of the
+  page on a phone) lets you pick the theme. Auto still follows the phone or
+  computer setting, which is what Farview did before with no way to change
+  it. Your choice stays in this browser and is applied before the first
+  paint, so the page doesn't flash the other theme. The browser bar colour
+  follows it too.
 - **Add Farview to your home screen.** The site now has a web manifest and
   app icons, so a phone or desktop browser can install it. It opens straight
   into the app, in its own window. The CSP allows the manifest
