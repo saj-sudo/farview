@@ -216,6 +216,7 @@ it('drags a Someday item onto the timeline and gives it dates', async () => {
   const item = tray.locator('.someday-item.draggable').first();
   const title = (await item.innerText()).trim();
   const bars = page.locator('g.tl-item');
+  await bars.first().waitFor(); // the bars arrive as the items load
   const before = await bars.count();
 
   const from = (await item.boundingBox())!;
@@ -242,6 +243,7 @@ it('drops nothing when a Someday item is released away from the timeline', async
   await tray.locator('summary').click();
   const item = tray.locator('.someday-item.draggable').first();
   const bars = page.locator('g.tl-item');
+  await bars.first().waitFor(); // the bars arrive as the items load
   const before = await bars.count();
   const from = (await item.boundingBox())!;
   await page.mouse.move(from.x + 5, from.y + 5);
@@ -276,7 +278,8 @@ it('opens the timeline with one tick on a standard setup', async () => {
   expect(await projects.isChecked()).toBe(true); // a name it knows starts ticked
   await page.getByRole('button', { name: 'Use these and open the timeline', exact: true }).click();
   await page.locator('svg.tl-svg').waitFor();
-  expect(await page.locator('g.tl-item').count()).toBeGreaterThan(3);
+  // The axis paints first and the bars arrive as the items load.
+  await page.locator('g.tl-item').nth(3).waitFor();
   await page.close();
   expect(problems).toEqual([]);
 });
