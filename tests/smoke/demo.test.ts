@@ -79,6 +79,21 @@ describe.each(VIEWPORTS)('on $name', (viewport) => {
   });
 });
 
+it('opens the timeline on a phone, taps a bar and goes back to the list', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  await page.locator('svg.tl-svg').waitFor();
+  await page.locator('g.tl-item').first().click({ force: true });
+  await page.waitForTimeout(300);
+  await page.getByRole('button', { name: 'List', exact: true }).click();
+  await page.waitForTimeout(300);
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
 it('serves the manifest and its icons', async () => {
   const page = await browser.newPage();
   const manifest = await page.request.get(`${base}/manifest.webmanifest`);

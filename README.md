@@ -64,7 +64,7 @@ If your space links things together, like a project pointing at its goal or a go
 
 1. Open the site and click **Connect to Capacities**. You approve read access and pick which space to share, all on the Capacities side.
 2. Map your space: your project type, its date properties, and optionally goals, milestones and up to two levels of grouping. The preview shows your own timeline as you go.
-3. Save. The timeline and Horizons views use the same data, on desktop and on phone.
+3. Save. The timeline and Horizons views use the same data, on desktop and on phone. On a phone the timeline page opens as a list; the List / Timeline switch above it shows the full timeline.
 
 You don't need an account to look around: **Try the demo** runs on a made-up space, entirely in your tab.
 

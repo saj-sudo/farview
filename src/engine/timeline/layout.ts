@@ -13,6 +13,10 @@ import { generateTicks, type TickSet } from './ticks';
  */
 
 export const BAR_H = 22;
+/** A bar a finger can hit: used on touch screens. */
+export const TOUCH_BAR_H = 34;
+/** On a phone the lane names sit over the chart, so the today label gets its own strip. */
+export const TOUCH_TOP_PAD = 32;
 export const ROW_GAP = 8;
 export const LANE_HEADER_H = 26;
 export const LANE_PAD_BOTTOM = 10;
@@ -80,6 +84,10 @@ export interface LayoutOptions {
   /** Second-level lane order (areas within a pillar). */
   subGroupOrder?: string[];
   maxRowsPerLane?: number;
+  /** Bar height in px. Defaults to BAR_H, which suits a pointer. */
+  barHeight?: number;
+  /** Space above the first lane. A phone needs room for the today label. */
+  topPad?: number;
 }
 
 const GOALS_LANE = '__goals__';
@@ -96,6 +104,7 @@ export function layoutTimeline(
   opts: LayoutOptions,
 ): TimelineLayout {
   const scale = createScale(opts.view, opts.width);
+  const barH = opts.barHeight ?? BAR_H;
   const ticks = generateTicks(scale.startDay, scale.endDay, scale.pxPerDay);
   const todayDay = dayNumber(opts.today);
   const nowX = scale.xOf(todayDay);
@@ -126,7 +135,7 @@ export function layoutTimeline(
   const colors = assignGroupColors(projectLanes.map((l) => l.group));
   const laneGeoms: LaneGeometry[] = [];
   const bars: BarGeometry[] = [];
-  let y = TOP_PAD;
+  let y = opts.topPad ?? TOP_PAD;
 
   const allLanes = [...goalLanes, ...projectLanes];
   for (const lane of allLanes) {
@@ -136,10 +145,10 @@ export function layoutTimeline(
     y += LANE_HEADER_H;
     for (const row of lane.rows) {
       for (const placed of row) {
-        const bar = barGeometry(placed, scale, todayDay, y, color);
+        const bar = barGeometry(placed, scale, todayDay, y, color, barH);
         if (bar) bars.push(bar);
       }
-      y += BAR_H + ROW_GAP;
+      y += barH + ROW_GAP;
     }
     y += LANE_PAD_BOTTOM;
     laneGeoms.push({
@@ -181,6 +190,7 @@ function barGeometry(
   todayDay: number,
   y: number,
   color: string,
+  barH: number,
 ): BarGeometry | null {
   const { item, startDay, targetDay, effStart, effEnd, usesDerived } = placed;
 
@@ -268,7 +278,7 @@ function barGeometry(
     x,
     w,
     y,
-    h: BAR_H,
+    h: barH,
     elapsedFrac,
     fillW,
     derived: usesDerived,

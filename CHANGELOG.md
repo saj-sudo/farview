@@ -8,6 +8,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **A real timeline on phones.** Under 720px wide, the Timeline page still
+  opens as a list, which is easiest to read one item at a time. A new
+  List / Timeline switch above it shows the full timeline instead: lanes,
+  bars, goal flags, milestones and the today line, opening on a quarter.
+  Drag sideways to move through time, use the zoom chips to change scale, and
+  tap a bar for its card. Bars are taller so a finger can hit them. On a
+  phone, dragging never moves a date (type dates on the card instead).
+  Your choice is remembered in this browser.
 - **Light, Dark or Auto.** A small switch in the sidebar (at the bottom of the
   page on a phone) lets you pick the theme. Auto still follows the phone or
   computer setting, which is what Farview did before with no way to change

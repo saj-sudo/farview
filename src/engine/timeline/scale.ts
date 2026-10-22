@@ -116,3 +116,11 @@ export function presetFor(daysVisible: number): ZoomPresetId {
   }
   return best.id;
 }
+
+/**
+ * A window of `daysVisible` days with today a third of the way in, so
+ * there is some history behind the now-line. The phone opens on a quarter.
+ */
+export function windowAroundToday(todayDay: number, daysVisible: number): ViewState {
+  return { centerDay: todayDay + daysVisible / 2 - daysVisible / 3, daysVisible };
+}

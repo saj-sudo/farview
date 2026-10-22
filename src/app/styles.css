@@ -851,6 +851,16 @@ body:has(.landing) {
   color: var(--ink);
 }
 
+/* List or Timeline on a phone. The chips are bigger so a thumb can hit them. */
+.phone-switch {
+  width: fit-content;
+  margin-bottom: var(--space-3);
+}
+
+.phone-switch .tl-zoom-chip {
+  padding: 0.45rem 1.1rem;
+}
+
 .tl-wrap {
   position: relative;
   background: var(--surface);
