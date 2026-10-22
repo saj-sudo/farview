@@ -29,6 +29,28 @@ You don't need an OAuth client id for development. The demo mode (made-up spaces
 - **Local dates, never UTC.** All calendar maths lives in `src/engine/dates.ts` on `YYYY-MM-DD` strings. The user's timezone is used once, to work out "today".
 - **No em or en dashes.** `tests/build/dashes.test.ts` fails on U+2014 or U+2013 in any tracked text file. Use a full stop, colon, comma or brackets, and "to" for ranges.
 
+## Writing
+
+Words are part of the product, and readers scan. Copy is plain, specific and short. The rules below came from a review of how Capacities, Readwise, Obsidian and Day One write, set against the research on web writing. Those sites use contrast frames, rhythmic triples and dashes freely. We found no evidence that the devices help readers, and the best-known study found that promotional wording hurts usability ([Nielsen and Morkes, 1997](https://www.nngroup.com/topic/writing-web/): concise, scannable and objective copy together scored 124% higher on usability). If better evidence turns up, change the rule and say why here.
+
+**A test checks these** (`tests/build/dashes.test.ts` and `tests/build/copy.test.ts`):
+
+- No em or en dashes, anywhere.
+- On the landing page, a paragraph has three sentences at most and a list item two. Put parallel items in a list.
+- No contrast frames. That means a negation set up only to be knocked down: "not X, it's Y", "X, not Y", "Not X. Y.", "less X, more Y". A plain statement of what something does not do is fine when a reader would otherwise assume it, like "Farview never deletes anything".
+- No hype or superlatives: "best", "powerful", "seamless", "#1" and the like.
+- No testimonials, user counts or ratings we cannot back.
+
+**A reviewer checks these:**
+
+- No rhythmic triples. Three parallel items used for cadence ("think, learn and create") are out. A real list of things is fine.
+- No announced honesty ("honestly", "to be clear", "the truth is").
+- No decorative adverbs ("simply", "really", "seamlessly").
+- Numbers over adjectives. Say "15% of the time left" in place of "smart spacing".
+- A heading states the claim and the first sentence backs it, like "Read-only unless you turn on editing".
+- Every trust claim links to something a reader can check: the source, a test, or the consent screen.
+- Keep the disclaimer, and never show a real space in a screenshot.
+
 ## Tests
 
 Every change in behaviour needs a test, and features must pass against the fixture spaces in `src/providers/fixture/`: the Saltmarsh Boatyard (with type and property names unlike any real space), the minimal space and the empty space. Together they check the main promise. If something only works with the author's own schema, it doesn't work.

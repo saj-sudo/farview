@@ -33,6 +33,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **The landing page is easier to scan.** Paragraphs are three sentences at
+  most and parallel facts are lists. The read-only section names the scopes
+  (`api:read`, `offline_access`, and `api:write` only when you turn on
+  editing) and the privacy claims link to the tests that check them. A new
+  section covers the phone view.
+- CONTRIBUTING has a Writing section with the copy rules, which are checked by
+  `tests/build/copy.test.ts` where a machine can check them.
 - The nearly empty demo space has plain project names (scrape and paint the
   hull, re-rig the dinghy) instead of names that described what they test.
 - **New look.** A layout that sits comfortably next to Capacities (white and
