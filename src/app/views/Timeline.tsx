@@ -14,12 +14,15 @@ import {
   type ViewState,
 } from '../../engine/timeline/scale';
 import type { FarviewConfig, LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
-import { addDays } from '../../engine/dates';
+import { addDays, dateOfDayNumber, formatMonthDay } from '../../engine/dates';
 import { applyDateChange, type DateChange } from '../../engine/editor';
 import type { BarGeometry } from '../../engine/timeline/layout';
 import type { EditActions } from '../edits';
 import type { DragMode } from '../components/TimelineSvg';
+import { datesForDrop } from '../../engine/timeline/drop';
+import { projectsPerMonth } from '../../engine/timeline/workload';
 import { focusPillar, pillarsOf } from '../../engine/timeline/focus';
+import { downloadSvg, timelineSvgMarkup } from '../exportSvg';
 import { readPhoneView, savePhoneView, type PhoneView } from '../phoneView';
 import { readPillarFocus, savePillarFocus } from '../pillarFocus';
 import { focusParam } from '../router';
@@ -27,6 +30,7 @@ import type { Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
 import { AgendaList } from '../components/AgendaList';
 import { ItemCard } from '../components/ItemCard';
+import { LoadStrip } from '../components/LoadStrip';
 import { NewItemDialog } from '../components/NewItemDialog';
 import { PillarFocus } from '../components/PillarFocus';
 import { RefreshBar } from '../components/RefreshBar';
@@ -101,6 +105,15 @@ export function Timeline(props: {
     null,
   );
   const suppressClickRef = useRef(false);
+  // A Someday item being dragged out of the tray: where the pointer is and,
+  // over the chart, which day it would land on.
+  const [trayDrag, setTrayDrag] = useState<{
+    item: TimelineItem;
+    x: number;
+    y: number;
+    day: number | null;
+  } | null>(null);
+  const trayClickRef = useRef(false);
   const [focusedBarId, setFocusedBarId] = useState<string | null>(null);
   const nudgeRef = useRef<{
     origItem: TimelineItem;
@@ -223,6 +236,19 @@ export function Timeline(props: {
     ],
   );
 
+  // How many projects are active in each month the chart shows. It follows a
+  // drag's ghost dates too, so it never disagrees with the bars above it.
+  const monthLoad = useMemo(
+    () =>
+      projectsPerMonth(
+        layoutItems,
+        clamped.centerDay - clamped.daysVisible / 2,
+        clamped.centerDay + clamped.daysVisible / 2,
+        todayDay,
+      ),
+    [layoutItems, clamped, todayDay],
+  );
+
   /* ---------------- zoom + pan ---------------- */
 
   const animateTo = (target: ViewState): void => {
@@ -265,6 +291,13 @@ export function Timeline(props: {
     // Same window the page opens on: today a third of the way in, with some
     // history behind it. The zoom stays where it is.
     animateTo(windowAroundToday(todayDay, clamped.daysVisible));
+  };
+
+  const saveAsSvg = (): void => {
+    const chart = wrapRef.current?.querySelector<SVGSVGElement>('svg.tl-svg');
+    if (!chart) return;
+    const markup = timelineSvgMarkup(chart, layout.lanes, `Farview timeline, saved ${props.today}`);
+    downloadSvg(markup, `farview-timeline-${props.today}.svg`);
   };
 
   const stepPreset = (direction: 1 | -1): void => {
@@ -463,6 +496,59 @@ export function Timeline(props: {
   commitNudgeRef.current = commitNudge;
   useEffect(() => () => commitNudgeRef.current(), []);
 
+  /* ---------------- Someday tray: drag an item onto the chart ---------------- */
+
+  const startTrayDrag = (item: TimelineItem, e: PointerEvent): void => {
+    if (!props.edit || narrow || e.button !== 0) return;
+    const edit = props.edit;
+    const writable = editableDates(item);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const view = clamped;
+    let moved = false;
+
+    const dayAt = (x: number, y: number): number | null => {
+      const rect = wrapRef.current?.getBoundingClientRect();
+      if (!rect || x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return null;
+      return Math.round(view.centerDay - view.daysVisible / 2 + ((x - rect.left) / width) * view.daysVisible);
+    };
+    const finish = (): void => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onCancel);
+      window.removeEventListener('keydown', onKey);
+      setTrayDrag(null);
+    };
+    const onMove = (ev: PointerEvent): void => {
+      if (!moved && Math.hypot(ev.clientX - startX, ev.clientY - startY) < 5) return;
+      moved = true;
+      setTrayDrag({ item, x: ev.clientX, y: ev.clientY, day: dayAt(ev.clientX, ev.clientY) });
+    };
+    const onUp = (ev: PointerEvent): void => {
+      if (moved) {
+        trayClickRef.current = true; // the click that ends a drag is not a click
+        setTimeout(() => {
+          trayClickRef.current = false;
+        }, 0);
+        const day = dayAt(ev.clientX, ev.clientY);
+        const change = day === null ? null : datesForDrop(item, day, writable);
+        if (change) void edit.updateDates(item, change);
+      }
+      finish();
+    };
+    const onCancel = (): void => finish();
+    const onKey = (ev: KeyboardEvent): void => {
+      if (ev.key === 'Escape') finish(); // nothing is written
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onCancel);
+    window.addEventListener('keydown', onKey);
+  };
+
+  const canDropOnChart = (item: TimelineItem): boolean =>
+    datesForDrop(item, 0, editableDates(item)) !== null;
+
   /* ---------------- selection + deep links ---------------- */
 
   const select = (item: TimelineItem | null, anchor: { x: number; y: number } | null): void => {
@@ -620,6 +706,9 @@ export function Timeline(props: {
           <button class="tl-zoom-chip today" onClick={goToToday}>
             Today
           </button>
+          <button class="tl-zoom-chip" onClick={saveAsSvg}>
+            Save as SVG
+          </button>
           {canCreate && (
             <button class="tl-zoom-chip tl-new" onClick={() => setCreating(true)}>
               + New
@@ -649,7 +738,7 @@ export function Timeline(props: {
       ) : null}
 
       <div
-        class="tl-wrap"
+        class={`tl-wrap ${trayDrag?.day != null ? 'drop-target' : ''}`}
         ref={wrapRef}
         tabIndex={0}
         role="application"
@@ -721,10 +810,30 @@ export function Timeline(props: {
         )}
       </div>
 
+      <LoadStrip months={monthLoad} layout={layout} />
+
       <SomedayTray
         items={someday}
-        onSelect={narrow ? (i) => setSelected({ item: i, anchor: null }) : centerOn}
+        onSelect={(i) => {
+          if (trayClickRef.current) return;
+          if (narrow) setSelected({ item: i, anchor: null });
+          else centerOn(i);
+        }}
+        {...(props.edit && !narrow
+          ? { canDrag: canDropOnChart, onDragStart: startTrayDrag }
+          : {})}
       />
+      {trayDrag && (
+        <div class="tray-ghost" style={{ left: `${trayDrag.x + 12}px`, top: `${trayDrag.y + 12}px` }}>
+          {trayDrag.item.title}
+          {trayDrag.day !== null && (
+            <span class="tray-ghost-date">
+              {' '}
+              · {formatMonthDay(dateOfDayNumber(trayDrag.day))}
+            </span>
+          )}
+        </div>
+      )}
       {narrow && card && <div class="tl-card-holder narrow">{card}</div>}
 
       {creating && props.edit && (
@@ -747,8 +856,8 @@ function EmptyNote(props: { targetName: string; kind: 'none' | 'allUndated' }) {
       <h3>Nothing to place yet</h3>
       <p>
         No objects of the mapped type were found. Once something has a date
-        in “{props.targetName}”, it shows up on this line. If the mapping
-        looks wrong, check Settings.
+        in “{props.targetName}”, it shows up on this line. Create one in
+        Capacities, or check the mapping in Settings.
       </p>
     </div>
   ) : (

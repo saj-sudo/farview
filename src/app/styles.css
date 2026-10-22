@@ -1314,6 +1314,42 @@ body:has(.landing) {
   border-radius: var(--radius-sm);
 }
 
+.someday-hint {
+  margin: 0.4rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+
+/* An item that can be dragged onto the timeline. */
+.someday-item.draggable {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.tray-ghost {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  max-width: 18rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--charcoal);
+  color: var(--on-charcoal);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-lift);
+}
+
+.tray-ghost-date {
+  color: var(--on-charcoal-ink);
+  font-weight: 600;
+}
+
+.tl-wrap.drop-target {
+  outline: 2px dashed var(--ink1);
+  outline-offset: -2px;
+}
+
 /* The agenda list (narrow viewports). */
 .agenda {
   list-style: none;
@@ -1691,4 +1727,105 @@ body:has(.landing) {
   color: var(--ink);
   font-weight: 700;
   margin-right: 0.15rem;
+}
+
+/* Suggested mappings: a tickable list of what was found in the space. */
+.suggestions {
+  max-width: 40rem;
+}
+
+.suggestions h2 {
+  margin-top: 0;
+}
+
+.suggest-list {
+  list-style: none;
+  margin: 0.5rem 0 0.9rem;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.suggest-list label {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.suggest-list input {
+  margin-top: 0.3rem;
+  flex: none;
+}
+
+.suggest-list strong {
+  display: block;
+  font-size: var(--text-md);
+}
+
+.suggest-list small {
+  display: block;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  margin-top: 0.1rem;
+}
+
+.suggest-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* The optional part of the mapping form, folded away on the first screen. */
+.more-options {
+  margin: 1rem 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem 1rem;
+  background: var(--wash);
+}
+
+.more-options > summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+}
+
+/* How much runs at once: a thin strip of counts under the chart. */
+.load-strip {
+  margin: 0.6rem 0 0;
+}
+
+.load-caption {
+  margin: 0 0 0.25rem;
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+
+.load-caption strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.load-svg {
+  display: block;
+  max-width: 100%;
+}
+
+.load-bar {
+  fill: var(--ink2);
+  opacity: 0.55;
+}
+
+.load-num,
+.load-month {
+  font-size: 10px;
+  text-anchor: middle;
+  fill: var(--ink-soft);
+}
+
+.load-month {
+  fill: var(--ink-soft);
+  opacity: 0.8;
 }

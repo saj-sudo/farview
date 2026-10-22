@@ -8,6 +8,7 @@ import {
 } from '../../engine/config';
 import type { CollectionDef, PropertyDef, StructureDef, TagDef } from '../../engine/provider';
 import { resolveSchema, type CollectionTags } from '../../engine/resolve';
+import { applySuggestion, suggestionKey, suggestMapping } from '../../engine/suggest';
 import { layoutTimeline } from '../../engine/timeline/layout';
 import { defaultView } from '../../engine/timeline/scale';
 import type { FarviewConfig, LocalDate, TimelineItem, TypeRole } from '../../engine/types';
@@ -15,9 +16,11 @@ import { memoryCache } from '../../pipeline/cache';
 import { loadCollectionTags, loadTimelineData } from '../../pipeline/load';
 import { isBasicStructure } from '../../providers/capacities/constants';
 import type { Boot } from '../App';
+import { MappingSuggestions } from '../components/MappingSuggestions';
 import { TimelineSvg } from '../components/TimelineSvg';
 import { HASH_FOR } from '../router';
 import { connect, disconnect, endDemo, setTokenEditing, type Session } from '../session';
+import { readSkipped, saveSkipped } from '../suggestionSkipped';
 import type { TimelineData } from '../useTimelineData';
 
 /**
@@ -28,6 +31,9 @@ import type { TimelineData } from '../useTimelineData';
  * preview is what converts a skeptical visitor, and it costs nothing:
  * the data is already fetched.
  */
+
+/** How Capacities' own screens would describe each kind of property. */
+const PROPERTY_KIND_NAME: Record<string, string> = { date: 'date', label: 'labels', entity: 'linked objects' };
 
 const EMPTY_MILESTONES: ReadonlyMap<string, never[]> = new Map();
 
@@ -61,6 +67,8 @@ export function Settings(props: {
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const [counts, setCounts] = useState<Map<string, number>>(new Map());
+  const [skipped, setSkipped] = useState<string | null>(readSkipped);
+  const [byHand, setByHand] = useState(false);
 
   const customTypes = useMemo(
     () => boot.structures.filter((s) => !isBasicStructure(s.id)),
@@ -216,6 +224,12 @@ export function Settings(props: {
           ))}
         </select>
         {hint && <small>{hint}</small>}
+        {options.length === 0 && (
+          <small>
+            “{home.title}” has no {PROPERTY_KIND_NAME[propType] ?? propType} property yet. In Capacities, open the
+            type’s settings and choose Add property.
+          </small>
+        )}
       </label>
     );
   };
@@ -255,80 +269,53 @@ export function Settings(props: {
       </div>
     ) : null;
 
-  /* ---------------- live preview ---------------- */
+  /* ---------------- suggested mappings ---------------- */
 
-  return (
-    <section class="settings">
-      <div class="view-head">
-        <div>
-          <h1>{props.onboarding ? 'Map your space' : 'Settings'}</h1>
-          <p class="fineprint">
-            Farview works with <em>your</em> object types. Everything below is
-            read live from “{boot.space.title}”. Nothing is written to your
-            space; these settings are kept in this browser.
-          </p>
+  const found = suggestMapping(customTypes, draft);
+  const offer = found !== null && suggestionKey(found) !== skipped ? found : null;
+  const useSuggestion = offer
+    ? (picked: NonNullable<typeof found>): void => {
+        const next = normalizeConfig(applySuggestion(draft, picked, customTypes));
+        setDraft(next);
+        props.onConfig(next, collectionMembers);
+        setSavedNote(
+          props.session.kind === 'demo'
+            ? 'Applied for this demo session.'
+            : 'Saved. Settings live in this browser only. Use export below to move them.',
+        );
+      }
+    : null;
+  const skipSuggestion = (): void => {
+    if (found) {
+      saveSkipped(suggestionKey(found));
+      setSkipped(suggestionKey(found));
+    }
+    setByHand(true);
+  };
+
+  // First screen: when the space has something to recognise, one tick replaces
+  // the form. The form is one button away.
+  if (props.onboarding && offer && useSuggestion && !byHand) {
+    return (
+      <section class="settings">
+        <div class="view-head">
+          <h1>Set up Farview</h1>
         </div>
-      </div>
+        <MappingSuggestions
+          suggestion={offer}
+          spaceTitle={boot.space.title}
+          firstRun={true}
+          onUse={useSuggestion}
+          onSkip={skipSuggestion}
+        />
+      </section>
+    );
+  }
 
-      <h2>Your space</h2>
-      {customTypes.length === 0 ? (
-        <p class="empty-note">
-          No custom object types here yet. Farview needs a type with dates to
-          place. Basic types (pages, tags, media) are hidden.
-        </p>
-      ) : (
-        <div class="tag-grid">
-          {customTypes.map((s) => (
-            <span key={s.id} class="chip">
-              {s.title} · {countLabel(s.id)}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <h2>Projects (required)</h2>
-      <div class="field-row">
-        {typeSelect(
-          'project',
-          'Which type holds your projects or work items?',
-          'You can pick “None of these”, but Farview has nothing to draw without a type.',
-        )}
-      </div>
-      {structureFor('project') && (
-        <>
-          <div class="field-row">
-            {propertySelect('projectStart', 'Start date', 'project', 'date')}
-            {propertySelect('projectTarget', 'Target date', 'project', 'date', 'Items are placed by this date.')}
-            {propertySelect('projectStatus', 'Status', 'project', 'label')}
-          </div>
-          <div class="field-row">
-            {propertySelect(
-              'projectGoal',
-              'Goal link',
-              'project',
-              'entity',
-              'The property pointing at the project’s goal.',
-            )}
-            {propertySelect(
-              'projectActions',
-              'Actions',
-              'project',
-              'entity',
-              'Sub-items; shown on the project’s detail page.',
-            )}
-            {propertySelect(
-              'projectMilestones',
-              'Milestones',
-              'project',
-              'entity',
-              'Achievement markers, drawn as ticks on the bar.',
-            )}
-          </div>
-        </>
-      )}
-      {statusChecks('active', 'Which statuses count as active?', 'Statuses you leave unticked still show on the timeline.')}
-      {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
-
+  // Everything past the project type and its dates is optional, so the first
+  // screen folds it away.
+  const optional = (
+    <>
       <h2>Goals (optional)</h2>
       <div class="field-row">
         {typeSelect(
@@ -603,6 +590,104 @@ export function Settings(props: {
           <small>IANA name, e.g. Europe/Berlin. The now-line sits on your local today.</small>
         </label>
       </div>
+
+    </>
+  );
+
+  /* ---------------- live preview ---------------- */
+
+  return (
+    <section class="settings">
+      <div class="view-head">
+        <div>
+          <h1>{props.onboarding ? 'Map your space' : 'Settings'}</h1>
+          <p class="fineprint">
+            Farview works with <em>your</em> object types. Everything below is
+            read live from “{boot.space.title}”. Nothing is written to your
+            space; these settings are kept in this browser.
+          </p>
+        </div>
+      </div>
+
+      {!props.onboarding && offer && useSuggestion && (
+        <MappingSuggestions
+          suggestion={offer}
+          spaceTitle={boot.space.title}
+          firstRun={false}
+          onUse={useSuggestion}
+          onSkip={skipSuggestion}
+        />
+      )}
+
+      <h2>Your space</h2>
+      {customTypes.length === 0 ? (
+        <p class="empty-note">
+          No custom object types here yet. Farview needs a type with dates to
+          place. In Capacities, open Settings → Object Types and choose + New
+          Type, then pick a prebuilt type such as Project from the gallery or
+          create your own. Basic types (pages, tags, media) are hidden here.
+        </p>
+      ) : (
+        <div class="tag-grid">
+          {customTypes.map((s) => (
+            <span key={s.id} class="chip">
+              {s.title} · {countLabel(s.id)}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <h2>Projects (required)</h2>
+      <div class="field-row">
+        {typeSelect(
+          'project',
+          'Which type holds your projects or work items?',
+          'You can pick “None of these”, but Farview has nothing to draw without a type.',
+        )}
+      </div>
+      {structureFor('project') && (
+        <>
+          <div class="field-row">
+            {propertySelect('projectStart', 'Start date', 'project', 'date')}
+            {propertySelect('projectTarget', 'Target date', 'project', 'date', 'Items are placed by this date.')}
+            {propertySelect('projectStatus', 'Status', 'project', 'label')}
+          </div>
+          <div class="field-row">
+            {propertySelect(
+              'projectGoal',
+              'Goal link',
+              'project',
+              'entity',
+              'The property pointing at the project’s goal.',
+            )}
+            {propertySelect(
+              'projectActions',
+              'Actions',
+              'project',
+              'entity',
+              'Sub-items; shown on the project’s detail page.',
+            )}
+            {propertySelect(
+              'projectMilestones',
+              'Milestones',
+              'project',
+              'entity',
+              'Achievement markers, drawn as ticks on the bar.',
+            )}
+          </div>
+        </>
+      )}
+      {statusChecks('active', 'Which statuses count as active?', 'Statuses you leave unticked still show on the timeline.')}
+      {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
+
+      {props.onboarding ? (
+        <details class="more-options">
+          <summary>More options: goals, actions, grouping and display</summary>
+          {optional}
+        </details>
+      ) : (
+        optional
+      )}
 
       {resolved.warnings.length > 0 && (
         <div class="notice">

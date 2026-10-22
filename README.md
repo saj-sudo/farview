@@ -34,7 +34,11 @@ A token kept in a browser can be read by any script on the page. For that reason
 
 ## Works with your object types
 
-Farview does not assume your space has a "Project" type. Setup reads the types and properties your space has, whatever you named them, and asks three questions:
+Farview does not assume your space has a "Project" type. Setup reads the types and properties your space has, whatever you named them, and offers what it recognises with a tick, such as "Your projects are Project".
+
+- Names it knows start ticked. A guess from the shape of a type says so and starts unticked.
+- Nothing changes without a tick, and anything you have already mapped is left alone.
+- If it can't tell, or you'd rather choose, it asks three questions:
 
 1. Which type holds your work?
 2. Which property is the start date?
@@ -72,6 +76,11 @@ If your space links things together, like a project pointing at its goal or a go
 
 ![A project's detail page: a breadcrumb up to its goal, its dates and progress counts, and a small timeline of its own actions.](docs/detail.png)
 
+## Seeing the load, and saving the view
+
+- **How much runs at once.** A strip under the chart counts the projects active in each month. It states a number and nothing else, so there is no colour for "too many".
+- **Save as SVG** saves the timeline as it looks on screen, with its lane names, for a weekly or yearly review. The file is built in your browser and nothing is uploaded.
+
 ## On a phone
 
 - Under 720px wide, the timeline page opens as a list. A **List / Timeline** switch above it shows the full timeline, which you drag sideways, with bars sized for a finger.
@@ -80,11 +89,21 @@ If your space links things together, like a project pointing at its goal or a go
 
 A switch in the sidebar (at the bottom of the page on a phone) sets light, dark or automatic.
 
+## What you need in Capacities
+
+Farview needs one object type whose objects have a date, such as a Project type with a start date and a target date.
+
+- **No such type yet?** In Capacities, open **Settings → Object Types**, choose **+ New Type**, and pick a prebuilt type such as Project from the gallery, or create your own.
+- **A type with no date?** Open the type's settings, choose **Add property**, and add a date property.
+- **Goals, milestones and tags are optional.** Most spaces have no Goal type, and you don't need one.
+
 ## Getting started
 
 1. Open the site and click **Connect to Capacities**. You approve read access and pick which space to share, on the Capacities side.
-2. Map your space: your project type, its date properties, and optionally goals, milestones and up to two levels of grouping. The preview shows your own timeline as you go.
-3. Save. The timeline and Horizons views use the same data, on desktop and on phone.
+2. Tick what Farview found in your space, such as "Your projects are Project". If it can't tell, or you pick **Set it up by hand**, choose your project type and its date properties. The preview shows your own timeline as you go.
+3. Open the timeline. The timeline and Horizons views use the same data, on desktop and on phone. Goals, milestones and up to two levels of grouping are optional, and live under **More options** in Settings.
+
+![The first screen on a synthetic space: "Your projects are Project", ticked, with its start, target and status properties, and a button that opens the timeline.](docs/setup.png)
 
 You don't need an account to look around: **Try the demo** runs on a made-up space, entirely in your tab.
 
@@ -92,7 +111,7 @@ You don't need an account to look around: **Try the demo** runs on a made-up spa
 
 Until the hosted OAuth client is live (registration with Capacities is by email), you can run Farview against your own space with a personal API token.
 
-1. In Capacities, go to **Settings → Capacities API** and create a token. Read access is enough for viewing. Give it write access and tick the editing box to plan from the timeline.
+1. In the Capacities desktop app, go to **Settings → Capacities API → API Tokens** and create a token for the space you want to use. Read access is enough for viewing. Give it write access and tick the editing box to plan from the timeline.
 2. Paste it in the *Advanced* section on the Connect screen.
 3. The token stays in your browser. You can revoke it in the same settings screen.
 

@@ -75,10 +75,30 @@ function Landing() {
 
       <h2>Works with the types you already have</h2>
       <p>
-        Most spaces have no Goal type, and you don't need one. Tell Farview
-        which type holds your work and which properties are the start and
-        target dates. A preview shows your timeline before you save anything.
+        Most spaces have no Goal type, and you don't need one. Farview reads
+        your types and offers what it recognises, such as &ldquo;Your projects
+        are Project&rdquo;, and you tick what looks right. If it can't tell, you
+        pick the type and its start and target dates, and a preview shows your
+        timeline before you save anything.
       </p>
+
+      <h2>What you need in Capacities</h2>
+      <p>
+        One object type whose objects have a date, such as a Project type with
+        a start date and a target date.
+      </p>
+      <ul>
+        <li>
+          No such type yet? Open Settings → Object Types in Capacities, choose
+          + New Type, and pick a prebuilt type such as Project from the
+          gallery.
+        </li>
+        <li>
+          A type with no date? Open the type&rsquo;s settings, choose Add
+          property, and add a date.
+        </li>
+        <li>Goals, milestones and tags are optional.</li>
+      </ul>
 
       <h2>From this quarter to the next decade</h2>
       <ul>

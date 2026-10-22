@@ -22,6 +22,7 @@ import {
   FixtureProvider,
 } from '../providers/fixture/fixtureProvider';
 import { buildMinimalSpace } from '../providers/fixture/minimalSpace';
+import { buildStandardSpace } from '../providers/fixture/standardSpace';
 import {
   buildStrangersSpace,
   strangersDemoConfig,
@@ -36,7 +37,7 @@ import {
  * - null: not connected → the Connect screen.
  */
 
-export type DemoFlavor = 'strangers' | 'minimal' | 'empty';
+export type DemoFlavor = 'strangers' | 'minimal' | 'empty' | 'standard';
 
 export interface Session {
   kind: 'live' | 'demo';
@@ -68,7 +69,7 @@ export function todayLocal(timezone: string | null): LocalDate {
 export function activeDemo(): DemoFlavor | null {
   try {
     const v = sessionStorage.getItem(DEMO_KEY);
-    return v === 'strangers' || v === 'minimal' || v === 'empty' ? v : null;
+    return v === 'strangers' || v === 'minimal' || v === 'empty' || v === 'standard' ? v : null;
   } catch {
     return null;
   }
@@ -99,9 +100,14 @@ export function createSession(): Session | null {
         ? buildStrangersSpace(today)
         : demo === 'minimal'
           ? buildMinimalSpace(today)
-          : buildEmptySpace();
+          : demo === 'standard'
+            ? buildStandardSpace(today)
+            : buildEmptySpace();
+    // The standard demo starts before setup, so the first-run offer can be seen.
     const demoConfig =
-      demo === 'strangers'
+      demo === 'standard'
+        ? null
+        : demo === 'strangers'
         ? normalizeConfig(strangersDemoConfig())
         : normalizeConfig({
             types: { project: 'Undertaking' },
