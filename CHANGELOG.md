@@ -8,6 +8,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Drag a Someday item onto the timeline.** With editing on, items in the
+  Someday tray can be dragged onto the chart. The date under the pointer shows
+  as you move, and releasing sets the dates: a project starts on that day and
+  runs four weeks, a goal (or a project with only a target date) gets that day
+  as its target. Only dates the space lets Farview write are sent, an item
+  keeps any date it already has, and Escape or releasing off the chart changes
+  nothing. Phones still set dates on the card.
 - **Focus on a pillar.** A row of chips above the timeline (and above the list
   on a phone) shows one pillar at a time, with the number of items in each.
   Tap a pillar to see only its lanes, its goals and its Someday items; tap it

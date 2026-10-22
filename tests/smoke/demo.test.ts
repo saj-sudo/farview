@@ -204,3 +204,52 @@ it('focuses on one pillar, remembers it and brings the others back', async () =>
   await page.close();
   expect(problems).toEqual([]);
 });
+
+it('drags a Someday item onto the timeline and gives it dates', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await page.locator('svg.tl-svg').waitFor();
+  const tray = page.locator('details.someday');
+  await tray.locator('summary').click();
+  const item = tray.locator('.someday-item.draggable').first();
+  const title = (await item.innerText()).trim();
+  const bars = page.locator('g.tl-item');
+  const before = await bars.count();
+
+  const from = (await item.boundingBox())!;
+  const chart = (await page.locator('.tl-wrap').boundingBox())!;
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(chart.x + chart.width / 2, chart.y + 60, { steps: 8 });
+  expect(await page.locator('.tl-wrap.drop-target').count()).toBe(1);
+  expect(await page.locator('.tray-ghost').innerText()).toContain(title);
+  await page.mouse.up();
+
+  await page.waitForTimeout(400);
+  expect(await bars.count()).toBe(before + 1);
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
+it('drops nothing when a Someday item is released away from the timeline', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await page.locator('svg.tl-svg').waitFor();
+  const tray = page.locator('details.someday');
+  await tray.locator('summary').click();
+  const item = tray.locator('.someday-item.draggable').first();
+  const bars = page.locator('g.tl-item');
+  const before = await bars.count();
+  const from = (await item.boundingBox())!;
+  await page.mouse.move(from.x + 5, from.y + 5);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 60, from.y + 40, { steps: 4 });
+  await page.mouse.up();
+  await page.waitForTimeout(300);
+  expect(await bars.count()).toBe(before);
+  expect(await page.locator('.tray-ghost').count()).toBe(0);
+  await page.close();
+});

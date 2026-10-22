@@ -1314,6 +1314,42 @@ body:has(.landing) {
   border-radius: var(--radius-sm);
 }
 
+.someday-hint {
+  margin: 0.4rem 0 0;
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+
+/* An item that can be dragged onto the timeline. */
+.someday-item.draggable {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.tray-ghost {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  max-width: 18rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: var(--charcoal);
+  color: var(--on-charcoal);
+  font-size: var(--text-sm);
+  box-shadow: var(--shadow-lift);
+}
+
+.tray-ghost-date {
+  color: var(--on-charcoal-ink);
+  font-weight: 600;
+}
+
+.tl-wrap.drop-target {
+  outline: 2px dashed var(--ink1);
+  outline-offset: -2px;
+}
+
 /* The agenda list (narrow viewports). */
 .agenda {
   list-style: none;
