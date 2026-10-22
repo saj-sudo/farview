@@ -35,6 +35,59 @@ export function sentencesIn(text: string): string[] {
   return text.split(/(?<=[.!?])\s+(?=\S)/).filter((s) => s.trim() !== '');
 }
 
+interface MarkdownBlock {
+  kind: 'paragraph' | 'item';
+  text: string;
+}
+
+/**
+ * The prose of a README: paragraphs and list items, without code fences,
+ * tables, headings, images, badges and the disclaimer quote.
+ */
+export function markdownBlocks(md: string): MarkdownBlock[] {
+  const blocks: MarkdownBlock[] = [];
+  let paragraph: string[] = [];
+  let item: string[] | null = null;
+  let fenced = false;
+  const clean = (s: string): string =>
+    s
+      .replace(/`[^`]*`/g, 'code')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/[*_]{1,2}/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const flush = (): void => {
+    if (paragraph.length > 0) blocks.push({ kind: 'paragraph', text: clean(paragraph.join(' ')) });
+    if (item) blocks.push({ kind: 'item', text: clean(item.join(' ')) });
+    paragraph = [];
+    item = null;
+  };
+  for (const line of md.split('\n')) {
+    if (line.startsWith('```')) {
+      flush();
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    if (line.trim() === '' || /^(#|\||!\[|\[!\[|>|<)/.test(line)) {
+      flush();
+      continue;
+    }
+    const listStart = /^(?:[-*]|\d+\.)\s+(.*)$/.exec(line);
+    if (listStart) {
+      flush();
+      item = [listStart[1]!];
+    } else if (item && /^\s+\S/.test(line)) {
+      item.push(line.trim());
+    } else {
+      if (item) flush();
+      paragraph.push(line.trim());
+    }
+  }
+  flush();
+  return blocks.filter((b) => b.text !== '');
+}
+
 /** A negation set up to be knocked down: "not X, it's Y", "X, not Y", ". Not X." */
 const CONTRAST_FRAMES: RegExp[] = [
   /\bnot (?:just |only |merely |simply )?[\w' -]{1,40}[,;:.]? (?:but|it'?s|it is|they'?re|we'?re)\b/i,
@@ -77,6 +130,15 @@ describe('what the checks catch', () => {
     }
   });
 
+  it('reads prose out of markdown and skips code, tables and headings', () => {
+    const md = '# Title\n\nOne. Two.\n\n```\nnpm test. Not prose.\n```\n\n| a | b |\n\n- First item.\n  Continued here.\n- Second item.\n';
+    expect(markdownBlocks(md)).toEqual([
+      { kind: 'paragraph', text: 'One. Two.' },
+      { kind: 'item', text: 'First item. Continued here.' },
+      { kind: 'item', text: 'Second item.' },
+    ]);
+  });
+
   it('counts sentences', () => {
     expect(sentencesIn('One. Two! Three? Four.')).toHaveLength(4);
     expect(sentencesIn('Settings → Capacities API → Connections.')).toHaveLength(1);
@@ -113,5 +175,32 @@ describe('the landing page copy', () => {
 
   it('shows no testimonials or counts it cannot back', () => {
     expect(readFileSync(join(root, 'src/landing/main.tsx'), 'utf8')).not.toMatch(SOCIAL_PROOF);
+  });
+});
+
+describe('the README copy', () => {
+  const blocks = markdownBlocks(readFileSync(join(root, 'README.md'), 'utf8'));
+
+  it('has prose to check', () => {
+    expect(blocks.filter((b) => b.kind === 'paragraph').length).toBeGreaterThan(8);
+    expect(blocks.filter((b) => b.kind === 'item').length).toBeGreaterThan(15);
+  });
+
+  it('keeps every paragraph and list item to three sentences', () => {
+    for (const block of blocks) {
+      expect(sentencesIn(block.text).length, block.text).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it('sets up no contrast frames', () => {
+    for (const block of blocks) {
+      for (const re of CONTRAST_FRAMES) expect(re.test(block.text), block.text).toBe(false);
+    }
+  });
+
+  it('makes no superlative or hype claims and shows no invented proof', () => {
+    const text = blocks.map((b) => b.text).join('\n');
+    expect(text).not.toMatch(HYPE);
+    expect(text).not.toMatch(SOCIAL_PROOF);
   });
 });

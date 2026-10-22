@@ -36,7 +36,8 @@ Words are part of the product, and readers scan. Copy is plain, specific and sho
 **A test checks these** (`tests/build/dashes.test.ts` and `tests/build/copy.test.ts`):
 
 - No em or en dashes, anywhere.
-- On the landing page, a paragraph has three sentences at most and a list item two. Put parallel items in a list.
+- On the landing page, a paragraph has three sentences at most and a list item two. In the README, both take three. Put parallel items in a list.
+- The landing page and the README follow every rule below that a test checks.
 - No contrast frames. That means a negation set up only to be knocked down: "not X, it's Y", "X, not Y", "Not X. Y.", "less X, more Y". A plain statement of what something does not do is fine when a reader would otherwise assume it, like "Farview never deletes anything".
 - No hype or superlatives: "best", "powerful", "seamless", "#1" and the like.
 - No testimonials, user counts or ratings we cannot back.
