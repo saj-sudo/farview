@@ -8,6 +8,7 @@ import {
 } from '../../engine/config';
 import type { CollectionDef, PropertyDef, StructureDef, TagDef } from '../../engine/provider';
 import { resolveSchema, type CollectionTags } from '../../engine/resolve';
+import { applySuggestion, suggestionKey, suggestMapping } from '../../engine/suggest';
 import { layoutTimeline } from '../../engine/timeline/layout';
 import { defaultView } from '../../engine/timeline/scale';
 import type { FarviewConfig, LocalDate, TimelineItem, TypeRole } from '../../engine/types';
@@ -15,9 +16,11 @@ import { memoryCache } from '../../pipeline/cache';
 import { loadCollectionTags, loadTimelineData } from '../../pipeline/load';
 import { isBasicStructure } from '../../providers/capacities/constants';
 import type { Boot } from '../App';
+import { MappingSuggestions } from '../components/MappingSuggestions';
 import { TimelineSvg } from '../components/TimelineSvg';
 import { HASH_FOR } from '../router';
 import { connect, disconnect, endDemo, setTokenEditing, type Session } from '../session';
+import { readSkipped, saveSkipped } from '../suggestionSkipped';
 import type { TimelineData } from '../useTimelineData';
 
 /**
@@ -61,6 +64,8 @@ export function Settings(props: {
   const [importText, setImportText] = useState('');
   const [importError, setImportError] = useState<string | null>(null);
   const [counts, setCounts] = useState<Map<string, number>>(new Map());
+  const [skipped, setSkipped] = useState<string | null>(readSkipped);
+  const [byHand, setByHand] = useState(false);
 
   const customTypes = useMemo(
     () => boot.structures.filter((s) => !isBasicStructure(s.id)),
@@ -255,6 +260,49 @@ export function Settings(props: {
       </div>
     ) : null;
 
+  /* ---------------- suggested mappings ---------------- */
+
+  const found = suggestMapping(customTypes, draft);
+  const offer = found !== null && suggestionKey(found) !== skipped ? found : null;
+  const useSuggestion = offer
+    ? (picked: NonNullable<typeof found>): void => {
+        const next = normalizeConfig(applySuggestion(draft, picked, customTypes));
+        setDraft(next);
+        props.onConfig(next, collectionMembers);
+        setSavedNote(
+          props.session.kind === 'demo'
+            ? 'Applied for this demo session.'
+            : 'Saved. Settings live in this browser only. Use export below to move them.',
+        );
+      }
+    : null;
+  const skipSuggestion = (): void => {
+    if (found) {
+      saveSkipped(suggestionKey(found));
+      setSkipped(suggestionKey(found));
+    }
+    setByHand(true);
+  };
+
+  // First screen: when the space has something to recognise, one tick replaces
+  // the form. The form is one button away.
+  if (props.onboarding && offer && useSuggestion && !byHand) {
+    return (
+      <section class="settings">
+        <div class="view-head">
+          <h1>Set up Farview</h1>
+        </div>
+        <MappingSuggestions
+          suggestion={offer}
+          spaceTitle={boot.space.title}
+          firstRun={true}
+          onUse={useSuggestion}
+          onSkip={skipSuggestion}
+        />
+      </section>
+    );
+  }
+
   /* ---------------- live preview ---------------- */
 
   return (
@@ -269,6 +317,16 @@ export function Settings(props: {
           </p>
         </div>
       </div>
+
+      {!props.onboarding && offer && useSuggestion && (
+        <MappingSuggestions
+          suggestion={offer}
+          spaceTitle={boot.space.title}
+          firstRun={false}
+          onUse={useSuggestion}
+          onSkip={skipSuggestion}
+        />
+      )}
 
       <h2>Your space</h2>
       {customTypes.length === 0 ? (

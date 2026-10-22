@@ -34,7 +34,11 @@ A token kept in a browser can be read by any script on the page. For that reason
 
 ## Works with your object types
 
-Farview does not assume your space has a "Project" type. Setup reads the types and properties your space has, whatever you named them, and asks three questions:
+Farview does not assume your space has a "Project" type. Setup reads the types and properties your space has, whatever you named them, and offers what it recognises with a tick, such as "Your projects are Project".
+
+- Names it knows start ticked. A guess from the shape of a type says so and starts unticked.
+- Nothing changes without a tick, and anything you have already mapped is left alone.
+- If it can't tell, or you'd rather choose, it asks three questions:
 
 1. Which type holds your work?
 2. Which property is the start date?
@@ -92,7 +96,7 @@ You don't need an account to look around: **Try the demo** runs on a made-up spa
 
 Until the hosted OAuth client is live (registration with Capacities is by email), you can run Farview against your own space with a personal API token.
 
-1. In Capacities, go to **Settings → Capacities API** and create a token. Read access is enough for viewing. Give it write access and tick the editing box to plan from the timeline.
+1. In the Capacities desktop app, go to **Settings → Capacities API → API Tokens** and create a token for the space you want to use. Read access is enough for viewing. Give it write access and tick the editing box to plan from the timeline.
 2. Paste it in the *Advanced* section on the Connect screen.
 3. The token stays in your browser. You can revoke it in the same settings screen.
 

@@ -75,9 +75,11 @@ function Landing() {
 
       <h2>Works with the types you already have</h2>
       <p>
-        Most spaces have no Goal type, and you don't need one. Tell Farview
-        which type holds your work and which properties are the start and
-        target dates. A preview shows your timeline before you save anything.
+        Most spaces have no Goal type, and you don't need one. Farview reads
+        your types and offers what it recognises, such as &ldquo;Your projects
+        are Project&rdquo;, and you tick what looks right. If it can't tell, you
+        pick the type and its start and target dates, and a preview shows your
+        timeline before you save anything.
       </p>
 
       <h2>From this quarter to the next decade</h2>

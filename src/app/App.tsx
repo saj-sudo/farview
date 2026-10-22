@@ -70,7 +70,8 @@ function ConnectedApp(props: { session: Session }) {
   const [boot, setBoot] = useState<Boot | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [config, setConfig] = useState<FarviewConfig | null>(
-    () => session.demoConfig ?? loadStoredConfig(),
+    // A demo never reads the visitor's stored config; the standard demo starts unset.
+    () => (session.kind === 'demo' ? session.demoConfig : loadStoredConfig()),
   );
   const view = useView(config?.display.defaultView ?? 'timeline');
 
@@ -182,8 +183,8 @@ function ConnectedApp(props: { session: Session }) {
       <div class="content">
         {session.kind === 'demo' && (
           <aside class="demo-banner" aria-label="Demo space">
-            This is a made-up space, the Saltmarsh Boatyard. Nothing here is
-            real, and nothing leaves this tab.
+            This is a made-up space{boot ? `, ${boot.space.title}` : ''}. Nothing
+            here is real, and nothing leaves this tab.
           </aside>
         )}
         <main class="app-main">

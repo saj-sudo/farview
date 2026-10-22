@@ -85,6 +85,9 @@ export function Connect(props: {
         <button class={CLIENT_ID ? '' : 'primary'} onClick={demo('strangers')}>
           Try the demo
         </button>
+        <button class="subtle" onClick={demo('standard')}>
+          Demo: a first setup in a new space
+        </button>
         <button class="subtle" onClick={demo('minimal')}>
           Demo: a nearly empty space
         </button>
@@ -97,10 +100,11 @@ export function Connect(props: {
       <details class="advanced">
         <summary>Advanced: connect with a personal API token</summary>
         <p class="fineprint">
-          In the Capacities app, go to Settings → Capacities API and create a
-          token. Read access is enough for viewing. Paste it here. The token
-          stays in this browser’s storage, so treat it like a password. You
-          can revoke it in the same settings screen whenever you like.
+          In the Capacities desktop app, open Settings → Capacities API → API
+          Tokens and create a token for the space you want to use. Read access
+          is enough for viewing. Paste it here. The token stays in this
+          browser’s storage, so treat it like a password. You can revoke it in
+          the same screen whenever you like.
         </p>
         <label class="field checkbox">
           <input

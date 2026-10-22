@@ -253,3 +253,39 @@ it('drops nothing when a Someday item is released away from the timeline', async
   expect(await page.locator('.tray-ghost').count()).toBe(0);
   await page.close();
 });
+
+const STANDARD = 'Demo: a first setup in a new space';
+
+describe.each(['light', 'dark'] as const)('first setup in %s', (colorScheme) => {
+  it.each(VIEWPORTS)('offers what the space contains, with no axe violations at $name size', async (viewport) => {
+    const page = await browser.newPage({ viewport, colorScheme });
+    await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: STANDARD, exact: true }).click();
+    await page.getByRole('heading', { name: 'Start with what is in your space' }).waitFor();
+    expect(await violationsOn(page)).toEqual([]);
+    await page.close();
+  });
+});
+
+it('opens the timeline with one tick on a standard setup', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  const projects = page.getByRole('checkbox', { name: /Your projects are “Project”/ });
+  expect(await projects.isChecked()).toBe(true); // a name it knows starts ticked
+  await page.getByRole('button', { name: 'Use these and open the timeline', exact: true }).click();
+  await page.locator('svg.tl-svg').waitFor();
+  expect(await page.locator('g.tl-item').count()).toBeGreaterThan(3);
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
+it('shows the form when the offer is set aside', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByRole('button', { name: 'Set it up by hand', exact: true }).click();
+  await page.getByRole('heading', { name: 'Map your space' }).waitFor();
+  await page.close();
+});

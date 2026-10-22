@@ -8,6 +8,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Setup that reads your space.** On the first screen, Farview now reads your
+  object types and properties and offers what it found in Capacities' words:
+  "Your projects are Project", with its start, target and status, which
+  statuses count as active and which as done, and your goal and milestone types
+  when it finds them. A standard Capacities Project type takes one tick to open
+  the timeline. Names it knows start ticked, and a guess from the shape of a
+  type (two dates and a status) says so and starts unticked. When it can't tell,
+  or you pick "Set it up by hand", you get the form as before. The same offer
+  shows at the top of Settings until it is used or skipped. Anything already
+  mapped to a type your space has is left alone.
+- A demo, "a first setup in a new space", shows that first screen on a space
+  built like a standard Capacities Project type.
 - **Drag a Someday item onto the timeline.** With editing on, items in the
   Someday tray can be dragged onto the chart. The date under the pointer shows
   as you move, and releasing sets the dates: a project starts on that day and
@@ -59,6 +71,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `tests/build/copy.test.ts` where a machine can check them. The README follows
   the same rules: shorter paragraphs, lists for parallel facts, and a section on
   the phone view.
+- The token steps name the Capacities desktop app and the **API Tokens** screen,
+  as Capacities' own docs do.
 - The nearly empty demo space has plain project names (scrape and paint the
   hull, re-rig the dinghy) instead of names that described what they test.
 - **New look.** A layout that sits comfortably next to Capacities (white and

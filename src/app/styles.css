@@ -1728,3 +1728,51 @@ body:has(.landing) {
   font-weight: 700;
   margin-right: 0.15rem;
 }
+
+/* Suggested mappings: a tickable list of what was found in the space. */
+.suggestions {
+  max-width: 40rem;
+}
+
+.suggestions h2 {
+  margin-top: 0;
+}
+
+.suggest-list {
+  list-style: none;
+  margin: 0.5rem 0 0.9rem;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.suggest-list label {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.suggest-list input {
+  margin-top: 0.3rem;
+  flex: none;
+}
+
+.suggest-list strong {
+  display: block;
+  font-size: var(--text-md);
+}
+
+.suggest-list small {
+  display: block;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  margin-top: 0.1rem;
+}
+
+.suggest-actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
