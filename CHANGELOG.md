@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Focus on a pillar.** A row of chips above the timeline (and above the list
+  on a phone) shows one pillar at a time, with the number of items in each.
+  Tap a pillar to see only its lanes, its goals and its Someday items; tap it
+  again or choose All to bring the rest back. Your choice is remembered in this
+  browser, and the window stays where it was when you pick one. The row only
+  appears when a space has two or more pillars.
 - The smoke test now runs axe-core (WCAG 2.2 A and AA plus best practices) on
   the landing page and every demo view, in light and dark, at phone and desktop
   size, and checks the theme switch with the keyboard. A violation fails the

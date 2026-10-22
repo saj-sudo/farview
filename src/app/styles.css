@@ -903,6 +903,47 @@ body:has(.landing) {
   color: var(--ink);
 }
 
+/* Focus on a pillar: one chip each, scrolling sideways when there are many. */
+.pillar-focus {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.pillar-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: var(--text-sm);
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  box-shadow: none;
+}
+
+.pillar-chip:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--wash);
+}
+
+.pillar-chip.active {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--ink1-tint);
+  border-color: var(--ink1);
+}
+
+.pillar-count {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
 /* List or Timeline on a phone. The chips are bigger so a thumb can hit them. */
 .phone-switch {
   width: fit-content;
