@@ -8,6 +8,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **How much runs at once.** A thin strip under the chart counts the projects
+  active in each month, lined up with the axis, so it moves when you pan and
+  zoom. A project counts in every month its bar touches. It states a number and
+  nothing else: no threshold and no colour for "too many". It steps aside on the
+  decade view, where a month is a sliver.
+- **Save as SVG.** A button in the toolbar saves the timeline as it looks on
+  screen, light or dark, as a standalone SVG with its lane names, for a weekly
+  or yearly review. The file is built in your browser and nothing is uploaded.
 - **Setup that reads your space.** On the first screen, Farview now reads your
   object types and properties and offers what it found in Capacities' words:
   "Your projects are Project", with its start, target and status, which

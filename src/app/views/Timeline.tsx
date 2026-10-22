@@ -20,7 +20,9 @@ import type { BarGeometry } from '../../engine/timeline/layout';
 import type { EditActions } from '../edits';
 import type { DragMode } from '../components/TimelineSvg';
 import { datesForDrop } from '../../engine/timeline/drop';
+import { projectsPerMonth } from '../../engine/timeline/workload';
 import { focusPillar, pillarsOf } from '../../engine/timeline/focus';
+import { downloadSvg, timelineSvgMarkup } from '../exportSvg';
 import { readPhoneView, savePhoneView, type PhoneView } from '../phoneView';
 import { readPillarFocus, savePillarFocus } from '../pillarFocus';
 import { focusParam } from '../router';
@@ -28,6 +30,7 @@ import type { Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
 import { AgendaList } from '../components/AgendaList';
 import { ItemCard } from '../components/ItemCard';
+import { LoadStrip } from '../components/LoadStrip';
 import { NewItemDialog } from '../components/NewItemDialog';
 import { PillarFocus } from '../components/PillarFocus';
 import { RefreshBar } from '../components/RefreshBar';
@@ -233,6 +236,19 @@ export function Timeline(props: {
     ],
   );
 
+  // How many projects are active in each month the chart shows. It follows a
+  // drag's ghost dates too, so it never disagrees with the bars above it.
+  const monthLoad = useMemo(
+    () =>
+      projectsPerMonth(
+        layoutItems,
+        clamped.centerDay - clamped.daysVisible / 2,
+        clamped.centerDay + clamped.daysVisible / 2,
+        todayDay,
+      ),
+    [layoutItems, clamped, todayDay],
+  );
+
   /* ---------------- zoom + pan ---------------- */
 
   const animateTo = (target: ViewState): void => {
@@ -275,6 +291,13 @@ export function Timeline(props: {
     // Same window the page opens on: today a third of the way in, with some
     // history behind it. The zoom stays where it is.
     animateTo(windowAroundToday(todayDay, clamped.daysVisible));
+  };
+
+  const saveAsSvg = (): void => {
+    const chart = wrapRef.current?.querySelector<SVGSVGElement>('svg.tl-svg');
+    if (!chart) return;
+    const markup = timelineSvgMarkup(chart, layout.lanes, `Farview timeline, saved ${props.today}`);
+    downloadSvg(markup, `farview-timeline-${props.today}.svg`);
   };
 
   const stepPreset = (direction: 1 | -1): void => {
@@ -683,6 +706,9 @@ export function Timeline(props: {
           <button class="tl-zoom-chip today" onClick={goToToday}>
             Today
           </button>
+          <button class="tl-zoom-chip" onClick={saveAsSvg}>
+            Save as SVG
+          </button>
           {canCreate && (
             <button class="tl-zoom-chip tl-new" onClick={() => setCreating(true)}>
               + New
@@ -783,6 +809,8 @@ export function Timeline(props: {
           </div>
         )}
       </div>
+
+      <LoadStrip months={monthLoad} layout={layout} />
 
       <SomedayTray
         items={someday}

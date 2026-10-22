@@ -76,6 +76,11 @@ If your space links things together, like a project pointing at its goal or a go
 
 ![A project's detail page: a breadcrumb up to its goal, its dates and progress counts, and a small timeline of its own actions.](docs/detail.png)
 
+## Seeing the load, and saving the view
+
+- **How much runs at once.** A strip under the chart counts the projects active in each month. It states a number and nothing else, so there is no colour for "too many".
+- **Save as SVG** saves the timeline as it looks on screen, with its lane names, for a weekly or yearly review. The file is built in your browser and nothing is uploaded.
+
 ## On a phone
 
 - Under 720px wide, the timeline page opens as a list. A **List / Timeline** switch above it shows the full timeline, which you drag sideways, with bars sized for a finger.

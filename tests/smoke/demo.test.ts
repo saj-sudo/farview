@@ -309,3 +309,55 @@ it('shows the form when the offer is set aside', async () => {
   expect(await page.getByRole('heading', { name: 'Grouping and color' }).isVisible()).toBe(true);
   await page.close();
 });
+
+it('shows how many projects are active each month, and follows the zoom', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await timelineSettled(page);
+  const strip = page.locator('svg.load-svg');
+  expect(await strip.getAttribute('aria-label')).toMatch(/^Projects active each month, from \d+ to \d+/);
+  expect(await strip.locator('title').count()).toBeGreaterThan(2);
+  // A decade is too wide for months to say anything, so the strip steps aside.
+  await page.getByRole('button', { name: 'Decade', exact: true }).click();
+  await page.waitForTimeout(500);
+  expect(await page.locator('svg.load-svg').count()).toBe(0);
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
+describe.each(['light', 'dark'] as const)('saving the timeline as SVG in %s', (colorScheme) => {
+  it('downloads a standalone file with its styles and lane names', async () => {
+    const page = await browser.newPage({ viewport: VIEWPORTS[1]!, colorScheme, acceptDownloads: true });
+    const problems = await watch(page);
+    await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+    await timelineSettled(page);
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      page.getByRole('button', { name: 'Save as SVG', exact: true }).click(),
+    ]);
+    expect(download.suggestedFilename()).toMatch(/^farview-timeline-\d{4}-\d{2}-\d{2}\.svg$/);
+    const path = await download.path();
+    const text = readFileSync(path, 'utf8');
+    // Standalone: no colour variable or stylesheet reference left to resolve.
+    expect(text).not.toContain('var(');
+    expect(text).not.toContain('<style');
+    expect(text).toContain('viewBox=');
+    expect(text).toContain('Winter the Engine'); // a bar's label
+    expect(text).toContain('harbormaster'); // a lane name, drawn into the file
+    expect(text).toContain('paint-order'); // the halo that keeps outside labels readable
+    await page.close();
+    expect(problems).toEqual([]);
+    // Parse it on a blank page, as a viewer would. The app's own page has a
+    // strict policy that applies to documents it parses, and a saved file has none.
+    const viewer = await browser.newPage();
+    const parsed = await viewer.evaluate((markup) => {
+      const doc = new DOMParser().parseFromString(markup, 'image/svg+xml');
+      return doc.querySelector('parsererror') === null && doc.documentElement.tagName === 'svg';
+    }, text);
+    await viewer.close();
+    expect(parsed).toBe(true);
+  });
+});

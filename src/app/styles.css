@@ -1791,3 +1791,41 @@ body:has(.landing) {
   color: var(--ink-soft);
   font-size: var(--text-sm);
 }
+
+/* How much runs at once: a thin strip of counts under the chart. */
+.load-strip {
+  margin: 0.6rem 0 0;
+}
+
+.load-caption {
+  margin: 0 0 0.25rem;
+  font-size: var(--text-xs);
+  color: var(--ink-soft);
+}
+
+.load-caption strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.load-svg {
+  display: block;
+  max-width: 100%;
+}
+
+.load-bar {
+  fill: var(--ink2);
+  opacity: 0.55;
+}
+
+.load-num,
+.load-month {
+  font-size: 10px;
+  text-anchor: middle;
+  fill: var(--ink-soft);
+}
+
+.load-month {
+  fill: var(--ink-soft);
+  opacity: 0.8;
+}
