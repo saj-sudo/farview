@@ -19,13 +19,16 @@ import { applyDateChange, type DateChange } from '../../engine/editor';
 import type { BarGeometry } from '../../engine/timeline/layout';
 import type { EditActions } from '../edits';
 import type { DragMode } from '../components/TimelineSvg';
+import { focusPillar, pillarsOf } from '../../engine/timeline/focus';
 import { readPhoneView, savePhoneView, type PhoneView } from '../phoneView';
+import { readPillarFocus, savePillarFocus } from '../pillarFocus';
 import { focusParam } from '../router';
 import type { Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
 import { AgendaList } from '../components/AgendaList';
 import { ItemCard } from '../components/ItemCard';
 import { NewItemDialog } from '../components/NewItemDialog';
+import { PillarFocus } from '../components/PillarFocus';
 import { RefreshBar } from '../components/RefreshBar';
 import { SomedayTray } from '../components/SomedayTray';
 import { TimelineSvg } from '../components/TimelineSvg';
@@ -71,6 +74,7 @@ export function Timeline(props: {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(960);
   const [phoneView, setPhoneView] = useState<PhoneView>(readPhoneView);
+  const [savedFocus, setSavedFocus] = useState<string | null>(readPillarFocus);
   const [selected, setSelected] = useState<{
     item: TimelineItem;
     anchor: { x: number; y: number } | null;
@@ -134,13 +138,24 @@ export function Timeline(props: {
     }
   }, [view]);
 
-  const visible = useMemo(
+  const shown = useMemo(
     () =>
       props.data.items.filter(
         (i) => props.config.display.showCompleted || i.status !== 'done',
       ),
     [props.data.items, props.config.display.showCompleted],
   );
+  const pillars = useMemo(
+    () => pillarsOf(shown, props.resolved.groupValues),
+    [shown, props.resolved.groupValues],
+  );
+  // A remembered pillar that the space no longer has means no focus.
+  const focus = pillars.some((p) => p.name === savedFocus) ? savedFocus : null;
+  const visible = useMemo(() => focusPillar(shown, focus), [shown, focus]);
+  const choosePillar = (next: string | null): void => {
+    setSavedFocus(next);
+    savePillarFocus(next);
+  };
   // Items placed by a derived rollup span sit on the line (dashed), not
   // in the Someday tray.
   const someday = useMemo(
@@ -154,10 +169,12 @@ export function Timeline(props: {
     [visible],
   );
 
+  // The scroll limits follow the whole space, so picking a pillar never
+  // moves the window out from under you.
   const extent = useMemo(() => {
     let min = todayDay - 30;
     let max = todayDay + 30;
-    for (const item of dated) {
+    for (const item of shown) {
       for (const d of [item.start, item.target]) {
         if (d === null) continue;
         const n = dayNumber(d);
@@ -166,7 +183,7 @@ export function Timeline(props: {
       }
     }
     return { minDay: min, maxDay: max };
-  }, [dated, todayDay]);
+  }, [shown, todayDay]);
 
   const clamped = useMemo(() => clampView(view, extent), [view, extent]);
   const pxPerDay = width / clamped.daysVisible;
@@ -549,6 +566,7 @@ export function Timeline(props: {
     return (
       <section class="timeline-view">
         {phoneSwitch}
+        <PillarFocus pillars={pillars} focus={focus} onFocus={choosePillar} />
         <RefreshBar data={props.data} itemNoun="items" />
         {props.edit?.notice && (
           <p class="notice">
@@ -586,6 +604,7 @@ export function Timeline(props: {
   return (
     <section class="timeline-view">
       {phoneSwitch}
+      <PillarFocus pillars={pillars} focus={focus} onFocus={choosePillar} />
       <div class="tl-toolbar">
         <RefreshBar data={props.data} itemNoun="items" />
         <div class="tl-zoom" role="group" aria-label="Zoom">

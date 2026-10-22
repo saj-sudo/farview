@@ -174,3 +174,33 @@ it('moves the theme choice with the arrow keys and keeps one option in the tab o
   expect(tabbable).toBe(1);
   await page.close();
 });
+
+it('focuses on one pillar, remembers it and brings the others back', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await page.locator('svg.tl-svg').waitFor();
+  const group = page.getByRole('group', { name: 'Focus on a pillar' });
+  const chips = group.getByRole('button');
+  expect(await chips.count()).toBeGreaterThan(2);
+  const headers = page.locator('.tl-lane-header');
+  const before = await headers.count();
+
+  const first = chips.nth(1);
+  const name = (await first.innerText()).replace(/\d+$/, '').trim();
+  await first.click();
+  expect(await first.getAttribute('aria-pressed')).toBe('true');
+  const during = await headers.count();
+  expect(during).toBeLessThan(before);
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('svg.tl-svg').waitFor();
+  expect(await headers.count()).toBe(during);
+  expect(await group.getByRole('button', { name: new RegExp(`^${name}`) }).getAttribute('aria-pressed')).toBe('true');
+
+  await group.getByRole('button', { name: /^All/ }).click();
+  expect(await headers.count()).toBe(before);
+  await page.close();
+  expect(problems).toEqual([]);
+});
