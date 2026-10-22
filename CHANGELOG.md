@@ -8,6 +8,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- The smoke test now runs axe-core (WCAG 2.2 A and AA plus best practices) on
+  the landing page and every demo view, in light and dark, at phone and desktop
+  size, and checks the theme switch with the keyboard. A violation fails the
+  build.
 - **A real timeline on phones.** Under 720px wide, the Timeline page still
   opens as a list, which is easiest to read one item at a time. A new
   List / Timeline switch above it shows the full timeline instead: lanes,
@@ -60,6 +64,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **Accessibility pass.** Axe found and this fixes: the theme switch is now a
+  proper radio group (Tab lands on the selected option, arrow keys, Home and
+  End move it); every page has a level-one heading and headings no longer skip
+  levels; the lane source selects in Settings have names; the demo notice is a
+  landmark; links in the landing page's text are underlined instead of relying
+  on colour; and the two buttons under the landing intro no longer crowd each
+  other on a phone. The README screenshots and link preview card are retaken
+  from the current build.
 - The Today button put today two thirds of the way across the window, not
   the third the page opens with. It now puts it a third in, at any zoom, so
   there is history behind the line.

@@ -179,6 +179,14 @@ h1 { font-size: var(--text-2xl); }
 h2 { font-size: var(--text-xl); }
 h3 { font-size: var(--text-md); letter-spacing: -0.01em; }
 
+/* Section headings inside a view are h2 so the outline has no gaps; they keep the h3 look. */
+.settings h2,
+.detail-list h2,
+.setup-card h2 {
+  font-size: var(--text-md);
+  letter-spacing: -0.01em;
+}
+
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
@@ -567,8 +575,13 @@ a:hover {
   margin-bottom: 1.25rem;
 }
 
+.view-head h1,
 .view-head h2 {
   margin: 0 0 0.25rem;
+}
+
+.view-head h1 {
+  font-size: var(--text-xl);
 }
 
 .setup-card {
@@ -597,7 +610,7 @@ a:hover {
   max-width: 46rem;
 }
 
-.settings h3 {
+.settings h2 {
   margin: 1.75rem 0 0.5rem;
 }
 
@@ -770,6 +783,31 @@ a:hover {
 .landing .cta-secondary {
   color: var(--ink1-text);
   font-weight: 500;
+}
+
+/* Inline links in running text carry an underline, so they do not rely on colour. */
+.landing p a:not(.cta):not(.cta-secondary),
+.landing li a,
+.landing footer a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.landing .cta-secondary {
+  display: inline-block;
+  padding: 0.4rem 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .landing h2 {
@@ -1332,7 +1370,7 @@ body:has(.landing) {
   min-height: 8rem;
 }
 
-.hz-column:first-child h3 {
+.hz-column:first-child h2 {
   color: var(--ink);
   box-shadow: inset 0 -3px 0 var(--ink2);
   padding-bottom: 0.3rem;
@@ -1344,7 +1382,7 @@ body:has(.landing) {
   border-color: var(--line-strong);
 }
 
-.hz-column h3 {
+.hz-column h2 {
   margin: 0 0 0.6rem;
   display: flex;
   align-items: baseline;
@@ -1533,6 +1571,7 @@ body:has(.landing) {
   flex-wrap: wrap;
 }
 
+.detail-head h1,
 .detail-head h2 {
   font-size: 1.45rem;
 }
@@ -1564,7 +1603,7 @@ body:has(.landing) {
   max-width: 46rem;
 }
 
-.detail-list h3 {
+.detail-list h2 {
   margin: 1.25rem 0 0.4rem;
 }
 

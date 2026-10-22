@@ -247,7 +247,7 @@ export function ItemDetail(props: {
 
       <div class="view-head detail-head">
         <div>
-          <h2>{item.title}</h2>
+          <h1>{item.title}</h1>
           <p class="tl-card-meta">
             <span class="chip">
               {props.resolved.types[item.kind]?.structure.title ?? item.kind}
@@ -370,7 +370,7 @@ export function ItemDetail(props: {
       {/* Children lists: navigable, facts visible, nothing hidden. */}
       {childProjects.length > 0 && (
         <div class="detail-list">
-          <h3>Projects</h3>
+          <h2>Projects</h2>
           <ul>
             {childProjects.map((p) => (
               <li key={p.id}>
@@ -392,7 +392,7 @@ export function ItemDetail(props: {
       )}
       {(actions?.length ?? 0) > 0 && (
         <div class="detail-list">
-          <h3>Actions</h3>
+          <h2>Actions</h2>
           <ul>
             {actions!.map((a) => (
               <li key={a.id} class={a.done ? 'done' : ''}>
@@ -410,7 +410,7 @@ export function ItemDetail(props: {
       )}
       {(milestones?.length ?? 0) > 0 && (
         <div class="detail-list">
-          <h3>Milestones</h3>
+          <h2>Milestones</h2>
           <ul>
             {milestones!.map((m) => (
               <li key={m.id} class={m.done ? 'done' : ''}>

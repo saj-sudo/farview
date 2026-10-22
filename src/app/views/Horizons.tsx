@@ -98,7 +98,7 @@ export function Horizons(props: {
       )}
       {total === 0 && !props.data.loading ? (
         <div class="setup-card">
-          <h3>Nothing to sort into horizons yet</h3>
+          <h2>Nothing to sort into horizons yet</h2>
           <p>
             Once mapped objects exist, they go into these columns by how far
             away their dates are. Undated ones go in Someday.
@@ -111,7 +111,7 @@ export function Horizons(props: {
             key={column.label}
             class={`hz-column ${column.label === SOMEDAY_LABEL ? 'someday-col' : ''}`}
           >
-            <h3>
+            <h2>
               {column.label}
               <span class="tl-lane-count">
                 {column.items.length +
@@ -126,7 +126,7 @@ export function Horizons(props: {
                   +
                 </button>
               )}
-            </h3>
+            </h2>
             {column.goalGroups.map((group) => (
               <div key={group.goal.id} class="hz-goal-group">
                 <button class="hz-goal" onClick={() => setSelected(group.goal)}>

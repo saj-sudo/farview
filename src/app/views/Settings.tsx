@@ -261,7 +261,7 @@ export function Settings(props: {
     <section class="settings">
       <div class="view-head">
         <div>
-          <h2>{props.onboarding ? 'Map your space' : 'Settings'}</h2>
+          <h1>{props.onboarding ? 'Map your space' : 'Settings'}</h1>
           <p class="fineprint">
             Farview works with <em>your</em> object types. Everything below is
             read live from “{boot.space.title}”. Nothing is written to your
@@ -270,7 +270,7 @@ export function Settings(props: {
         </div>
       </div>
 
-      <h3>Your space</h3>
+      <h2>Your space</h2>
       {customTypes.length === 0 ? (
         <p class="empty-note">
           No custom object types here yet. Farview needs a type with dates to
@@ -286,7 +286,7 @@ export function Settings(props: {
         </div>
       )}
 
-      <h3>Projects (required)</h3>
+      <h2>Projects (required)</h2>
       <div class="field-row">
         {typeSelect(
           'project',
@@ -329,7 +329,7 @@ export function Settings(props: {
       {statusChecks('active', 'Which statuses count as active?', 'Statuses you leave unticked still show on the timeline.')}
       {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
 
-      <h3>Goals (optional)</h3>
+      <h2>Goals (optional)</h2>
       <div class="field-row">
         {typeSelect(
           'goal',
@@ -368,7 +368,7 @@ export function Settings(props: {
         </div>
       )}
 
-      <h3>Actions (optional)</h3>
+      <h2>Actions (optional)</h2>
       <div class="field-row">
         {typeSelect(
           'action',
@@ -409,7 +409,7 @@ export function Settings(props: {
         </label>
       )}
 
-      <h3>Grouping and color</h3>
+      <h2>Grouping and color</h2>
       <p class="hint">
         Lanes can nest two deep: a pillar, then the areas inside it. Point
         each level at a tag collection and Farview follows it as you add
@@ -527,7 +527,7 @@ export function Settings(props: {
         />
       )}
 
-      <h3>Display</h3>
+      <h2>Display</h2>
       <div class="field-row">
         <label class="field">
           <span>Open on</span>
@@ -646,12 +646,12 @@ export function Settings(props: {
 
       {showTransfer && (
         <div class="transfer">
-          <h3>Export</h3>
+          <h2>Export</h2>
           <p class="fineprint">
             Copy this to move your configuration to another browser or device.
           </p>
           <textarea rows={8} readOnly value={exportConfig(draft)} />
-          <h3>Import</h3>
+          <h2>Import</h2>
           <textarea
             rows={8}
             value={importText}
@@ -676,7 +676,7 @@ export function Settings(props: {
         </div>
       )}
 
-      <h3>Connection</h3>
+      <h2>Connection</h2>
       {props.session.kind === 'live' && (
         <div class="field">
           {props.session.editingRequested ? (
@@ -780,6 +780,7 @@ function TagLevelPicker(props: {
       <span>{props.legend}</span>
       <label class="field">
         <select
+          aria-label={`${props.legend}: where the lanes come from`}
           value={props.collection ?? ''}
           onChange={(e) =>
             props.onCollection((e.target as HTMLSelectElement).value || null)
@@ -925,7 +926,7 @@ function LivePreview(props: {
 
   return (
     <div class="preview-block">
-      <h3>Preview of your timeline</h3>
+      <h2>Preview of your timeline</h2>
       {running && items === null ? (
         <p class="loading">Placing your items on the line…</p>
       ) : visible.length === 0 ? (
