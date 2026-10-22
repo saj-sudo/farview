@@ -245,7 +245,9 @@ export function Timeline(props: {
   };
 
   const goToToday = (): void => {
-    animateTo({ ...clamped, centerDay: todayDay - clamped.daysVisible / 2 + clamped.daysVisible / 3 });
+    // Same window the page opens on: today a third of the way in, with some
+    // history behind it. The zoom stays where it is.
+    animateTo(windowAroundToday(todayDay, clamped.daysVisible));
   };
 
   const stepPreset = (direction: 1 | -1): void => {

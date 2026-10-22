@@ -7,6 +7,7 @@ import {
   defaultView,
   pan,
   presetFor,
+  windowAroundToday,
   zoomTo,
   ZOOM_PRESETS,
 } from '../../../src/engine/timeline/scale';
@@ -63,5 +64,22 @@ describe('scale', () => {
     expect(presetFor(1000)).toBe('threeYears');
     expect(presetFor(3000)).toBe('decade');
     expect(presetFor(20000)).toBe('decade');
+  });
+});
+
+describe('where today sits', () => {
+  const fractionOf = (view: { centerDay: number; daysVisible: number }): number =>
+    (TODAY_DAY - (view.centerDay - view.daysVisible / 2)) / view.daysVisible;
+
+  it('is a third of the way in, on the opening view and after jumping to today', () => {
+    // The opening view is 183 days back and 365 forward: about a third.
+    expect(fractionOf(defaultView(TODAY_DAY))).toBeCloseTo(1 / 3, 2);
+    for (const preset of ZOOM_PRESETS) {
+      expect(fractionOf(windowAroundToday(TODAY_DAY, preset.days))).toBeCloseTo(1 / 3, 6);
+    }
+  });
+
+  it('keeps the zoom it is given', () => {
+    expect(windowAroundToday(TODAY_DAY, 365).daysVisible).toBe(365);
   });
 });

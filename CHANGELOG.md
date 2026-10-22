@@ -51,6 +51,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- The Today button put today two thirds of the way across the window, not
+  the third the page opens with. It now puts it a third in, at any zoom, so
+  there is history behind the line.
 - Every page under `/app/` logged a CSP violation because zod probes for
   `eval` support. zod now runs in its `jitless` mode, so the probe never
   runs.
