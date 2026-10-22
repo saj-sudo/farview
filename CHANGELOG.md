@@ -6,8 +6,44 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **A real timeline on phones.** Under 720px wide, the Timeline page still
+  opens as a list, which is easiest to read one item at a time. A new
+  List / Timeline switch above it shows the full timeline instead: lanes,
+  bars, goal flags, milestones and the today line, opening on a quarter.
+  Drag sideways to move through time, use the zoom chips to change scale, and
+  tap a bar for its card. Bars are taller so a finger can hit them. On a
+  phone, dragging never moves a date (type dates on the card instead).
+  Your choice is remembered in this browser.
+- **Light, Dark or Auto.** A small switch in the sidebar (at the bottom of the
+  page on a phone) lets you pick the theme. Auto still follows the phone or
+  computer setting, which is what Farview did before with no way to change
+  it. Your choice stays in this browser and is applied before the first
+  paint, so the page doesn't flash the other theme. The browser bar colour
+  follows it too.
+- **Add Farview to your home screen.** The site now has a web manifest and
+  app icons, so a phone or desktop browser can install it. It opens straight
+  into the app, in its own window. The CSP allows the manifest
+  (`manifest-src 'self'`) and still loads nothing from other origins.
+- A link to farview.dev now shows a preview card (title, description and a
+  picture of the demo timeline) where it's shared.
+- A smoke test in CI opens the built site in Chromium at phone and desktop
+  size and fails on any console error or CSP violation.
+
 ### Changed
 
+- **The landing page is easier to scan.** Paragraphs are three sentences at
+  most and parallel facts are lists. The read-only section names the scopes
+  (`api:read`, `offline_access`, and `api:write` only when you turn on
+  editing) and the privacy claims link to the tests that check them. A new
+  section covers the phone view.
+- CONTRIBUTING has a Writing section with the copy rules, which are checked by
+  `tests/build/copy.test.ts` where a machine can check them. The README follows
+  the same rules: shorter paragraphs, lists for parallel facts, and a section on
+  the phone view.
+- The nearly empty demo space has plain project names (scrape and paint the
+  hull, re-rig the dinghy) instead of names that described what they test.
 - **New look.** A layout that sits comfortably next to Capacities (white and
   warm off-white surfaces, the system font, soft corners, a familiar
   sidebar) printed in two riso inks, teal and sunflower. Timeline bars
@@ -24,6 +60,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- The Today button put today two thirds of the way across the window, not
+  the third the page opens with. It now puts it a third in, at any zoom, so
+  there is history behind the line.
 - Every page under `/app/` logged a CSP violation because zod probes for
   `eval` support. zod now runs in its `jitless` mode, so the probe never
   runs.

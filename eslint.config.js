@@ -10,7 +10,7 @@ import tseslint from 'typescript-eslint';
  * architectural rules CONTRIBUTING.md calls build failures.
  */
 export default tseslint.config(
-  { ignores: ['dist/**', 'coverage/**'] },
+  { ignores: ['dist/**', 'coverage/**', 'public/**'] },
 
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

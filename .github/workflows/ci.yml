@@ -43,3 +43,27 @@ jobs:
       # `build` is `tsc --noEmit && vite build`, so this typechecks as well.
       - name: Typecheck and build
         run: npm run build
+
+  smoke:
+    name: Smoke (built site in Chromium)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run build
+
+      # Every page and demo view, at phone and desktop size: no console
+      # errors, no uncaught exceptions, no CSP violations.
+      - name: Smoke test
+        run: npm run smoke

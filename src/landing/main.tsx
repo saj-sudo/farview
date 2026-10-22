@@ -15,10 +15,10 @@ function Landing() {
       <h1>Farview</h1>
       <p class="tagline">See your goals across time, in Capacities.</p>
       <p>
-        Capacities holds your projects and goals, but it has no timeline.
-        Farview reads them and lays them out on one: a line for today, a bar
-        for each project running toward its target date, and a zoom that
-        goes from this quarter out to the next ten years.
+        Capacities holds your projects and goals but has no timeline. Farview
+        reads them and draws one: a line for today, a bar for each project
+        running to its target date, and a zoom from this quarter out to the
+        next ten years.
       </p>
       <p>
         <a class="cta" href="/app/">
@@ -34,46 +34,75 @@ function Landing() {
       />
 
       <h2>Read-only unless you turn on editing</h2>
-      <p>
-        A plain connection asks Capacities for{' '}
-        <strong>read access only</strong>. Farview can't create, change or
-        delete anything in your space, and the Capacities consent screen
-        says so. If you want to plan from the timeline, you can turn on
-        editing separately. Then you can add goals and drag bars to change
-        their dates. Every change comes from something you did, like a drag
-        or a click on Save. Farview never deletes anything, and every card
-        links back to the object in Capacities.
-      </p>
+      <ul>
+        <li>
+          A normal connection asks Capacities for read access (
+          <code>api:read</code>, plus <code>offline_access</code> so you stay
+          signed in). The consent screen shows exactly that.
+        </li>
+        <li>
+          Editing is a separate switch that adds <code>api:write</code>. Then
+          you can add goals and drag bars to change their dates.
+        </li>
+        <li>
+          Every write comes from something you did, like a finished drag or a
+          click on Save.{' '}
+          <a href="https://github.com/saj-sudo/farview/blob/main/tests/auth/pkce.test.ts">
+            A test
+          </a>{' '}
+          checks that the write scope is never requested without the switch.
+        </li>
+        <li>
+          Farview never deletes anything, and every card links back to the
+          object in Capacities.
+        </li>
+      </ul>
 
-      <h2>No server</h2>
+      <h2>No server, no account, no analytics</h2>
       <p>
-        The site is a set of static files. Your notes go from your browser to
-        Capacities and nowhere else. There's no account to make and no
-        analytics. The access token stays in your browser, and you can revoke
-        it in Capacities under Settings&nbsp;→ Capacities API&nbsp;→
-        Connections.
+        The site is static files. Your notes go from your browser to
+        Capacities and nowhere else, and the access token stays in your
+        browser. You can revoke it in Capacities under Settings&nbsp;→
+        Capacities API&nbsp;→ Connections.
+      </p>
+      <p>
+        A strict Content-Security-Policy blocks every other script, and{' '}
+        <a href="https://github.com/saj-sudo/farview/blob/main/tests/build/csp.test.ts">
+          a test
+        </a>{' '}
+        checks it on each build.
       </p>
 
       <h2>Works with the types you already have</h2>
       <p>
-        Most spaces don't have a Goal type, and you don't need one. Point
-        Farview at whichever type holds your work (Projects, Refits, anything)
-        and the date properties you actually use. Setup reads your space and
-        shows a preview of your timeline before you save anything.
+        Most spaces have no Goal type, and you don't need one. Tell Farview
+        which type holds your work and which properties are the start and
+        target dates. A preview shows your timeline before you save anything.
       </p>
 
       <h2>From this quarter to the next decade</h2>
-      <p>
-        Switch between quarter, year, three years and decade. A bar fills as
-        time passes, so you can see how much of its window is used up. When
-        something passes its target date it gets a small marker and a plain
-        note. Items with no dates go to a Someday tray, so nothing drops off
-        the page.
-      </p>
+      <ul>
+        <li>Zoom between a quarter, a year, three years and a decade.</li>
+        <li>
+          A bar fills as time passes, so you can see how much of its window is
+          used up.
+        </li>
+        <li>
+          Past its target date, an item gets a small marker and a plain note.
+        </li>
+        <li>Items with no dates wait in a Someday tray.</li>
+      </ul>
       <img
         src={decadeShot}
         alt="The decade zoom: alternating year bands with faint year numbers, short bars and dots for projects, and flags for goals."
       />
+
+      <h2>Works on a phone</h2>
+      <p>
+        On a narrow screen the page opens as a list, and one tap shows the full
+        timeline, which you drag sideways. Choose light, dark or automatic,
+        and add the site to your home screen if you like.
+      </p>
 
       <footer>
         <p class="fineprint">

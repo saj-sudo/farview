@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://api.capacities.io; img-src 'self' data:; base-uri 'none'; form-action 'none'"
+      content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://api.capacities.io; img-src 'self' data:; manifest-src 'self'; base-uri 'none'; form-action 'none'"
     />
     <title>Farview</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b1a1e" media="(prefers-color-scheme: dark)" />
+    <script src="/theme.js"></script>
     <link rel="stylesheet" href="/src/app/styles.css" />
   </head>
   <body>

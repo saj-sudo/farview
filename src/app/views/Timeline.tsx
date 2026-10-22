@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { dayNumber } from '../../engine/dates';
 import type { ResolvedSchema } from '../../engine/resolve';
-import { layoutTimeline } from '../../engine/timeline/layout';
+import { layoutTimeline, TOUCH_BAR_H, TOUCH_TOP_PAD } from '../../engine/timeline/layout';
 import {
   clampView,
   clampZoom,
   defaultView,
   pan,
   presetFor,
+  windowAroundToday,
   zoomTo,
   ZOOM_PRESETS,
   type ViewState,
@@ -18,6 +19,7 @@ import { applyDateChange, type DateChange } from '../../engine/editor';
 import type { BarGeometry } from '../../engine/timeline/layout';
 import type { EditActions } from '../edits';
 import type { DragMode } from '../components/TimelineSvg';
+import { readPhoneView, savePhoneView, type PhoneView } from '../phoneView';
 import { focusParam } from '../router';
 import type { Session } from '../session';
 import type { TimelineData } from '../useTimelineData';
@@ -37,7 +39,7 @@ import { TimelineSvg } from '../components/TimelineSvg';
 
 const VIEW_KEY = 'farview.view';
 
-function loadViewState(todayDay: number): ViewState {
+function loadViewState(todayDay: number, phoneTimeline: boolean): ViewState {
   try {
     const raw = sessionStorage.getItem(VIEW_KEY);
     if (raw) {
@@ -52,7 +54,8 @@ function loadViewState(todayDay: number): ViewState {
   } catch {
     // fall through
   }
-  return defaultView(todayDay);
+  // A phone is about 360px wide, so a year and a half would be a smear.
+  return phoneTimeline ? windowAroundToday(todayDay, 91) : defaultView(todayDay);
 }
 
 export function Timeline(props: {
@@ -67,7 +70,7 @@ export function Timeline(props: {
   const todayDay = dayNumber(props.today);
   const wrapRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(960);
-  const [view, setView] = useState<ViewState>(() => loadViewState(todayDay));
+  const [phoneView, setPhoneView] = useState<PhoneView>(readPhoneView);
   const [selected, setSelected] = useState<{
     item: TimelineItem;
     anchor: { x: number; y: number } | null;
@@ -77,6 +80,11 @@ export function Timeline(props: {
   const [narrow, setNarrow] = useState(
     () => typeof matchMedia !== 'undefined' && matchMedia('(max-width: 720px)').matches,
   );
+  const [view, setView] = useState<ViewState>(() =>
+    loadViewState(todayDay, narrow && phoneView === 'timeline'),
+  );
+  // On a phone the list is the default; the timeline is one tap away.
+  const showList = narrow && phoneView === 'list';
   const animRef = useRef<number | null>(null);
   const dragRef = useRef<{ x: number; moved: boolean } | null>(null);
   const itemDragRef = useRef<{
@@ -116,7 +124,7 @@ export function Timeline(props: {
     });
     ro.observe(el);
     return () => ro.disconnect();
-  }, [narrow]);
+  }, [narrow, phoneView]);
 
   useEffect(() => {
     try {
@@ -184,6 +192,7 @@ export function Timeline(props: {
         groupOrder: props.resolved.groupValues,
         subGroupOrder: props.resolved.subGroupValues,
         ...(pxPerDay < 0.35 ? { maxRowsPerLane: 6 } : {}),
+        ...(narrow ? { barHeight: TOUCH_BAR_H, topPad: TOUCH_TOP_PAD } : {}),
       }),
     [
       layoutItems,
@@ -193,6 +202,7 @@ export function Timeline(props: {
       props.resolved.groupValues,
       props.resolved.subGroupValues,
       pxPerDay,
+      narrow,
     ],
   );
 
@@ -235,7 +245,9 @@ export function Timeline(props: {
   };
 
   const goToToday = (): void => {
-    animateTo({ ...clamped, centerDay: todayDay - clamped.daysVisible / 2 + clamped.daysVisible / 3 });
+    // Same window the page opens on: today a third of the way in, with some
+    // history behind it. The zoom stays where it is.
+    animateTo(windowAroundToday(todayDay, clamped.daysVisible));
   };
 
   const stepPreset = (direction: 1 | -1): void => {
@@ -513,9 +525,30 @@ export function Timeline(props: {
 
   const activePreset = presetFor(clamped.daysVisible);
 
-  if (narrow) {
+  const choosePhoneView = (next: PhoneView): void => {
+    setPhoneView(next);
+    savePhoneView(next);
+    if (next === 'timeline') setView(windowAroundToday(todayDay, 91));
+  };
+  const phoneSwitch = narrow ? (
+    <div class="tl-zoom phone-switch" role="group" aria-label="Show as">
+      {(['list', 'timeline'] as const).map((choice) => (
+        <button
+          key={choice}
+          class={`tl-zoom-chip ${phoneView === choice ? 'active' : ''}`}
+          aria-pressed={phoneView === choice}
+          onClick={() => choosePhoneView(choice)}
+        >
+          {choice === 'list' ? 'List' : 'Timeline'}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
+  if (showList) {
     return (
       <section class="timeline-view">
+        {phoneSwitch}
         <RefreshBar data={props.data} itemNoun="items" />
         {props.edit?.notice && (
           <p class="notice">
@@ -548,8 +581,11 @@ export function Timeline(props: {
     );
   }
 
+  const card = liveSelected ? cardFor(liveSelected) : null;
+
   return (
     <section class="timeline-view">
+      {phoneSwitch}
       <div class="tl-toolbar">
         <RefreshBar data={props.data} itemNoun="items" />
         <div class="tl-zoom" role="group" aria-label="Zoom">
@@ -642,11 +678,13 @@ export function Timeline(props: {
           milestones={milestones}
           selectedId={selected?.item.id ?? null}
           onSelect={select}
-          editable={props.edit !== null}
-          onBarDragStart={onBarDragStart}
+          // A thumb dragging the chart sideways must never move a date, so
+          // phones edit dates on the card instead.
+          editable={props.edit !== null && !narrow}
+          {...(narrow ? {} : { onBarDragStart })}
           onFocusBar={setFocusedBarId}
         />
-        {liveSelected && selected && (
+        {liveSelected && selected && !narrow && (
           <div
             class="tl-card-holder"
             onPointerDown={(e) => e.stopPropagation()}
@@ -664,7 +702,11 @@ export function Timeline(props: {
         )}
       </div>
 
-      <SomedayTray items={someday} onSelect={centerOn} />
+      <SomedayTray
+        items={someday}
+        onSelect={narrow ? (i) => setSelected({ item: i, anchor: null }) : centerOn}
+      />
+      {narrow && card && <div class="tl-card-holder narrow">{card}</div>}
 
       {creating && props.edit && (
         <NewItemDialog

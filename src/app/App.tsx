@@ -15,6 +15,7 @@ import type { FarviewConfig, LocalDate } from '../engine/types';
 import { loadStoredConfig, saveStoredConfig } from './configStore';
 import { useEditActions, type EditActions } from './edits';
 import { Icon } from './components/Icon';
+import { ThemeChoice } from './components/ThemeChoice';
 import { HASH_FOR, useView, type View } from './router';
 import {
   createSession,
@@ -174,6 +175,7 @@ function ConnectedApp(props: { session: Session }) {
           ) : (
             boot && <span class="space-name">{boot.space.title}</span>
           )}
+          <ThemeChoice />
           <p class="disclaimer">{DISCLAIMER}</p>
         </div>
       </aside>
@@ -215,6 +217,7 @@ function ConnectedApp(props: { session: Session }) {
           )}
         </main>
         <footer class="app-foot">
+          <ThemeChoice />
           <p class="disclaimer">{DISCLAIMER}</p>
         </footer>
       </div>

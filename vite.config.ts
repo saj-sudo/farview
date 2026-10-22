@@ -19,6 +19,17 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    // `npm test` runs the unit project. The smoke project drives the built
+    // site in Chromium, so it needs `npm run build` first (`npm run smoke`).
+    projects: [
+      {
+        extends: true,
+        test: { name: 'unit', include: ['tests/**/*.test.ts'], exclude: ['tests/smoke/**'] },
+      },
+      {
+        extends: true,
+        test: { name: 'smoke', include: ['tests/smoke/**/*.test.ts'], testTimeout: 60_000, hookTimeout: 60_000 },
+      },
+    ],
   },
 });

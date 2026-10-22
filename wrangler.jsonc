@@ -9,6 +9,10 @@
   // Keeps the farview.<account>.workers.dev address off. Wrangler turns it
   // on whenever this is unset.
   "workers_dev": false,
+  // Preview URLs follow workers_dev unless this is set, so with workers_dev
+  // off every branch build would have no address. Branch builds are served
+  // at <branch>-farview.<account>.workers.dev.
+  "preview_urls": true,
   "build": { "command": "npm run build" },
   "assets": { "directory": "./dist" },
   // Branch builds run `wrangler preview`, which needs this block. The site
