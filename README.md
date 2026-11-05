@@ -28,9 +28,9 @@ You can switch back to read-only in Settings. To revoke Farview's access, go to 
 
 ## No server and no tracking
 
-The site is static files. OAuth runs in your browser, the token stays in your browser, and every API call goes from your browser to `api.capacities.io`. There is no server, database, account or analytics.
+The site is static files. OAuth is the only sign-in, it runs in your browser, the token stays in your browser, and every API call goes from your browser to `api.capacities.io`. There is no server, database, account or analytics.
 
-A token kept in a browser can be read by any script on the page. For that reason Farview bundles everything, loads no third-party scripts, and sends a strict Content-Security-Policy that [a test](tests/build/csp.test.ts) checks. The token is also read-only unless you turned on editing.
+The OAuth token is kept in your browser, and any script on the page could read it. For that reason Farview bundles everything, loads no third-party scripts, and sends a strict Content-Security-Policy that [a test](tests/build/csp.test.ts) checks. The token is also read-only unless you turned on editing.
 
 ## Works with your object types
 
@@ -107,14 +107,6 @@ Farview needs one object type whose objects have a date, such as a Project type 
 
 You don't need an account to look around: **Try the demo** runs on a made-up space, entirely in your tab.
 
-### Use it now with a personal token
-
-Until the hosted OAuth client is live (registration with Capacities is by email), you can run Farview against your own space with a personal API token.
-
-1. In the Capacities desktop app, go to **Settings → Capacities API → API Tokens** and create a token for the space you want to use. Read access is enough for viewing. Give it write access and tick the editing box to plan from the timeline.
-2. Paste it in the *Advanced* section on the Connect screen.
-3. The token stays in your browser. You can revoke it in the same settings screen.
-
 ## Built on the official API
 
 Farview uses the official Capacities API and the `@capacities/api` SDK. It does not use the app's internal endpoints, which can change without notice.
@@ -130,7 +122,7 @@ VITE_CAPACITIES_CLIENT_ID=your-client-id npm run build
 
 The output in `dist/` is a static site, so any static host works with no server functions. `/`, `/app/` and `/callback/` are real directories, so no rewrite rules are needed.
 
-- The client id is public by design (a PKCE public client has no client secret). Register your own redirect URI with Capacities by email; see [developers.capacities.io](https://developers.capacities.io).
+- The client id is public by design (a PKCE public client has no client secret). The hosted build's id is committed in `.env.production`. For your own deployment, register your own redirect URI with Capacities by email (see [developers.capacities.io](https://developers.capacities.io)) and put your id in `.env.local`, which takes priority.
 - On Cloudflare Workers, the `wrangler.jsonc` in the repo serves `dist/` as static assets. It sets `preview_urls` explicitly, because Cloudflare turns preview URLs off when `workers_dev` is off.
 - Link previews use absolute URLs. Change `og:image` and `og:url` in `index.html` to your own domain.
 

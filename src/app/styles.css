@@ -323,34 +323,6 @@ a:hover {
   margin-top: 1.5rem;
 }
 
-.advanced {
-  margin-top: 2rem;
-  border-top: 1px solid var(--line);
-  padding-top: 1rem;
-}
-
-.advanced summary {
-  cursor: pointer;
-  color: var(--ink-soft);
-  font-size: 0.9rem;
-}
-
-.token-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.token-row input {
-  flex: 1;
-  font: inherit;
-  color: var(--ink);
-  background: var(--surface);
-  border: 1px solid var(--field-border);
-  border-radius: var(--radius);
-  padding: 0.45rem 0.7rem;
-}
-
 /* ---------- app shell: sidebar + content ---------- */
 
 .app {

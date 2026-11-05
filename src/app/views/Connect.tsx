@@ -1,16 +1,14 @@
-import { useState } from 'preact/hooks';
 import {
   CLIENT_ID,
   connect,
-  connectWithToken,
   startDemo,
   type DemoFlavor,
 } from '../session';
 
 /**
  * The connect screen. Calm, honest, no dead ends: OAuth is the primary
- * flow when configured; a personal API token is the advanced path for
- * self-hosters and early testing; the demo needs nothing at all. The
+ * flow, and the only way to connect a real space; the demo needs nothing
+ * at all. The
  * read-only promise sits beside the connect button because that is
  * where the trust decision happens (spec §0b).
  */
@@ -18,19 +16,9 @@ export function Connect(props: {
   onDemo: (flavor: DemoFlavor) => void;
   onConnected: () => void;
 }) {
-  const [token, setToken] = useState('');
-  const [tokenWrite, setTokenWrite] = useState(false);
-
   const demo = (flavor: DemoFlavor) => () => {
     startDemo(flavor);
     props.onDemo(flavor);
-  };
-
-  const submitToken = (): void => {
-    const trimmed = token.trim();
-    if (!trimmed) return;
-    connectWithToken(trimmed, tokenWrite);
-    props.onConnected();
   };
 
   return (
@@ -74,9 +62,7 @@ export function Connect(props: {
         </>
       ) : (
         <p class="notice">
-          One-click connect isn't set up on this build yet. You can try the
-          demo, or connect your own space with a personal API token under
-          Advanced, further down.
+          Sign-in isn't set up on this build. You can try the demo.
         </p>
       )}
 
@@ -97,41 +83,6 @@ export function Connect(props: {
       </div>
       <p class="fineprint">The demo runs on a synthetic space, entirely in this tab.</p>
 
-      <details class="advanced">
-        <summary>Advanced: connect with a personal API token</summary>
-        <p class="fineprint">
-          In the Capacities desktop app, open Settings → Capacities API → API
-          Tokens and create a token for the space you want to use. Read access
-          is enough for viewing. Paste it here. The token stays in this
-          browser’s storage, so treat it like a password. You can revoke it in
-          the same screen whenever you like.
-        </p>
-        <label class="field checkbox">
-          <input
-            type="checkbox"
-            checked={tokenWrite}
-            onChange={() => setTokenWrite((v) => !v)}
-          />
-          <span class="fineprint">
-            My token has write access. Turn on editing (adding goals, moving
-            dates).
-          </span>
-        </label>
-        <div class="token-row">
-          <input
-            type="password"
-            placeholder="cap-api-…"
-            value={token}
-            onInput={(e) => setToken((e.target as HTMLInputElement).value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') submitToken();
-            }}
-          />
-          <button onClick={submitToken} disabled={token.trim() === ''}>
-            Connect
-          </button>
-        </div>
-      </details>
     </main>
   );
 }

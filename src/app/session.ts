@@ -31,7 +31,7 @@ import {
 /**
  * Session wiring for the app shell: which Provider backs this visit.
  *
- * - "live": OAuth tokens or a personal token → the Capacities adapter.
+ * - "live": OAuth tokens → the Capacities adapter.
  *   A failed refresh (revoked/expired) returns cleanly to Connect (§7.3).
  * - "demo": synthetic fixture space; nothing leaves the tab.
  * - null: not connected → the Connect screen.
@@ -134,9 +134,7 @@ export function createSession(): Session | null {
   const credential = loadCredential();
   let client: CapacitiesClient | null = null;
   const wantsWrite = credential?.wantsWrite === true;
-  if (credential?.kind === 'token') {
-    client = new CapacitiesClient({ apiToken: credential.apiToken });
-  } else if (credential?.kind === 'oauth' && CLIENT_ID) {
+  if (credential?.kind === 'oauth' && CLIENT_ID) {
     const { kind, wantsWrite: ww, ...tokens } = credential;
     void kind;
     client = new CapacitiesClient({
@@ -178,24 +176,6 @@ export async function connect(opts: { editing?: boolean } = {}): Promise<void> {
   location.assign(url);
 }
 
-/** Store a personal API token and let the caller rebuild the session. */
-export function connectWithToken(apiToken: string, wantsWrite: boolean): void {
-  saveCredential({ kind: 'token', apiToken, wantsWrite });
-}
-
-/**
- * Flip editing on a personal-token credential in place (the token's real
- * permissions were chosen in Capacities; this only gates the UI).
- * Returns false for OAuth credentials: those change scope by
- * reconnecting, so the consent screen always reflects the grant.
- */
-export function setTokenEditing(on: boolean): boolean {
-  const credential = loadCredential();
-  if (credential?.kind !== 'token') return false;
-  saveCredential({ ...credential, wantsWrite: on });
-  return true;
-}
-
 /** A 403 that means "this connection was never granted write access". */
 export function isScopeInsufficiency(err: unknown): boolean {
   return err instanceof CapacitiesApiError && err.code === CapacitiesErrorCode.ScopeInsufficient;
@@ -207,7 +187,7 @@ export function disconnect(): void {
 
 /**
  * True when an error means "the connection is gone": revoked access,
- * an expired refresh token, or a revoked/invalid personal token.
+ * or an expired refresh token.
  * Callers clear the credential and show Connect again rather than
  * error-looping (§11).
  */
