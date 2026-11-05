@@ -109,7 +109,7 @@ You don't need an account to look around: **Try the demo** runs on a made-up spa
 
 ### Use it now with a personal token
 
-Until the hosted OAuth client is live (registration with Capacities is by email), you can run Farview against your own space with a personal API token.
+The hosted site connects with one click through Capacities' OAuth. A personal API token is the fallback, and the way to go if you self-host without your own OAuth client.
 
 1. In the Capacities desktop app, go to **Settings → Capacities API → API Tokens** and create a token for the space you want to use. Read access is enough for viewing. Give it write access and tick the editing box to plan from the timeline.
 2. Paste it in the *Advanced* section on the Connect screen.
@@ -130,7 +130,7 @@ VITE_CAPACITIES_CLIENT_ID=your-client-id npm run build
 
 The output in `dist/` is a static site, so any static host works with no server functions. `/`, `/app/` and `/callback/` are real directories, so no rewrite rules are needed.
 
-- The client id is public by design (a PKCE public client has no client secret). Register your own redirect URI with Capacities by email; see [developers.capacities.io](https://developers.capacities.io).
+- The client id is public by design (a PKCE public client has no client secret). The hosted build's id is committed in `.env.production`. For your own deployment, register your own redirect URI with Capacities by email (see [developers.capacities.io](https://developers.capacities.io)) and put your id in `.env.local`, which takes priority.
 - On Cloudflare Workers, the `wrangler.jsonc` in the repo serves `dist/` as static assets. It sets `preview_urls` explicitly, because Cloudflare turns preview URLs off when `workers_dev` is off.
 - Link previews use absolute URLs. Change `og:image` and `og:url` in `index.html` to your own domain.
 

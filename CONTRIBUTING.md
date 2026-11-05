@@ -15,7 +15,7 @@ npm run build   # typecheck + production build
 npm run smoke   # after a build: the built site in Chromium
 ```
 
-You don't need an OAuth client id for development. The demo mode (made-up spaces) and the personal-token path both work without one.
+You don't need an OAuth client id for development (`npm run dev` doesn't read `.env.production`, so the dev server has no id unless you set one in `.env.local`). The demo mode (made-up spaces) and the personal-token path both work without one.
 
 ## Rules that count as build failures
 

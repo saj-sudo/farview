@@ -8,6 +8,12 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **One-click connect on the hosted site.** Capacities registered the OAuth client
+  (`capacities_api_farview`), and the hosted build now ships it in
+  `.env.production`. Forks and self-hosted builds set their own id in
+  `.env.local`. Without any id, the Connect screen still offers the demo and the
+  personal-token path.
+
 - **How much runs at once.** A thin strip under the chart counts the projects
   active in each month, lined up with the axis, so it moves when you pan and
   zoom. A project counts in every month its bar touches. It states a number and
