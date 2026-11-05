@@ -1,26 +1,18 @@
 import type { StoredTokens } from './oauth';
 
 /**
- * Credential persistence (spec §7.3). Two kinds:
+ * Credential persistence (spec §7.3): OAuth only. PKCE tokens, auto-refreshed
+ * by the SDK. Personal API tokens are not supported; one left in storage by an
+ * earlier build is removed on load, and the visitor sees Connect again.
  *
- *  - 'oauth': the primary flow: PKCE tokens, auto-refreshed by the SDK.
- *  - 'token': a personal API token the user created themselves in
- *    Capacities (Settings → Capacities API). Secondary by design: OAuth
- *    is what the public site leads with, but a personal token lets
- *    anyone run their own build against their own space today.
- *
- * Either way the credential lives in this browser only and never reaches
- * any server the maintainer controls: there is no server. Browser
- * storage is reachable by any script on the page, which is why the app
- * bundles everything, loads no third-party scripts, and ships a strict
- * CSP. The blast radius is smaller than for most tools because the
- * token is read-only; the tradeoff is documented in the README rather
+ * The credential lives in this browser only and never reaches any server the
+ * maintainer controls. Browser storage is reachable by any script on the
+ * page, which is why the app bundles everything, loads no third-party scripts,
+ * and ships a strict CSP. The tradeoff is documented in the README rather
  * than hidden.
  */
 
-export type StoredCredential =
-  | ({ kind: 'oauth'; wantsWrite?: boolean } & StoredTokens)
-  | { kind: 'token'; apiToken: string; wantsWrite?: boolean };
+export type StoredCredential = { kind: 'oauth'; wantsWrite?: boolean } & StoredTokens;
 
 const TOKEN_KEY = 'farview.credential';
 
@@ -32,8 +24,10 @@ export function loadCredential(): StoredCredential | null {
     // wantsWrite records what the user explicitly opted into; absence
     // (older stored credentials included) means read-only.
     const wantsWrite = parsed['wantsWrite'] === true;
-    if (parsed['kind'] === 'token' && typeof parsed['apiToken'] === 'string') {
-      return { kind: 'token', apiToken: parsed['apiToken'], wantsWrite };
+    if (parsed['kind'] === 'token') {
+      // A personal token saved by an earlier build: not supported any more.
+      localStorage.removeItem(TOKEN_KEY);
+      return null;
     }
     if (
       parsed['kind'] === 'oauth' &&

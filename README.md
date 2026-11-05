@@ -28,9 +28,9 @@ You can switch back to read-only in Settings. To revoke Farview's access, go to 
 
 ## No server and no tracking
 
-The site is static files. OAuth runs in your browser, the token stays in your browser, and every API call goes from your browser to `api.capacities.io`. There is no server, database, account or analytics.
+The site is static files. OAuth is the only sign-in, it runs in your browser, the token stays in your browser, and every API call goes from your browser to `api.capacities.io`. There is no server, database, account or analytics.
 
-A token kept in a browser can be read by any script on the page. For that reason Farview bundles everything, loads no third-party scripts, and sends a strict Content-Security-Policy that [a test](tests/build/csp.test.ts) checks. The token is also read-only unless you turned on editing.
+The OAuth token is kept in your browser, and any script on the page could read it. For that reason Farview bundles everything, loads no third-party scripts, and sends a strict Content-Security-Policy that [a test](tests/build/csp.test.ts) checks. The token is also read-only unless you turned on editing.
 
 ## Works with your object types
 
@@ -106,14 +106,6 @@ Farview needs one object type whose objects have a date, such as a Project type 
 ![The first screen on a synthetic space: "Your projects are Project", ticked, with its start, target and status properties, and a button that opens the timeline.](docs/setup.png)
 
 You don't need an account to look around: **Try the demo** runs on a made-up space, entirely in your tab.
-
-### Use it now with a personal token
-
-The hosted site connects with one click through Capacities' OAuth. A personal API token is the fallback, and the way to go if you self-host without your own OAuth client.
-
-1. In the Capacities desktop app, go to **Settings → Capacities API → API Tokens** and create a token for the space you want to use. Read access is enough for viewing. Give it write access and tick the editing box to plan from the timeline.
-2. Paste it in the *Advanced* section on the Connect screen.
-3. The token stays in your browser. You can revoke it in the same settings screen.
 
 ## Built on the official API
 

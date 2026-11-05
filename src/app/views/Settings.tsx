@@ -19,7 +19,7 @@ import type { Boot } from '../App';
 import { MappingSuggestions } from '../components/MappingSuggestions';
 import { TimelineSvg } from '../components/TimelineSvg';
 import { HASH_FOR } from '../router';
-import { connect, disconnect, endDemo, setTokenEditing, type Session } from '../session';
+import { connect, disconnect, endDemo, type Session } from '../session';
 import { readSkipped, saveSkipped } from '../suggestionSkipped';
 import type { TimelineData } from '../useTimelineData';
 
@@ -772,10 +772,7 @@ export function Settings(props: {
               </p>
               <div class="settings-actions">
                 <button
-                  onClick={() => {
-                    if (setTokenEditing(false)) location.reload();
-                    else void connect({ editing: false });
-                  }}
+                  onClick={() => void connect({ editing: false })}
                 >
                   Switch back to read-only
                 </button>
@@ -786,15 +783,12 @@ export function Settings(props: {
               <p class="fineprint">
                 This connection is read-only, so Farview can't change anything
                 in your space. Turning on editing lets you add goals and move
-                dates from the timeline. With OAuth this reconnects, so the
-                consent screen shows the extra access.
+                dates from the timeline. This reconnects, so the consent screen shows
+                the extra access.
               </p>
               <div class="settings-actions">
                 <button
-                  onClick={() => {
-                    if (setTokenEditing(true)) location.reload();
-                    else void connect({ editing: true });
-                  }}
+                  onClick={() => void connect({ editing: true })}
                 >
                   Enable editing
                 </button>
