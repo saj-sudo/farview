@@ -67,6 +67,8 @@
   --radius-sm: 6px;
   --radius: 8px;
   --radius-lg: 12px;
+  /* The smallest thing a finger should have to hit on a phone. */
+  --tap: 44px;
 }
 
 /* Theme. The system setting decides unless the person chose Light or Dark in
@@ -299,6 +301,18 @@ a:hover {
   margin-top: -0.5rem;
 }
 
+/* Connect, then Connect with editing right under it: one choice, two levels. */
+.connect-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.connect-buttons + .fineprint {
+  margin-top: 0.6rem;
+}
+
 .readonly-note {
   display: block;
   background: var(--ink1-tint);
@@ -472,10 +486,6 @@ a:hover {
   color: var(--ink);
   font-weight: 600;
   box-shadow: inset 0 -3px 0 var(--ink2), 0 1px 2px rgba(28, 27, 32, 0.12);
-}
-
-.app-foot .theme-choice {
-  margin-bottom: var(--space-3);
 }
 
 @media (max-width: 720px) {
@@ -738,7 +748,9 @@ a:hover {
 }
 
 .landing img {
+  display: block;
   max-width: 100%;
+  height: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   margin: var(--space-5) 0;
@@ -1815,4 +1827,138 @@ body:has(.landing) {
 .load-month {
   fill: var(--ink-soft);
   opacity: 0.8;
+}
+
+/* Theme choice inside Settings: the phone's copy. On a wider screen the
+   sidebar shows its own, so only one is ever on screen. */
+.settings-theme {
+  display: none;
+}
+
+/* Settings sections fold on a phone; the heading is the summary. */
+.settings-section > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.settings-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-section > summary::before {
+  content: '';
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--ink-soft);
+  border-bottom: 2px solid var(--ink-soft);
+  transform: rotate(-45deg);
+  transition: transform 120ms ease;
+}
+
+.settings-section[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.settings-section > summary > h2 {
+  margin: 0;
+}
+
+.settings-section {
+  margin: 1.75rem 0 0.5rem;
+}
+
+/* ---------- phones: readable text and targets a finger can hit ---------- */
+
+@media (max-width: 720px) {
+  html {
+    font-size: 16px;
+  }
+  .fineprint,
+  .disclaimer {
+    font-size: 14px;
+  }
+  button,
+  .sidebar nav a,
+  .tag-chip {
+    min-height: var(--tap);
+  }
+  /* A button centres its own text; a label chip needs telling. */
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+  }
+  .tl-zoom-chip {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.8rem;
+  }
+  .tl-zoom-chip.today,
+  .tl-zoom-chip.tl-new {
+    margin-left: 0.2rem;
+  }
+  /* A one-line summary comes out at the tap height and keeps its marker. */
+  summary,
+  .more-demos summary,
+  .someday summary,
+  .more-options > summary {
+    line-height: 1.5;
+    padding-block: calc((var(--tap) - 1.5em) / 2);
+  }
+  /* Icon-only buttons get the width too. */
+  .hz-add {
+    min-width: var(--tap);
+    min-height: var(--tap);
+    padding: 0;
+  }
+  input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+  }
+  .field.checkbox {
+    align-items: center;
+    min-height: var(--tap);
+  }
+  .settings-theme {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.4rem 0 0.6rem;
+  }
+  .settings-section {
+    margin: 0.5rem 0 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .settings-section > summary {
+    min-height: var(--tap);
+  }
+  .settings-section[open] {
+    padding-bottom: 0.75rem;
+  }
+  /* Saving a file is a desk task; the phone toolbar keeps to what fits. */
+  .tl-save {
+    display: none;
+  }
+  /* More pillars than fit: fade the right edge so the rest reads as there,
+     and leave room at the end so the last chip scrolls clear of the fade. */
+  .pillar-focus {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 32px), transparent);
+  }
+  .landing .cta-secondary {
+    padding: 0.65rem 0;
+  }
+  /* A phone screenshot at full width would fill several screens. */
+  .landing img {
+    max-width: min(100%, 320px);
+    margin-inline: auto;
+  }
+  .pillar-focus::after {
+    content: '';
+    flex: none;
+    width: 32px;
+  }
 }

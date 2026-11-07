@@ -40,6 +40,12 @@ export interface PackOptions {
   maxRows?: number;
   /** Estimated px width of a label; injectable-free heuristic. */
   labelPx?: (title: string) => number;
+  /**
+   * The full interval, in days, an item occupies in its row: the bar plus
+   * its label and marks, on whichever side they sit. When given, it replaces
+   * the default reservation (label width to the right of the bar).
+   */
+  span?: (p: Placed) => { start: number; end: number };
 }
 
 /** Char-width heuristic at font-size 12; pure so tests can pin it. */
@@ -80,10 +86,27 @@ export function packLanes(items: TimelineItem[], opts: PackOptions): Lane[] {
   const maxRows = opts.maxRows ?? Infinity;
   const gapDays = 6 / Math.max(opts.pxPerDay, 0.001);
 
+  // Reserve label width past the bar when it will sit outside it.
+  const defaultSpan = (p: Placed): { start: number; end: number } => {
+    const barPx = (p.effEnd - p.effStart) * opts.pxPerDay;
+    const labelWidth = labelPx(p.item.title);
+    const reserveDays =
+      barPx >= labelWidth + 16 ? 0 : labelWidth / Math.max(opts.pxPerDay, 0.001);
+    return { start: p.effStart, end: p.effEnd + reserveDays };
+  };
+  const spanOf = opts.span ?? defaultSpan;
+  const spans = new Map<Placed, { start: number; end: number }>();
+
   const placed = items
     .map((item) => place(item, opts.todayDay))
-    .filter((p): p is Placed => p !== null)
-    .sort((a, b) => a.effStart - b.effStart || (a.item.id < b.item.id ? -1 : 1));
+    .filter((p): p is Placed => p !== null);
+  for (const p of placed) spans.set(p, spanOf(p));
+  placed.sort(
+    (a, b) =>
+      spans.get(a)!.start - spans.get(b)!.start ||
+      a.effStart - b.effStart ||
+      (a.item.id < b.item.id ? -1 : 1),
+  );
 
   // Lanes are keyed by (group, subGroup): a pillar's areas become its
   // own nested lanes, so both levels of a two-level taxonomy survive.
@@ -128,16 +151,12 @@ export function packLanes(items: TimelineItem[], opts: PackOptions): Lane[] {
     const rowEnds: number[] = [];
     const overflow: Placed[] = [];
     for (const p of byLane.get(key)!) {
-      // Reserve label width past the bar when it will sit outside it.
-      const barPx = (p.effEnd - p.effStart) * opts.pxPerDay;
-      const labelWidth = labelPx(p.item.title);
-      const reserveDays =
-        barPx >= labelWidth + 16 ? 0 : labelWidth / Math.max(opts.pxPerDay, 0.001);
-      const occupiedEnd = p.effEnd + reserveDays + gapDays;
+      const span = spans.get(p)!;
+      const occupiedEnd = span.end + gapDays;
 
       let placedInRow = false;
       for (let r = 0; r < rows.length; r += 1) {
-        if (rowEnds[r]! <= p.effStart) {
+        if (rowEnds[r]! <= span.start) {
           rows[r]!.push(p);
           rowEnds[r] = occupiedEnd;
           placedInRow = true;

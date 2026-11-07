@@ -83,11 +83,11 @@ If your space links things together, like a project pointing at its goal or a go
 
 ## On a phone
 
-- Under 720px wide, the timeline page opens as a list. A **List / Timeline** switch above it shows the full timeline, which you drag sideways, with bars sized for a finger.
+- Under 720px wide, the timeline page opens as a chart you drag sideways, with bars sized for a finger and each label on its own line above its bar. A **Chart / List** switch above it shows the same items as a list.
 - Dragging never moves a date on a phone. Type dates on the card instead.
 - Add the site to your home screen and it opens in its own window.
 
-A switch in the sidebar (at the bottom of the page on a phone) sets light, dark or automatic.
+A switch in the sidebar (under Display in Settings on a phone) sets light, dark or automatic.
 
 ## What you need in Capacities
 

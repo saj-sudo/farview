@@ -8,6 +8,18 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **Labels on the phone chart.** A label that does not fit inside its bar now
+  sits on its own line just above the bar, inside the screen, and labels in a
+  row no longer run into each other. On a wider screen, a label placed to the
+  left of a bar near the right edge now has its room kept too, and the overdue
+  marker no longer sits on top of a label.
+- **The chart's edges on a phone.** The "Today" pill and the dates along the
+  bottom stay inside the chart instead of being cut off, and a date that would
+  overlap its neighbour is left out.
+- **Bigger text and targets on a phone.** Text is a little larger, small print
+  is at least 14px, and buttons, chips, links in the top bar, the Horizons "+"
+  and checkboxes are big enough to tap.
+
 - **Signing in on a phone.** On Android the Capacities consent screen can open
   in a separate tab, and the redirect back landed there without the sign-in
   that was started, so it failed with "does not match". The started sign-in
@@ -19,6 +31,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- **A phone opens on the chart.** The switch above it reads "Chart" and
+  "List", and the list is one tap away. A choice made earlier is kept.
+- **Settings folds on a phone.** Each section is a heading you tap to open,
+  and only "Projects (required)" starts open. On a wide screen every section
+  starts open.
+- **The theme switch on a phone** moved from the bottom of every page to
+  Settings, under Display.
+- **Connect with editing** is a button of its own, right under "Connect to
+  Capacities", with a short note on what it asks for.
+- **Smaller phone toolbar.** "Save as SVG" shows on wider screens only, and
+  the pillar chips fade at the right edge when there are more to scroll to.
+- **Phone screenshots on the landing page.** A phone shows screenshots taken
+  on a phone.
 - **One demo button.** The Connect screen shows "Try the demo"; the other
   demos sit under "More demos".
 

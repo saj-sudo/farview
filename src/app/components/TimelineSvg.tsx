@@ -1,6 +1,7 @@
 import { dayNumber, formatMonthDay } from '../../engine/dates';
 import type { TimelineLayout, BarGeometry } from '../../engine/timeline/layout';
 import { AXIS_H } from '../../engine/timeline/layout';
+import { axisLabels, todayPill } from '../../engine/timeline/edges';
 import type { LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
 
 /**
@@ -50,6 +51,7 @@ export function TimelineSvg(props: TimelineSvgProps) {
   };
 
   const veilEnd = clampX(layout.nowX);
+  const pill = todayPill(layout.nowX, layout.width);
 
   return (
     <svg
@@ -145,8 +147,8 @@ export function TimelineSvg(props: TimelineSvgProps) {
           <line x1={layout.nowX} y1={0} x2={layout.nowX} y2={chartH} class="tl-now-line" />
           {chartH > 60 && (
             <g class="tl-now-pill">
-              <rect x={layout.nowX - 46} y={6} width={92} height={20} rx={10} />
-              <text x={layout.nowX} y={20}>
+              <rect x={pill.x} y={6} width={pill.w} height={20} rx={10} />
+              <text x={pill.textX} y={20}>
                 {`Today · ${formatMonthDay(props.today)}`}
               </text>
             </g>
@@ -154,22 +156,17 @@ export function TimelineSvg(props: TimelineSvgProps) {
         </g>
       )}
 
-      {/* Axis labels. */}
-      {layout.ticks.ticks.map((tick, i) => {
-        if (tick.label === null) return null;
-        const x = layout.scale.xOf(tick.day);
-        if (x < -40 || x > layout.width + 40) return null;
-        return (
-          <text
-            key={`ax-${i}`}
-            x={x + 4}
-            y={layout.height - 9}
-            class={tick.level === 'major' ? 'tl-axis-major' : 'tl-axis-minor'}
-          >
-            {tick.label}
-          </text>
-        );
-      })}
+      {/* Axis labels, kept inside the chart and never on top of each other. */}
+      {axisLabels(layout.ticks.ticks, (day) => layout.scale.xOf(day), layout.width).map((label) => (
+        <text
+          key={`ax-${label.index}`}
+          x={label.x}
+          y={layout.height - 9}
+          class={label.level === 'major' ? 'tl-axis-major' : 'tl-axis-minor'}
+        >
+          {label.label}
+        </text>
+      ))}
     </svg>
   );
 }
@@ -320,7 +317,7 @@ function Bar(props: {
       {bar.label.placement !== 'hidden' && (
         <text
           x={bar.label.x}
-          y={cy + 4}
+          y={bar.label.placement === 'above' ? bar.y - 5 : cy + 4}
           class={`tl-label ${bar.label.placement === 'inside' ? 'inside' : ''}`}
           text-anchor={bar.label.placement === 'left' ? 'end' : 'start'}
         >
