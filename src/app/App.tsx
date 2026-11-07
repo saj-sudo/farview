@@ -218,7 +218,6 @@ function ConnectedApp(props: { session: Session }) {
           )}
         </main>
         <footer class="app-foot">
-          <ThemeChoice />
           <p class="disclaimer">{DISCLAIMER}</p>
         </footer>
       </div>

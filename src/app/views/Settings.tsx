@@ -17,6 +17,8 @@ import { loadCollectionTags, loadTimelineData } from '../../pipeline/load';
 import { isBasicStructure } from '../../providers/capacities/constants';
 import type { Boot } from '../App';
 import { MappingSuggestions } from '../components/MappingSuggestions';
+import { SettingsSection } from '../components/SettingsSection';
+import { ThemeChoice } from '../components/ThemeChoice';
 import { TimelineSvg } from '../components/TimelineSvg';
 import { HASH_FOR } from '../router';
 import { connect, disconnect, endDemo, type Session } from '../session';
@@ -314,9 +316,11 @@ export function Settings(props: {
 
   // Everything past the project type and its dates is optional, so the first
   // screen folds it away.
+  // Onboarding has its own fold (More options), so its sections stay flat.
+  const fold = !props.onboarding;
   const optional = (
     <>
-      <h2>Goals (optional)</h2>
+      <SettingsSection title="Goals (optional)" fold={fold}>
       <div class="field-row">
         {typeSelect(
           'goal',
@@ -355,7 +359,9 @@ export function Settings(props: {
         </div>
       )}
 
-      <h2>Actions (optional)</h2>
+      </SettingsSection>
+
+      <SettingsSection title="Actions (optional)" fold={fold}>
       <div class="field-row">
         {typeSelect(
           'action',
@@ -396,7 +402,9 @@ export function Settings(props: {
         </label>
       )}
 
-      <h2>Grouping and color</h2>
+      </SettingsSection>
+
+      <SettingsSection title="Grouping and color" fold={fold}>
       <p class="hint">
         Lanes can nest two deep: a pillar, then the areas inside it. Point
         each level at a tag collection and Farview follows it as you add
@@ -514,7 +522,13 @@ export function Settings(props: {
         />
       )}
 
-      <h2>Display</h2>
+      </SettingsSection>
+
+      <SettingsSection title="Display" fold={fold}>
+      <div class="settings-theme">
+        <span class="settings-theme-name">Theme</span>
+        <ThemeChoice />
+      </div>
       <div class="field-row">
         <label class="field">
           <span>Open on</span>
@@ -590,7 +604,7 @@ export function Settings(props: {
           <small>IANA name, e.g. Europe/Berlin. The now-line sits on your local today.</small>
         </label>
       </div>
-
+      </SettingsSection>
     </>
   );
 
@@ -619,7 +633,7 @@ export function Settings(props: {
         />
       )}
 
-      <h2>Your space</h2>
+      <SettingsSection title="Your space" fold={fold}>
       {customTypes.length === 0 ? (
         <p class="empty-note">
           No custom object types here yet. Farview needs a type with dates to
@@ -637,7 +651,9 @@ export function Settings(props: {
         </div>
       )}
 
-      <h2>Projects (required)</h2>
+      </SettingsSection>
+
+      <SettingsSection title="Projects (required)" fold={fold} openOnPhone>
       <div class="field-row">
         {typeSelect(
           'project',
@@ -679,6 +695,7 @@ export function Settings(props: {
       )}
       {statusChecks('active', 'Which statuses count as active?', 'Statuses you leave unticked still show on the timeline.')}
       {statusChecks('done', 'Which count as done?', 'Done items hide behind the “show completed” toggle.')}
+      </SettingsSection>
 
       {props.onboarding ? (
         <details class="more-options">
@@ -697,13 +714,17 @@ export function Settings(props: {
         </div>
       )}
 
-      <LivePreview
-        session={props.session}
-        boot={boot}
-        collectionMembers={collectionMembers}
-        draft={draft}
-        today={props.today}
-      />
+      {resolved.types.project && (
+        <SettingsSection title="Preview of your timeline" fold={fold}>
+          <LivePreview
+            session={props.session}
+            boot={boot}
+            collectionMembers={collectionMembers}
+            draft={draft}
+            today={props.today}
+          />
+        </SettingsSection>
+      )}
 
       <div class="settings-actions">
         <button
@@ -761,7 +782,7 @@ export function Settings(props: {
         </div>
       )}
 
-      <h2>Connection</h2>
+      <SettingsSection title="Connection" fold={fold}>
       {props.session.kind === 'live' && (
         <div class="field">
           {props.session.editingRequested ? (
@@ -829,6 +850,7 @@ export function Settings(props: {
         You can also revoke Farview’s read access any time in Capacities under
         Settings → Capacities API → Connections.
       </p>
+      </SettingsSection>
     </section>
   );
 }
@@ -1005,7 +1027,6 @@ function LivePreview(props: {
 
   return (
     <div class="preview-block">
-      <h2>Preview of your timeline</h2>
       {running && items === null ? (
         <p class="loading">Placing your items on the line…</p>
       ) : visible.length === 0 ? (

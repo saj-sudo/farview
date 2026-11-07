@@ -63,21 +63,23 @@ export function Connect(props: {
 
       {CLIENT_ID ? (
         <>
-          <button class="primary" onClick={() => void connect()}>
-            Connect to Capacities
-          </button>
+          <div class="connect-buttons">
+            <button class="primary" onClick={() => void connect()}>
+              Connect to Capacities
+            </button>
+            <button onClick={() => void connect({ editing: true })}>
+              Connect with editing
+            </button>
+          </div>
+          <p class="fineprint">
+            Connect with editing if you want to add goals and drag dates from
+            the timeline. It asks for write access too, and the consent screen
+            says so. You can switch back to read-only from Settings any time.
+          </p>
           <p class="fineprint">
             You pick which space to share on the Capacities side. You can
             revoke access any time in Capacities under Settings&nbsp;→
             Capacities API&nbsp;→ Connections.
-          </p>
-          <p class="fineprint">
-            Want to add goals and drag dates from the timeline?{' '}
-            <button class="subtle" onClick={() => void connect({ editing: true })}>
-              Connect with editing
-            </button>
-            . This asks for write access too, and the consent screen will say
-            so. You can switch back to read-only from Settings any time.
           </p>
         </>
       ) : (

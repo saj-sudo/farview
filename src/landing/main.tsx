@@ -1,6 +1,11 @@
 import { render } from 'preact';
 import timelineShot from '../../docs/timeline.png';
 import decadeShot from '../../docs/decade.png';
+import phoneTimelineShot from '../../docs/phone-timeline.png';
+import phoneHorizonsShot from '../../docs/phone-horizons.png';
+
+// A phone gets a phone's screenshot: the desktop one is unreadable at that size.
+const PHONE = '(max-width: 720px)';
 
 /**
  * The landing page. Rendered with Preact so screenshots are fingerprinted
@@ -28,10 +33,16 @@ function Landing() {
           Try the demo (no account needed)
         </a>
       </p>
-      <img
-        src={timelineShot}
-        alt="The Farview timeline for a synthetic boatyard: lanes of teal and sunflower bars, a sunflower band marking today, and small flags for goals."
-      />
+      <picture>
+        <source media={PHONE} srcset={phoneTimelineShot} width={824} height={1678} />
+        <img
+          src={timelineShot}
+          width={1280}
+          height={880}
+          loading="lazy"
+          alt="The Farview timeline for a synthetic boatyard: lanes of teal and sunflower bars, a sunflower band marking today, and small flags for goals."
+        />
+      </picture>
 
       <h2>Read-only unless you turn on editing</h2>
       <ul>
@@ -112,15 +123,21 @@ function Landing() {
         </li>
         <li>Items with no dates wait in a Someday tray.</li>
       </ul>
-      <img
-        src={decadeShot}
-        alt="The decade zoom: alternating year bands with faint year numbers, short bars and dots for projects, and flags for goals."
-      />
+      <picture>
+        <source media={PHONE} srcset={phoneHorizonsShot} width={824} height={1678} />
+        <img
+          src={decadeShot}
+          width={1280}
+          height={800}
+          loading="lazy"
+          alt="Farview's longer views: on a wide screen the decade zoom with year bands and short bars, on a phone the Horizons columns from Now to Long."
+        />
+      </picture>
 
       <h2>Works on a phone</h2>
       <p>
-        On a narrow screen the page opens as a list, and one tap shows the full
-        timeline, which you drag sideways. Choose light, dark or automatic,
+        On a narrow screen the timeline opens as a chart you drag sideways,
+        and one tap shows it as a list. Choose light, dark or automatic,
         and add the site to your home screen if you like.
       </p>
 

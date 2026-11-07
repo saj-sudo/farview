@@ -2,8 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { normalizeConfig } from '../../../src/engine/config';
 import { dayNumber } from '../../../src/engine/dates';
 import { resolveSchema } from '../../../src/engine/resolve';
-import { BAR_H, layoutTimeline, TOP_PAD, TOUCH_BAR_H, TOUCH_TOP_PAD } from '../../../src/engine/timeline/layout';
-import { windowAroundToday } from '../../../src/engine/timeline/scale';
+import { axisLabels, todayPill } from '../../../src/engine/timeline/edges';
+import { estTextWidth } from '../../../src/engine/timeline/lanes';
+import {
+  BAR_H,
+  LABEL_ABOVE_H,
+  labelBox,
+  layoutTimeline,
+  occupiedPx,
+  TOP_PAD,
+  TOUCH_BAR_H,
+  TOUCH_TOP_PAD,
+  type BarGeometry,
+  type TimelineLayout,
+} from '../../../src/engine/timeline/layout';
+import { createScale, windowAroundToday } from '../../../src/engine/timeline/scale';
+import { generateTicks } from '../../../src/engine/timeline/ticks';
 import type { LocalDate, TimelineItem } from '../../../src/engine/types';
 import { parsePhoneView } from '../../../src/app/phoneView';
 import { memoryCache } from '../../../src/pipeline/cache';
@@ -113,6 +127,85 @@ describe.each(Object.entries(spaces))('phone layout on %s', (_name, build) => {
     if (first) expect(first.y).toBeGreaterThanOrEqual(TOUCH_TOP_PAD);
   });
 
+  // What the phone really draws: touch bars with labels on their own line.
+  const layPhone = async (width: number, days: number): Promise<TimelineLayout> => {
+    const { items, resolved } = await build();
+    return layoutTimeline(items, {
+      view: windowAroundToday(TODAY_DAY, days),
+      width,
+      today: TODAY,
+      groupOrder: resolved.groupValues,
+      subGroupOrder: resolved.subGroupValues,
+      barHeight: TOUCH_BAR_H,
+      topPad: TOUCH_TOP_PAD,
+      labelsAbove: true,
+    });
+  };
+  const rowsOf = (layout: TimelineLayout): BarGeometry[][] => {
+    const rows = new Map<number, BarGeometry[]>();
+    for (const bar of layout.bars) rows.set(bar.y, [...(rows.get(bar.y) ?? []), bar]);
+    return [...rows.values()];
+  };
+  const SIZES = [
+    [358, 91],
+    [412, 91],
+    [358, 182],
+    [412, 365],
+  ] as const;
+
+  it.each(SIZES)('never lets two labels in a row touch, at %ipx over %i days', async (width, days) => {
+    const layout = await layPhone(width, days);
+    for (const row of rowsOf(layout)) {
+      const boxes = row
+        .map((bar) => labelBox(bar))
+        .filter((b): b is [number, number] => b !== null)
+        .sort((a, b) => a[0] - b[0]);
+      for (let i = 1; i < boxes.length; i += 1) {
+        expect(boxes[i]![0]).toBeGreaterThanOrEqual(boxes[i - 1]![1]);
+      }
+      // Nor a label and another item's bar: each item's whole footprint is its own.
+      const spans = row.map((bar) => occupiedPx(bar)).sort((a, b) => a[0] - b[0]);
+      for (let i = 1; i < spans.length; i += 1) {
+        expect(spans[i]![0]).toBeGreaterThanOrEqual(spans[i - 1]![1]);
+      }
+    }
+  });
+
+  it.each(SIZES)('keeps every label inside the chart, at %ipx over %i days', async (width, days) => {
+    const layout = await layPhone(width, days);
+    for (const bar of layout.bars) {
+      const { placement, text, x } = bar.label;
+      expect(['inside', 'above', 'hidden']).toContain(placement);
+      if (placement === 'hidden') continue;
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x + estTextWidth(text)).toBeLessThanOrEqual(width);
+    }
+  });
+
+  it('gives a label above its bar a line of its own, clear of the row above', async () => {
+    const layout = await layPhone(358, 91);
+    const above = layout.bars.filter((b) => b.label.placement === 'above');
+    for (const bar of above) {
+      const lane = layout.lanes.find((l) => bar.y >= l.y && bar.y < l.y + l.height)!;
+      expect(bar.y - LABEL_ABOVE_H).toBeGreaterThanOrEqual(lane.y + 26);
+      for (const other of layout.bars) {
+        if (other.y < bar.y) expect(other.y + other.h).toBeLessThanOrEqual(bar.y - LABEL_ABOVE_H);
+      }
+    }
+  });
+
+  it.each(SIZES)('keeps axis labels inside the chart and apart, at %ipx over %i days', (width, days) => {
+    const scale = createScale(windowAroundToday(TODAY_DAY, days), width);
+    const ticks = generateTicks(scale.startDay, scale.endDay, scale.pxPerDay);
+    const labels = axisLabels(ticks.ticks, (day) => scale.xOf(day), width);
+    expect(labels.length).toBeGreaterThan(0);
+    labels.forEach((label, i) => {
+      expect(label.x).toBeGreaterThanOrEqual(2);
+      expect(label.x + label.w).toBeLessThanOrEqual(width - 2);
+      if (i > 0) expect(label.x).toBeGreaterThanOrEqual(labels[i - 1]!.x + labels[i - 1]!.w);
+    });
+  });
+
   it('keeps lane headers clear of the bars below them', async () => {
     const layout = await lay(TOUCH_BAR_H);
     for (const lane of layout.lanes) {
@@ -131,11 +224,45 @@ describe('windowAroundToday', () => {
   });
 });
 
+describe('the today pill', () => {
+  it('stays inside the chart at either edge, with its text centred on it', () => {
+    for (const nowX of [-20, 0, 10, 46, 179, 340, 358, 400]) {
+      const pill = todayPill(nowX, 358);
+      expect(pill.x).toBeGreaterThanOrEqual(2);
+      expect(pill.x + pill.w).toBeLessThanOrEqual(358 - 2);
+      expect(pill.textX).toBeCloseTo(pill.x + pill.w / 2, 6);
+    }
+    // In the open middle it centres on the line.
+    expect(todayPill(179, 358).textX).toBeCloseTo(179, 6);
+  });
+});
+
+describe('axis labels at the edges', () => {
+  it('pulls a label in from the right edge and drops one that would overlap', () => {
+    const ticks = [
+      { day: 0, level: 'minor' as const, label: 'Jan' },
+      { day: 1, level: 'minor' as const, label: 'Feb' },
+      { day: 99, level: 'major' as const, label: '2027' },
+    ];
+    const labels = axisLabels(ticks, (d) => d * 3, 300);
+    expect(labels.map((l) => l.label)).toEqual(['Jan', '2027']);
+    expect(labels[1]!.x + labels[1]!.w).toBeLessThanOrEqual(298);
+  });
+
+  it('lets a major label push out a minor one it would collide with', () => {
+    const ticks = [
+      { day: 10, level: 'minor' as const, label: 'Nov' },
+      { day: 12, level: 'major' as const, label: '2027' },
+    ];
+    expect(axisLabels(ticks, (d) => d * 3, 300).map((l) => l.label)).toEqual(['2027']);
+  });
+});
+
 describe('the remembered phone view', () => {
-  it('is the list unless the timeline was chosen', () => {
+  it('is the chart unless the list was chosen', () => {
     expect(parsePhoneView('timeline')).toBe('timeline');
     expect(parsePhoneView('list')).toBe('list');
-    expect(parsePhoneView(null)).toBe('list');
-    expect(parsePhoneView('garbage')).toBe('list');
+    expect(parsePhoneView(null)).toBe('timeline');
+    expect(parsePhoneView('garbage')).toBe('timeline');
   });
 });

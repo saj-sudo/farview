@@ -92,17 +92,23 @@ describe.each(VIEWPORTS)('on $name', (viewport) => {
   });
 });
 
-it('opens the timeline on a phone, taps a bar and goes back to the list', async () => {
+it('opens the chart on a phone, taps a bar and goes to the list and back', async () => {
   const page = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
   const problems = await watch(page);
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+  // The chart is the default on a phone.
   await page.locator('svg.tl-svg').waitFor();
+  expect(await page.getByRole('button', { name: 'Chart', exact: true }).getAttribute('aria-pressed')).toBe('true');
+  // Saving a file stays on the desktop toolbar.
+  expect(await page.getByRole('button', { name: 'Save as SVG', exact: true }).isVisible()).toBe(false);
   await page.locator('g.tl-item').first().click({ force: true });
   await page.waitForTimeout(300);
   await page.getByRole('button', { name: 'List', exact: true }).click();
   await page.waitForTimeout(300);
+  expect(await page.locator('svg.tl-svg').count()).toBe(0);
+  await page.getByRole('button', { name: 'Chart', exact: true }).click();
+  await page.locator('svg.tl-svg').waitFor();
   await page.close();
   expect(problems).toEqual([]);
 });
@@ -157,7 +163,7 @@ describe.each(['light', 'dark'] as const)('accessibility in %s', (colorScheme) =
       await page.evaluate(() => {
         location.hash = '#/timeline';
       });
-      await page.getByRole('button', { name: 'Timeline', exact: true }).click();
+      await page.getByRole('button', { name: 'Chart', exact: true }).click();
       await page.locator('svg.tl-svg').waitFor();
       problems.push(...(await violationsOn(page)).map((v) => `phone timeline: ${v}`));
     }
@@ -183,6 +189,43 @@ it('moves the theme choice with the arrow keys and keeps one option in the tab o
   const tabbable = await page.locator('.theme-choice:visible [role=radio][tabindex="0"]').count();
   expect(tabbable).toBe(1);
   await page.close();
+});
+
+it('shows one theme choice at either size, in Settings on a phone', async () => {
+  const visible = (page: Page) => page.locator('.theme-choice:visible').count();
+  const phone = await browser.newPage({ viewport: VIEWPORTS[0]! });
+  await phone.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await phone.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await phone.locator('svg.tl-svg').waitFor();
+  expect(await visible(phone)).toBe(0); // no copy in the footer any more
+  await phone.evaluate(() => {
+    location.hash = '#/settings';
+  });
+  const display = phone.locator('details.settings-section', {
+    has: phone.getByRole('heading', { name: 'Display', exact: true }),
+  });
+  expect(await display.getAttribute('open')).toBeNull(); // folded on a phone
+  expect(
+    await phone
+      .locator('details.settings-section', { has: phone.getByRole('heading', { name: 'Projects (required)' }) })
+      .getAttribute('open'),
+  ).not.toBeNull();
+  await display.locator('summary').click();
+  expect(await visible(phone)).toBe(1);
+  await phone.getByRole('radio', { name: 'Dark', exact: true }).click();
+  expect(await phone.evaluate(() => document.documentElement.dataset['theme'])).toBe('dark');
+  await phone.close();
+
+  const desk = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  await desk.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await desk.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  expect(await visible(desk)).toBe(1);
+  await desk.evaluate(() => {
+    location.hash = '#/settings';
+  });
+  await desk.getByRole('heading', { name: 'Display', exact: true }).waitFor();
+  expect(await visible(desk)).toBe(1);
+  await desk.close();
 });
 
 it('focuses on one pillar, remembers it and brings the others back', async () => {

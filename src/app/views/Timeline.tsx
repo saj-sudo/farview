@@ -91,7 +91,7 @@ export function Timeline(props: {
   const [view, setView] = useState<ViewState>(() =>
     loadViewState(todayDay, narrow && phoneView === 'timeline'),
   );
-  // On a phone the list is the default; the timeline is one tap away.
+  // On a phone the chart is the default; the list is one tap away.
   const showList = narrow && phoneView === 'list';
   const animRef = useRef<number | null>(null);
   const dragRef = useRef<{ x: number; moved: boolean } | null>(null);
@@ -222,7 +222,7 @@ export function Timeline(props: {
         groupOrder: props.resolved.groupValues,
         subGroupOrder: props.resolved.subGroupValues,
         ...(pxPerDay < 0.35 ? { maxRowsPerLane: 6 } : {}),
-        ...(narrow ? { barHeight: TOUCH_BAR_H, topPad: TOUCH_TOP_PAD } : {}),
+        ...(narrow ? { barHeight: TOUCH_BAR_H, topPad: TOUCH_TOP_PAD, labelsAbove: true } : {}),
       }),
     [
       layoutItems,
@@ -635,14 +635,14 @@ export function Timeline(props: {
   };
   const phoneSwitch = narrow ? (
     <div class="tl-zoom phone-switch" role="group" aria-label="Show as">
-      {(['list', 'timeline'] as const).map((choice) => (
+      {(['timeline', 'list'] as const).map((choice) => (
         <button
           key={choice}
           class={`tl-zoom-chip ${phoneView === choice ? 'active' : ''}`}
           aria-pressed={phoneView === choice}
           onClick={() => choosePhoneView(choice)}
         >
-          {choice === 'list' ? 'List' : 'Timeline'}
+          {choice === 'list' ? 'List' : 'Chart'}
         </button>
       ))}
     </div>
@@ -706,7 +706,7 @@ export function Timeline(props: {
           <button class="tl-zoom-chip today" onClick={goToToday}>
             Today
           </button>
-          <button class="tl-zoom-chip" onClick={saveAsSvg}>
+          <button class="tl-zoom-chip tl-save" onClick={saveAsSvg}>
             Save as SVG
           </button>
           {canCreate && (
