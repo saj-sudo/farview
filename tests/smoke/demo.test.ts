@@ -272,6 +272,7 @@ describe.each(['light', 'dark'] as const)('first setup in %s', (colorScheme) => 
   it.each(VIEWPORTS)('offers what the space contains, with no axe violations at $name size', async (viewport) => {
     const page = await browser.newPage({ viewport, colorScheme });
     await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+    await page.getByText('More demos', { exact: true }).click();
     await page.getByRole('button', { name: STANDARD, exact: true }).click();
     await page.getByRole('heading', { name: 'Start with what is in your space' }).waitFor();
     expect(await violationsOn(page)).toEqual([]);
@@ -283,7 +284,8 @@ it('opens the timeline with one tick on a standard setup', async () => {
   const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
   const problems = await watch(page);
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
-  await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByText('More demos', { exact: true }).click();
+    await page.getByRole('button', { name: STANDARD, exact: true }).click();
   const projects = page.getByRole('checkbox', { name: /Your projects are “Project”/ });
   expect(await projects.isChecked()).toBe(true); // a name it knows starts ticked
   await page.getByRole('button', { name: 'Use these and open the timeline', exact: true }).click();
@@ -296,7 +298,8 @@ it('opens the timeline with one tick on a standard setup', async () => {
 it('shows the form when the offer is set aside', async () => {
   const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
-  await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByText('More demos', { exact: true }).click();
+    await page.getByRole('button', { name: STANDARD, exact: true }).click();
   await page.getByRole('button', { name: 'Set it up by hand', exact: true }).click();
   await page.getByRole('heading', { name: 'Map your space' }).waitFor();
   // The required part is open; goals, actions, grouping and display are folded away.

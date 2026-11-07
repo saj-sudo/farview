@@ -40,6 +40,15 @@ export interface KV {
 
 const PENDING_KEY = 'farview.oauth.pending';
 
+/**
+ * How long a started sign-in stays valid. The pending entry lives in
+ * localStorage, not sessionStorage, because on phones the consent screen
+ * often opens in a separate tab (an Android Custom Tab, or the Capacities
+ * app), and the redirect back lands there. sessionStorage is per tab, so it
+ * would be empty; localStorage is shared by every tab of the same browser.
+ */
+export const PENDING_TTL_MS = 15 * 60 * 1000;
+
 type Fetch = typeof globalThis.fetch;
 
 export async function fetchServerMetadata(
@@ -77,12 +86,14 @@ export async function beginAuthorization(opts: {
   /** Explicit opt-in only; defaults to the read-only scope. */
   editing?: boolean;
   fetchFn?: Fetch;
+  now?: () => number;
 }): Promise<string> {
   const metadata = await fetchServerMetadata(opts.fetchFn);
   const verifier = generateVerifier();
   const state = generateState();
   const editing = opts.editing === true;
-  opts.storage.set(PENDING_KEY, JSON.stringify({ verifier, state, editing }));
+  const createdAt = (opts.now ?? Date.now)();
+  opts.storage.set(PENDING_KEY, JSON.stringify({ verifier, state, editing, createdAt }));
 
   const url = new URL(metadata.authorization_endpoint);
   url.searchParams.set('response_type', 'code');
@@ -98,6 +109,34 @@ export async function beginAuthorization(opts: {
 
 export class OAuthCallbackError extends Error {}
 
+interface Pending {
+  verifier: string;
+  state: string;
+  editing?: boolean;
+  createdAt?: number;
+}
+
+/** The started sign-in, or null when there is none or it has expired. */
+function readPending(
+  storage: KV,
+  now: number,
+): Pending | null {
+  const raw = storage.get(PENDING_KEY);
+  if (!raw) return null;
+  try {
+    const pending = JSON.parse(raw) as Pending;
+    const expired =
+      typeof pending.createdAt === 'number' && now - pending.createdAt > PENDING_TTL_MS;
+    if (expired) {
+      storage.remove(PENDING_KEY);
+      return null;
+    }
+    return pending;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Handle the redirect back from Capacities: verify state, exchange the
  * code for tokens. Send no Authorization header: public client.
@@ -108,6 +147,7 @@ export async function completeAuthorization(opts: {
   redirectUri: string;
   storage: KV;
   fetchFn?: Fetch;
+  now?: () => number;
 }): Promise<StoredTokens & { editing: boolean }> {
   const fetchFn = opts.fetchFn ?? globalThis.fetch;
   const err = opts.params.get('error');
@@ -122,30 +162,37 @@ export async function completeAuthorization(opts: {
     throw new OAuthCallbackError('The redirect is missing its code or state.');
   }
 
-  const pendingRaw = opts.storage.get(PENDING_KEY);
-  opts.storage.remove(PENDING_KEY);
-  const pending = pendingRaw
-    ? (JSON.parse(pendingRaw) as { verifier: string; state: string; editing?: boolean })
-    : null;
+  const pending = readPending(opts.storage, (opts.now ?? Date.now)());
   if (!pending || pending.state !== state) {
+    // Leave a non-matching entry in place: the right callback may still come.
     throw new OAuthCallbackError(
       'This sign-in attempt does not match the one this browser started. ' +
         'Please connect again.',
     );
   }
+  opts.storage.remove(PENDING_KEY);
 
   const metadata = await fetchServerMetadata(fetchFn);
-  const res = await fetchFn(metadata.token_endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'authorization_code',
-      code,
-      redirect_uri: opts.redirectUri,
-      client_id: opts.clientId,
-      code_verifier: pending.verifier,
-    }),
-  });
+  let res: Response;
+  try {
+    res = await fetchFn(metadata.token_endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: opts.redirectUri,
+        client_id: opts.clientId,
+        code_verifier: pending.verifier,
+      }),
+    });
+  } catch {
+    // The browser blocked the request (CORS or offline): fetch rejects with a
+    // TypeError and no detail, so name the step instead of a generic failure.
+    throw new OAuthCallbackError(
+      "Couldn't reach Capacities to finish signing in. Please try again in a moment.",
+    );
+  }
   if (!res.ok) {
     throw new OAuthCallbackError(
       `The token exchange failed (${res.status}). Please connect again.`,

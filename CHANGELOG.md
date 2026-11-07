@@ -6,6 +6,22 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Signing in on a phone.** On Android the Capacities consent screen can open
+  in a separate tab, and the redirect back landed there without the sign-in
+  that was started, so it failed with "does not match". The started sign-in
+  now lives in shared browser storage for 15 minutes, a second load of the
+  callback no longer wipes it, and the original tab picks up the connection
+  when you come back to it.
+- **A clearer message when Capacities can't be reached.** A blocked or
+  offline token request now says so instead of "Connecting failed".
+
+### Changed
+
+- **One demo button.** The Connect screen shows "Try the demo"; the other
+  demos sit under "More demos".
+
 ### Removed
 
 - **Personal API tokens.** Sign-in is OAuth only, as Capacities asks of public
