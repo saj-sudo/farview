@@ -316,6 +316,21 @@ a:hover {
   margin-right: 0.35rem;
 }
 
+.more-demos {
+  margin-top: 0.75rem;
+}
+
+.more-demos summary {
+  cursor: pointer;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}
+
+.more-demos .demo-buttons {
+  margin-top: 0.5rem;
+}
+
 .demo-buttons {
   display: flex;
   gap: 0.75rem;

@@ -9,6 +9,7 @@ import {
   READ_SCOPE,
   WRITE_SCOPE,
   type KV,
+  PENDING_TTL_MS,
 } from '../../src/auth/oauth';
 import { challengeS256, generateVerifier } from '../../src/auth/pkce';
 
@@ -242,5 +243,72 @@ describe('completeAuthorization', () => {
       fetchFn,
     });
     expect(tokenUrl).toBe('https://api.capacities.io/oauth/token');
+  });
+});
+
+describe('a started sign-in survives a tab switch, but not forever', () => {
+  const KEY = 'farview.oauth.pending';
+  const okFetch = ((url: string | URL | Request) =>
+    urlOf(url).includes('.well-known')
+      ? Promise.resolve(metadataResponse)
+      : Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ access_token: 'at', refresh_token: 'rt' }),
+        } as Response)) as typeof fetch;
+
+  function started(createdAt: number): KV & { map: Map<string, string> } {
+    const kv = memoryKV();
+    kv.set(KEY, JSON.stringify({ verifier: 'v', state: 's1', createdAt }));
+    return kv;
+  }
+  const complete = (storage: KV, state: string, now: number, fetchFn = okFetch) =>
+    completeAuthorization({
+      params: new URLSearchParams({ code: 'abc', state }),
+      clientId: 'c',
+      redirectUri: 'https://farview.dev/callback',
+      storage,
+      fetchFn,
+      now: () => now,
+    });
+
+  it('records when the sign-in started', async () => {
+    const kv = memoryKV();
+    await beginAuthorization({
+      clientId: 'c',
+      redirectUri: 'https://farview.dev/callback',
+      storage: kv,
+      fetchFn: () => Promise.resolve(metadataResponse),
+      now: () => 1000,
+    });
+    expect((JSON.parse(kv.map.get(KEY)!) as { createdAt: number }).createdAt).toBe(1000);
+  });
+
+  it('completes within the time limit and then forgets the entry', async () => {
+    const kv = started(0);
+    const tokens = await complete(kv, 's1', PENDING_TTL_MS - 1);
+    expect(tokens.accessToken).toBe('at');
+    expect(kv.map.has(KEY)).toBe(false);
+  });
+
+  it('keeps the entry when a different state arrives', async () => {
+    const kv = started(0);
+    await expect(complete(kv, 'other', 10)).rejects.toBeInstanceOf(OAuthCallbackError);
+    expect(kv.map.has(KEY)).toBe(true);
+  });
+
+  it('rejects and clears an expired entry', async () => {
+    const kv = started(0);
+    await expect(complete(kv, 's1', PENDING_TTL_MS + 1)).rejects.toThrow(/does not match/);
+    expect(kv.map.has(KEY)).toBe(false);
+  });
+
+  it('names the step when the browser blocks the token request', async () => {
+    const blocked = ((url: string | URL | Request) =>
+      urlOf(url).includes('.well-known')
+        ? Promise.resolve(metadataResponse)
+        : Promise.reject(new TypeError('Failed to fetch'))) as typeof fetch;
+    await expect(complete(started(0), 's1', 10, blocked)).rejects.toThrow(
+      /Couldn't reach Capacities to finish signing in/,
+    );
   });
 });
