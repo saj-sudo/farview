@@ -46,7 +46,10 @@ jobs:
 
   smoke:
     name: Smoke (built site in Chromium)
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04, where the Playwright version in
+    # package.json cannot install Chromium. Return to ubuntu-latest once
+    # Playwright is upgraded to a release that supports it.
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
