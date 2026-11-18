@@ -18,13 +18,18 @@ import { Icon } from './components/Icon';
 import { ThemeChoice } from './components/ThemeChoice';
 import { HASH_FOR, useView, type View } from './router';
 import {
+  CLIENT_ID,
+  connect,
   createSession,
   disconnect,
   endDemo,
   isAuthLoss,
+  STALL_MS,
+  suggestsReconnect,
   todayLocal,
   type Session,
 } from './session';
+import { ConnectionTrouble } from './components/ConnectionTrouble';
 import { useTimelineData, type TimelineData } from './useTimelineData';
 import { Connect } from './views/Connect';
 import { Horizons } from './views/Horizons';
@@ -69,6 +74,12 @@ function ConnectedApp(props: { session: Session }) {
   const { session } = props;
   const [boot, setBoot] = useState<Boot | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // Whether the failed load looks like lost or refused access.
+  const [reconnectFirst, setReconnectFirst] = useState(false);
+  // The first load has run past STALL_MS without finishing.
+  const [stalled, setStalled] = useState(false);
+  // Bumped by Try again to run the boot load once more.
+  const [attempt, setAttempt] = useState(0);
   const [config, setConfig] = useState<FarviewConfig | null>(
     // A demo never reads the visitor's stored config; the standard demo starts unset.
     () => (session.kind === 'demo' ? session.demoConfig : loadStoredConfig()),
@@ -107,13 +118,42 @@ function ConnectedApp(props: { session: Session }) {
           location.reload();
           return;
         }
+        setReconnectFirst(suggestsReconnect(err));
         setLoadError('Could not reach Capacities right now.');
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [session]);
+  }, [session, attempt]);
+
+  // Nothing in the boot chain has a timeout of its own, so a request that
+  // stalls on a phone would leave "Reading the space…" up for good. After
+  // STALL_MS the recovery card is offered; the load keeps running and
+  // replaces the card if it finishes.
+  const waiting = boot === null;
+  useEffect(() => {
+    setStalled(false);
+    if (!waiting) return;
+    const timer = setTimeout(() => setStalled(true), STALL_MS);
+    return () => clearTimeout(timer);
+  }, [waiting, attempt]);
+
+  const retryLoad = (): void => {
+    setLoadError(null);
+    setReconnectFirst(false);
+    setAttempt((n) => n + 1);
+  };
+
+  const signOut = (): void => {
+    disconnect();
+    location.assign('/app/');
+  };
+
+  // The old credential stays until the callback saves the new one, so
+  // backing out of the Capacities consent screen leaves things as they were.
+  const reconnect = (): Promise<void> =>
+    connect({ editing: session.editingRequested });
 
   const resolved: ResolvedSchema | null = useMemo(
     () =>
@@ -188,11 +228,23 @@ function ConnectedApp(props: { session: Session }) {
           </aside>
         )}
         <main class="app-main">
-          {loadError && (
+          {loadError && boot && (
             <p class="notice">{loadError} Cached content may still be shown.</p>
           )}
-          {!boot ? (
-            <p class="loading">Reading the space…</p>
+          {!boot && (loadError || stalled) && session.kind === 'live' ? (
+            <ConnectionTrouble
+              stalled={!loadError}
+              reconnectFirst={reconnectFirst}
+              canReconnect={Boolean(CLIENT_ID)}
+              onRetry={retryLoad}
+              onReconnect={reconnect}
+              onDisconnect={signOut}
+            />
+          ) : !boot ? (
+            <>
+              {loadError && <p class="notice">{loadError}</p>}
+              <p class="loading">Reading the space…</p>
+            </>
           ) : !config || !resolved ? (
             <Settings
               session={session}

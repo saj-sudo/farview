@@ -199,3 +199,20 @@ export function isAuthLoss(err: unknown): boolean {
       (err.code === CapacitiesErrorCode.NotAuthenticated || err.status === 401))
   );
 }
+
+/**
+ * True when a failed load is more likely fixed by connecting again than by
+ * waiting: the auth losses above, plus refused access (403) or a token
+ * that lacks a scope. Used to choose which button the recovery card leads
+ * with. It never signs anyone out on its own.
+ */
+export function suggestsReconnect(err: unknown): boolean {
+  if (isAuthLoss(err)) return true;
+  return (
+    err instanceof CapacitiesApiError &&
+    (err.status === 403 || err.code === CapacitiesErrorCode.ScopeInsufficient)
+  );
+}
+
+/** How long the first load may run before the recovery card is offered. */
+export const STALL_MS = 20_000;
