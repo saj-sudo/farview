@@ -782,7 +782,7 @@ export function Settings(props: {
         </div>
       )}
 
-      <SettingsSection title="Connection" fold={fold}>
+      <SettingsSection title="Connection" fold={fold} openOnPhone>
       {props.session.kind === 'live' && (
         <div class="field">
           {props.session.editingRequested ? (

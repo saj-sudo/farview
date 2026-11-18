@@ -8,6 +8,17 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- **A way out when your space won't load.** If the first load from Capacities
+  failed, the app sat on "Reading the space…" with no way to reach Settings
+  or Disconnect. It now shows a card with Try again, Reconnect to Capacities
+  and Disconnect this browser. The same card appears after 20 seconds if the
+  load stalls, and goes away by itself if the load finishes. Refused access
+  (a 403 or a missing scope) leads with Reconnect; an outage or a dropped
+  network leads with Try again. Reconnecting keeps the old sign-in until the
+  new one is saved.
+- **Disconnect on a phone.** The Connection section of Settings now starts
+  open on a phone.
+
 - **Labels on the phone chart.** A label that does not fit inside its bar now
   sits on its own line just above the bar, inside the screen, and labels in a
   row no longer run into each other. On a wider screen, a label placed to the

@@ -278,6 +278,28 @@ a:hover {
   color: var(--ink-soft);
 }
 
+/* The way out when the first load fails or stalls. */
+.connection-trouble {
+  background: var(--ink2-tint);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  margin: 0.75rem 0;
+  max-width: 36rem;
+}
+
+.connection-trouble h2 {
+  margin-top: 0;
+  font-size: var(--text-md);
+}
+
+.connection-trouble-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.9rem 0 0.4rem;
+}
+
 .chip {
   display: inline-block;
   background: var(--ink1-tint);
