@@ -1,15 +1,14 @@
 import { dayNumber, formatMonthDay } from '../../engine/dates';
 import type { TimelineLayout, BarGeometry } from '../../engine/timeline/layout';
 import { AXIS_H } from '../../engine/timeline/layout';
-import { axisLabels, todayPill } from '../../engine/timeline/edges';
+import { axisLabels, todayLabel } from '../../engine/timeline/edges';
 import type { LocalDate, MilestoneItem, TimelineItem } from '../../engine/types';
 
 /**
- * Pure SVG rendering of a TimelineLayout. One strong element, the today
- * line, over a plain scene: alternating calendar bands, a hairline
+ * Pure SVG rendering of a TimelineLayout. A thin today line over a plain
+ * scene: alternating calendar bands, a hairline
  * grid, bars filled by elapsed time. The past sits under a single
- * veil rect instead of per-item styling, so everything left of now
- * (gridlines included) recedes together.
+ * veil rect behind the bars, so the grid left of now recedes together.
  */
 
 export type DragMode = 'move' | 'start' | 'end';
@@ -51,7 +50,8 @@ export function TimelineSvg(props: TimelineSvgProps) {
   };
 
   const veilEnd = clampX(layout.nowX);
-  const pill = todayPill(layout.nowX, layout.width);
+  const nowVisible = layout.nowX >= 0 && layout.nowX <= layout.width;
+  const today = todayLabel(layout.nowX, layout.width, `Today · ${formatMonthDay(props.today)}`);
 
   return (
     <svg
@@ -109,7 +109,7 @@ export function TimelineSvg(props: TimelineSvgProps) {
       {layout.lanes.map((lane, i) =>
         i === 0 ? null : (
           <line
-            key={`lane-${lane.group ?? ''}/${lane.subGroup ?? ''}`}
+            key={`lane-${lane.label}/${lane.group ?? ''}/${lane.subGroup ?? ''}`}
             x1={0}
             y1={lane.y}
             x2={layout.width}
@@ -118,6 +118,12 @@ export function TimelineSvg(props: TimelineSvgProps) {
             class={`tl-lane-line ${lane.firstOfGroup ? '' : 'is-sub'}`}
           />
         ),
+      )}
+
+      {/* The past veil sits under the bars: the grid behind now recedes, and
+          a label that crosses the today line stays one colour. */}
+      {veilEnd > 0 && (
+        <rect x={0} y={0} width={veilEnd} height={chartH} class="tl-veil" />
       )}
 
       {/* Bars, points, dots. */}
@@ -135,29 +141,23 @@ export function TimelineSvg(props: TimelineSvgProps) {
         />
       ))}
 
-      {/* The past veil: one rect, everything before now recedes at once. */}
-      {veilEnd > 0 && (
-        <rect x={0} y={0} width={veilEnd} height={chartH} class="tl-veil" />
-      )}
-
-      {/* The now-line: the signature element. */}
-      {layout.nowX >= 0 && layout.nowX <= layout.width && (
+      {/* Today: one thin line, named on the axis row. */}
+      {nowVisible && (
         <g class="tl-now">
-          <line x1={layout.nowX} y1={0} x2={layout.nowX} y2={chartH} class="tl-now-band" />
           <line x1={layout.nowX} y1={0} x2={layout.nowX} y2={chartH} class="tl-now-line" />
-          {chartH > 60 && (
-            <g class="tl-now-pill">
-              <rect x={pill.x} y={6} width={pill.w} height={20} rx={10} />
-              <text x={pill.textX} y={20}>
-                {`Today · ${formatMonthDay(props.today)}`}
-              </text>
-            </g>
-          )}
+          <text x={today.x} y={layout.height - 9} class="tl-now-label">
+            {today.text}
+          </text>
         </g>
       )}
 
-      {/* Axis labels, kept inside the chart and never on top of each other. */}
-      {axisLabels(layout.ticks.ticks, (day) => layout.scale.xOf(day), layout.width).map((label) => (
+      {/* Axis labels, kept inside the chart, off the today label and off each other. */}
+      {axisLabels(
+        layout.ticks.ticks,
+        (day) => layout.scale.xOf(day),
+        layout.width,
+        nowVisible ? [today.x, today.x + today.w] : undefined,
+      ).map((label) => (
         <text
           key={`ax-${label.index}`}
           x={label.x}
@@ -315,12 +315,7 @@ function Bar(props: {
       )}
 
       {bar.label.placement !== 'hidden' && (
-        <text
-          x={bar.label.x}
-          y={bar.label.placement === 'above' ? bar.y - 5 : cy + 4}
-          class={`tl-label ${bar.label.placement === 'inside' ? 'inside' : ''}`}
-          text-anchor={bar.label.placement === 'left' ? 'end' : 'start'}
-        >
+        <text x={bar.label.x} y={bar.y - 5} class="tl-label">
           {bar.label.text}
         </text>
       )}

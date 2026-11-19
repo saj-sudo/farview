@@ -23,18 +23,6 @@ export interface ItemCardProps {
   editableDates?: { start: boolean; target: boolean };
 }
 
-function elapsedSentence(item: TimelineItem, today: LocalDate): string | null {
-  if (item.start === null || item.target === null) return null;
-  const span = diffDays(item.target, item.start);
-  if (span <= 0) return null;
-  const elapsed = Math.min(span, Math.max(0, diffDays(today, item.start)));
-  if (span >= 120) {
-    const months = (n: number) => Math.round(n / 30.44);
-    return `${months(elapsed)} of ${months(span)} months elapsed`;
-  }
-  return `${elapsed} of ${span} days elapsed`;
-}
-
 export function ItemCard(props: ItemCardProps) {
   const { item, today } = props;
   const [wantMilestones, setWantMilestones] = useState(false);
@@ -82,9 +70,6 @@ export function ItemCard(props: ItemCardProps) {
                   }. Set a date here or in Capacities to pin it.`
                 : 'No dates yet'}
       </p>
-      {elapsedSentence(item, today) !== null && (
-        <p class="fineprint">{elapsedSentence(item, today)}</p>
-      )}
       {targetPassed !== null && (
         <p class="fineprint">
           Target passed {targetPassed === 1 ? 'a day' : `${targetPassed} days`} ago.

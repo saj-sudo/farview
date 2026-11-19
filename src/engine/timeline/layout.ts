@@ -1,7 +1,7 @@
 import { dayNumber } from '../dates';
 import type { LocalDate, TimelineItem } from '../types';
 import { assignGroupColors } from './colors';
-import { estTextWidth, packLanes, type Placed } from './lanes';
+import { CHAR_PX, estTextWidth, packLanes, type Placed } from './lanes';
 import { createScale, type Scale, type ViewState } from './scale';
 import { generateTicks, type TickSet } from './ticks';
 
@@ -18,7 +18,7 @@ export const TOUCH_BAR_H = 34;
 /** On a phone the lane names sit over the chart, so the today label gets its own strip. */
 export const TOUCH_TOP_PAD = 32;
 export const ROW_GAP = 8;
-/** With labels above bars (phones), each row gets a line for its labels. */
+/** Every row gets a line above its bars for their labels. */
 export const LABEL_ABOVE_H = 16;
 /** The overdue diamond drawn just past a bar's end, with its breathing room. */
 export const OVERDUE_MARK_W = 16;
@@ -28,9 +28,6 @@ export const AXIS_H = 30;
 export const TOP_PAD = 6;
 /** Bars narrower than this collapse to dots (decade-scale density). */
 export const DOT_THRESHOLD_PX = 6;
-/** Below this density labels hide except on wide bars. */
-export const LABEL_DENSITY_MIN = 0.35;
-export const LABEL_WIDE_BAR_PX = 120;
 
 export type BarKind = 'bar' | 'openEnded' | 'point' | 'dot';
 
@@ -53,11 +50,10 @@ export interface BarGeometry {
   derived: boolean;
   color: string;
   /**
-   * Where the title goes. 'above' sits on its own line just over the bar
-   * (phones), left-aligned at x. 'left' is anchored at its end, the rest at
-   * their start.
+   * Where the title goes: on its own line just over the bar, left-aligned
+   * at x. 'hidden' only when the bar is wholly off screen.
    */
-  label: { placement: 'inside' | 'right' | 'left' | 'above' | 'hidden'; text: string; x: number };
+  label: { placement: 'above' | 'hidden'; text: string; x: number };
 }
 
 export interface LaneGeometry {
@@ -97,22 +93,12 @@ export interface LayoutOptions {
   barHeight?: number;
   /** Space above the first lane. A phone needs room for the today label. */
   topPad?: number;
-  /**
-   * Put a label that does not fit inside its bar on its own line just above
-   * the bar, kept inside the chart. Used on phones, where a label beside a
-   * bar runs off the narrow screen.
-   */
-  labelsAbove?: boolean;
 }
 
 const GOALS_LANE = '__goals__';
 
-interface LabelRules {
-  above: boolean;
-}
-
 function truncate(text: string, px: number): string {
-  const max = Math.floor((px - 8) / 6.4);
+  const max = Math.floor((px - 8) / CHAR_PX);
   if (text.length <= max) return text;
   if (max <= 1) return '…';
   return `${text.slice(0, Math.max(1, max - 1)).trimEnd()}…`;
@@ -127,13 +113,12 @@ export function layoutTimeline(
   const ticks = generateTicks(scale.startDay, scale.endDay, scale.pxPerDay);
   const todayDay = dayNumber(opts.today);
   const nowX = scale.xOf(todayDay);
-  const rules: LabelRules = { above: opts.labelsAbove === true };
-  const labelLine = rules.above ? LABEL_ABOVE_H : 0;
+  const labelLine = LABEL_ABOVE_H;
 
   // Rows are packed by what each item really covers on screen: its bar,
   // its marks and its label, on whichever side the label lands.
   const span = (p: Placed): { start: number; end: number } => {
-    const geom = barGeometry(p, scale, todayDay, 0, '', barH, rules);
+    const geom = barGeometry(p, scale, todayDay, 0, '', barH);
     if (!geom) return { start: p.effStart, end: p.effEnd };
     const [left, right] = occupiedPx(geom);
     return { start: scale.dayAt(left), end: scale.dayAt(right) };
@@ -178,7 +163,7 @@ export function layoutTimeline(
     for (const row of lane.rows) {
       y += labelLine;
       for (const placed of row) {
-        const bar = barGeometry(placed, scale, todayDay, y, color, barH, rules);
+        const bar = barGeometry(placed, scale, todayDay, y, color, barH);
         if (bar) bars.push(bar);
       }
       y += barH + ROW_GAP;
@@ -224,7 +209,6 @@ function barGeometry(
   y: number,
   color: string,
   barH: number,
-  rules: LabelRules,
 ): BarGeometry | null {
   const { item, startDay, targetDay, effStart, effEnd, usesDerived } = placed;
 
@@ -289,24 +273,18 @@ function barGeometry(
   let labelX: number;
   let text = item.title;
   if (
-    (scale.pxPerDay < LABEL_DENSITY_MIN && w < LABEL_WIDE_BAR_PX) ||
     // A bar wholly off screen keeps its label off screen too.
     markRight < 0 ||
     markLeft > viewW
   ) {
     placement = 'hidden';
     labelX = x;
-  } else if (rules.above) {
-    // Inside when it fits in the part of the bar on screen, else on its own
-    // line above the bar, slid left only as far as it takes to fit.
-    const insideX = Math.max(x + 8, 4);
-    const insideRoom = Math.min(x + w, viewW) - insideX - 4;
+  } else {
+    // On its own line above the bar, never inside a pale fill, slid left
+    // only as far as it takes to stay in the chart.
     const right = viewW - 4;
     const aboveX = Math.max(4, Math.min(x, right - labelW));
-    if (kind === 'bar' && insideRoom >= labelW) {
-      placement = 'inside';
-      labelX = insideX;
-    } else if (right - aboveX >= 24) {
+    if (right - aboveX >= 24) {
       placement = 'above';
       labelX = aboveX;
       text = truncate(text, right - aboveX);
@@ -314,19 +292,6 @@ function barGeometry(
       placement = 'hidden';
       labelX = x;
     }
-  } else if (kind === 'bar' && w >= labelW + 16) {
-    placement = 'inside';
-    labelX = x + 8;
-    text = truncate(text, w - 12);
-  } else if (markRight <= viewW - 40) {
-    // Past the bar and past the overdue diamond, so the two never touch.
-    placement = 'right';
-    labelX = markRight + 6;
-    text = truncate(text, 220);
-  } else {
-    placement = 'left';
-    labelX = markLeft - 6;
-    text = truncate(text, 220);
   }
 
   return {
@@ -360,9 +325,8 @@ export function markExtent(bar: Pick<BarGeometry, 'kind' | 'x' | 'w' | 'overdue'
 /** The estimated box a bar's label takes, as [left, right] px; null when it draws none outside the bar. */
 export function labelBox(bar: Pick<BarGeometry, 'label'>): [number, number] | null {
   const { placement, text, x } = bar.label;
-  if (placement === 'hidden' || placement === 'inside') return null;
-  const w = estTextWidth(text);
-  return placement === 'left' ? [x - w, x] : [x, x + w];
+  if (placement === 'hidden') return null;
+  return [x, x + estTextWidth(text)];
 }
 
 /** Everything a bar covers on its row: bar, marks and outside label. */

@@ -96,9 +96,24 @@ From the code audit of 2026-11-18:
 | Stage | State | Link | Date |
 |---|---|---|---|
 | Review of the running app | Done | this file | 2026-11-18 |
-| Mockup | Not started. Farview is fifth in the order | | |
-| Saj picks a direction | Waiting on the mockup | | |
-| Build and pull request | Not started | | |
+| Mockup | Published, timeline only: today's Decade zoom beside the far view | https://claude.ai/artifact/1MkefyeDo3Ehnii4zR3TTs | 2026-11-19 |
+| Saj picks a direction | Done. A: the far view as drawn, replacing Decade. Thin today line on every zoom | | 2026-11-19 |
+| Build and pull request | In review | https://github.com/saj-sudo/farview/pull/15 | 2026-11-19 |
+| Identity mockup (sidebar, banner, palette) | Done. Saj picked A, Horizon | https://claude.ai/artifact/FcLccUWjmVpTjTqxLJo4S6 | 2026-11-19 |
+| Identity build | In review, in the same pull request | https://github.com/saj-sudo/farview/pull/15 | 2026-11-19 |
+
+Notes from the build, 2026-11-19:
+
+- Typeface: Instrument Sans, self-hosted, picked in the build at Saj's request.
+- First content on a 390 by 844 phone, with the Horizon top bar: 73px on Horizons, 114px to the
+  chart and 144px to the first item on the timeline (424px and 650px before the redesign).
+- Horizon: no sidebar, navigation on one ink line, cool neutrals, blue-grey haze for distance.
+  The chart is 1290px wide on a 1440px screen (1110px before).
+- Date inputs and "+ Action" on item detail were already shown only with editing on. The demo
+  runs with editing on, which is why the review saw them.
+- Shared with Yesteryear and not mirrored from here: `font-src 'self'` in the CSP,
+  `viewport-fit=cover`, and the landing page's `/app/#demo` link. The token names are still
+  shared; the values now differ, so the two apps no longer look alike.
 
 ## Starting a session on this build
 

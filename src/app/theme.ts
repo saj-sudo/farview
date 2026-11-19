@@ -10,7 +10,7 @@ import { useEffect, useState } from 'preact/hooks';
 export type ThemeChoice = 'system' | 'light' | 'dark';
 
 export const THEME_KEY = 'farview.theme';
-export const THEME_COLORS = { light: '#ffffff', dark: '#1b1a1e' } as const;
+export const THEME_COLORS = { light: '#f5f8f9', dark: '#0e1920' } as const;
 
 export function parseTheme(value: string | null): ThemeChoice {
   return value === 'light' || value === 'dark' ? value : 'system';
@@ -20,6 +20,17 @@ export function parseTheme(value: string | null): ThemeChoice {
 export function themeAttribute(choice: ThemeChoice): 'light' | 'dark' | null {
   return choice === 'system' ? null : choice;
 }
+
+/** The order the top bar's button steps through. */
+export function nextTheme(choice: ThemeChoice): ThemeChoice {
+  return choice === 'system' ? 'light' : choice === 'light' ? 'dark' : 'system';
+}
+
+export const THEME_LABELS: Record<ThemeChoice, string> = {
+  system: 'Auto',
+  light: 'Light',
+  dark: 'Dark',
+};
 
 export function readTheme(): ThemeChoice {
   try {

@@ -6,22 +6,29 @@ import type { Tick } from './ticks';
  * so the rules are tested here rather than in the DOM.
  */
 
-export const PILL_W = 92;
 export const PILL_MARGIN = 2;
 
 /**
- * Where the today pill sits. The line stays at nowX; the pill slides to stay
- * inside [2, width - 94] and its text centres on the pill.
+ * The plain "Today" label that sits on the axis row beside the today line.
+ * It starts 5px right of the line and flips to the left when it would run
+ * off the chart.
  */
-export function todayPill(nowX: number, width: number): { x: number; w: number; textX: number } {
-  const max = Math.max(PILL_MARGIN, width - PILL_W - PILL_MARGIN);
-  const x = Math.min(max, Math.max(PILL_MARGIN, nowX - PILL_W / 2));
-  return { x, w: PILL_W, textX: x + PILL_W / 2 };
+export function todayLabel(
+  nowX: number,
+  width: number,
+  text: string,
+): { x: number; w: number; text: string } {
+  // Bold at the smallest text size: about 6.7px a character, measured.
+  const w = text.length * 7.2 + 4;
+  let x = nowX + 5;
+  if (x + w > width - PILL_MARGIN) x = nowX - 5 - w;
+  x = Math.min(Math.max(PILL_MARGIN, width - w - PILL_MARGIN), Math.max(PILL_MARGIN, x));
+  return { x, w, text };
 }
 
-/** Estimated width of an axis label: major ticks are 11px bold, minor 10px. */
+/** Estimated width of an axis label at the smallest text size: majors are bold. */
 export function axisLabelWidth(label: string, level: Tick['level']): number {
-  return label.length * (level === 'major' ? 7 : 6) + 2;
+  return label.length * (level === 'major' ? 7.8 : 7.2) + 2;
 }
 
 export interface AxisLabel {
@@ -42,6 +49,8 @@ export function axisLabels(
   ticks: readonly Tick[],
   xOf: (day: number) => number,
   width: number,
+  /** A stretch of the axis row already taken (the today label): labels touching it drop. */
+  avoid?: readonly [number, number],
 ): AxisLabel[] {
   const gap = 6;
   const candidates = ticks
@@ -56,6 +65,7 @@ export function axisLabels(
     const w = axisLabelWidth(tick.label, tick.level);
     if (w + 2 * PILL_MARGIN > width) continue;
     const x = Math.min(width - w - PILL_MARGIN, Math.max(PILL_MARGIN, tx + 4));
+    if (avoid && x < avoid[1] + gap && x + w > avoid[0] - gap) continue;
     const label: AxisLabel = { label: tick.label, level: tick.level, x, w, index };
     const prev = out[out.length - 1];
     if (prev && x < prev.x + prev.w + gap) {

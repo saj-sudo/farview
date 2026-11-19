@@ -52,7 +52,7 @@ describe('scale', () => {
 
   it('clamps free zoom and wandering pans', () => {
     expect(clampZoom(1)).toBe(28);
-    expect(clampZoom(1e9)).toBe(36530);
+    expect(clampZoom(1e9)).toBe(1461);
     const view = { centerDay: TODAY_DAY + 99999, daysVisible: 365 };
     const clamped = clampView(view, { minDay: TODAY_DAY - 10, maxDay: TODAY_DAY + 10 });
     expect(clamped.centerDay).toBe(TODAY_DAY + 10 + 365);
@@ -62,8 +62,9 @@ describe('scale', () => {
     expect(presetFor(91)).toBe('quarter');
     expect(presetFor(400)).toBe('year');
     expect(presetFor(1000)).toBe('threeYears');
-    expect(presetFor(3000)).toBe('decade');
-    expect(presetFor(20000)).toBe('decade');
+    // Nothing linear is wider than three years: the far view takes over there.
+    expect(presetFor(3000)).toBe('threeYears');
+    expect(ZOOM_PRESETS.map((p) => p.id)).toEqual(['quarter', 'year', 'threeYears']);
   });
 });
 

@@ -5,7 +5,7 @@
     var choice = localStorage.getItem('farview.theme');
     if (choice !== 'light' && choice !== 'dark') return;
     document.documentElement.setAttribute('data-theme', choice);
-    var color = choice === 'dark' ? '#1b1a1e' : '#ffffff';
+    var color = choice === 'dark' ? '#0e1920' : '#f5f8f9';
     var metas = document.querySelectorAll('meta[name="theme-color"]');
     for (var i = 0; i < metas.length; i++) {
       metas[i].setAttribute('data-system', metas[i].getAttribute('content') || '');

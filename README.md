@@ -4,7 +4,7 @@
 
 **See your goals across time, in Capacities.**
 
-![The Farview timeline on the synthetic Saltmarsh Boatyard demo: lanes of teal and sunflower bars grouped by pillar and area, a sunflower band with an ink line marking today, and small flags for goals. A banner at the top says the space is made up.](docs/timeline.png)
+![The Farview timeline on the synthetic Saltmarsh Boatyard demo: lanes of teal and sunflower bars grouped by pillar and area, each named above its bar, a thin ink line marking today, and small flags for goals. A chip in the top bar says the space is made up.](docs/timeline.png)
 
 > **Disclaimer:** Farview is an independent community tool. It is not affiliated with, endorsed by, or sponsored by Capacities. Capacities is a trademark of its respective owners.
 
@@ -74,7 +74,7 @@ If your space links things together, like a project pointing at its goal or a go
 - **A goal or project with no dates of its own** takes its span from its dated children. It shows as a dashed outline, labelled as derived, and goes away once you give it real dates.
 - With editing on, **+ Project and + Action on a detail page** create children that are already linked to that item.
 
-![A project's detail page: a breadcrumb up to its goal, its dates and progress counts, and a small timeline of its own actions.](docs/detail.png)
+![A project's detail page: a breadcrumb up to its goal, its dates, how many actions it holds, and a small timeline of its own actions.](docs/detail.png)
 
 ## Seeing the load, and saving the view
 
@@ -87,7 +87,7 @@ If your space links things together, like a project pointing at its goal or a go
 - Dragging never moves a date on a phone. Type dates on the card instead.
 - Add the site to your home screen and it opens in its own window.
 
-A switch in the sidebar (under Display in Settings on a phone) sets light, dark or automatic.
+A button in the top bar steps through automatic, light and dark. Display in Settings has all three.
 
 ## What you need in Capacities
 
@@ -103,7 +103,7 @@ Farview needs one object type whose objects have a date, such as a Project type 
 2. Tick what Farview found in your space, such as "Your projects are Project". If it can't tell, or you pick **Set it up by hand**, choose your project type and its date properties. The preview shows your own timeline as you go.
 3. Open the timeline. The timeline and Horizons views use the same data, on desktop and on phone. Goals, milestones and up to two levels of grouping are optional, and live under **More options** in Settings.
 
-![The first screen on a synthetic space: "Your projects are Project", ticked, with its start, target and status properties, and a button that opens the timeline.](docs/setup.png)
+![The first screen on a synthetic space: the timeline drawn from what Farview found, a button that opens it, and "Looks wrong? Adjust" beneath.](docs/setup.png)
 
 You don't need an account to look around: **Try the demo** runs on a made-up space, entirely in your tab.
 

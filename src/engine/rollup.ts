@@ -48,22 +48,17 @@ export function rollupFacts(
   };
 }
 
-/** "1 of 2 projects completed · 2 of 6 actions done": facts, or null. */
+/**
+ * What an item holds, as plain counts. No "N of M done": a count of finished
+ * work set against the total is percent complete in sentence form.
+ */
 export function factSentence(facts: RollupFacts): string | null {
   const parts: string[] = [];
   if (facts.projectsTotal > 0) {
-    parts.push(
-      `${facts.projectsDone} of ${facts.projectsTotal} project${
-        facts.projectsTotal === 1 ? '' : 's'
-      } completed`,
-    );
+    parts.push(`${facts.projectsTotal} project${facts.projectsTotal === 1 ? '' : 's'}`);
   }
   if (facts.actionsTotal > 0) {
-    parts.push(
-      `${facts.actionsDone} of ${facts.actionsTotal} action${
-        facts.actionsTotal === 1 ? '' : 's'
-      } done`,
-    );
+    parts.push(`${facts.actionsTotal} action${facts.actionsTotal === 1 ? '' : 's'}`);
   }
   return parts.length > 0 ? parts.join(' · ') : null;
 }

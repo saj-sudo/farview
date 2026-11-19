@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { dayNumber, diffDays, formatLocalDate } from '../../engine/dates';
+import { dayNumber, formatLocalDate } from '../../engine/dates';
 import type { ResolvedSchema } from '../../engine/resolve';
 import { deriveSpan, factSentence, rollupFacts } from '../../engine/rollup';
 import { layoutTimeline } from '../../engine/timeline/layout';
@@ -203,16 +203,6 @@ export function ItemDetail(props: {
     ...(actions ?? []).filter((a) => a.start === null && a.target === null),
   ];
 
-  const elapsed = (): string | null => {
-    if (item.start === null || item.target === null) return null;
-    const span = diffDays(item.target, item.start);
-    if (span <= 0) return null;
-    const done = Math.min(span, Math.max(0, diffDays(props.today, item.start)));
-    return span >= 120
-      ? `${Math.round(done / 30.44)} of ${Math.round(span / 30.44)} months elapsed`
-      : `${done} of ${span} days elapsed`;
-  };
-
   const canAddAction =
     props.edit !== null &&
     props.resolved.types.action !== undefined &&
@@ -268,7 +258,6 @@ export function ItemDetail(props: {
                       } → ${selfDerived.target ? formatLocalDate(selfDerived.target) : '…'}`
                     : 'No dates yet'}
           </p>
-          {elapsed() && <p class="fineprint">{elapsed()}</p>}
           {facts && <p class="fineprint detail-facts">{facts}</p>}
           <p class="tl-card-open">
             <a

@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import timelineShot from '../../docs/timeline.png';
-import decadeShot from '../../docs/decade.png';
+import farViewShot from '../../docs/far-view.png';
 import phoneTimelineShot from '../../docs/phone-timeline.png';
 import phoneHorizonsShot from '../../docs/phone-horizons.png';
 
@@ -29,7 +29,7 @@ function Landing() {
         <a class="cta" href="/app/">
           Open Farview
         </a>
-        <a class="cta-secondary" href="/app/">
+        <a class="cta-secondary" href="/app/#demo">
           Try the demo (no account needed)
         </a>
       </p>
@@ -40,7 +40,7 @@ function Landing() {
           width={1280}
           height={880}
           loading="lazy"
-          alt="The Farview timeline for a synthetic boatyard: lanes of teal and sunflower bars, a sunflower band marking today, and small flags for goals."
+          alt="The Farview timeline for a synthetic boatyard: lanes of teal and sunflower bars named above each bar, a thin line marking today, and small flags for goals."
         />
       </picture>
 
@@ -113,7 +113,11 @@ function Landing() {
 
       <h2>From this quarter to the next decade</h2>
       <ul>
-        <li>Zoom between a quarter, a year, three years and a decade.</li>
+        <li>Zoom between a quarter, a year and three years.</li>
+        <li>
+          The far view keeps the next quarter wide and still reaches ten years
+          out, with every item named.
+        </li>
         <li>
           A bar fills as time passes, so you can see how much of its window is
           used up.
@@ -126,11 +130,11 @@ function Landing() {
       <picture>
         <source media={PHONE} srcset={phoneHorizonsShot} width={824} height={1678} />
         <img
-          src={decadeShot}
+          src={farViewShot}
           width={1280}
           height={800}
           loading="lazy"
-          alt="Farview's longer views: on a wide screen the decade zoom with year bands and short bars, on a phone the Horizons columns from Now to Long."
+          alt="Farview's longer views: on a wide screen the far view with goals as flags and their projects beneath, on a phone the Horizons columns from Now to Long."
         />
       </picture>
 

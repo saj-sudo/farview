@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { dayNumber } from '../../../src/engine/dates';
-import { estTextWidth, packLanes, place } from '../../../src/engine/timeline/lanes';
+import { CHAR_PX,
+  estTextWidth, packLanes, place } from '../../../src/engine/timeline/lanes';
 import type { LocalDate, TimelineItem } from '../../../src/engine/types';
 
 const TODAY = '2026-08-25' as LocalDate;
@@ -159,6 +160,8 @@ describe('packLanes', () => {
   });
 
   it('estimates label width by character count', () => {
-    expect(estTextWidth('abcde')).toBeCloseTo(5 * 6.4 + 8);
+    expect(estTextWidth('abcde')).toBeCloseTo(5 * 6.2 + 8);
+    // Wider than the measured average in Instrument Sans (5.7px regular, 5.8px semibold at 12px).
+    expect(CHAR_PX).toBeGreaterThan(5.8);
   });
 });

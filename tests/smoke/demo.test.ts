@@ -62,7 +62,11 @@ async function watch(page: Page): Promise<string[]> {
  */
 async function timelineSettled(page: Page): Promise<void> {
   await page.locator('svg.tl-svg').waitFor();
-  await page.locator('.refresh-bar .fineprint', { hasText: /^[1-9]\d* items placed/ }).waitFor();
+  // On a phone the line is off the page (it lives in the View sheet), so wait for it to exist.
+  await page
+    .locator('.refresh-bar .fineprint', { hasText: /^[1-9]\d* items placed/ })
+    .first()
+    .waitFor({ state: 'attached' });
 }
 
 describe.each(VIEWPORTS)('on $name', (viewport) => {
@@ -92,22 +96,100 @@ describe.each(VIEWPORTS)('on $name', (viewport) => {
   });
 });
 
-it('opens the chart on a phone, taps a bar and goes to the list and back', async () => {
+it('opens New as a modal dialog, and Escape hands focus back', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await timelineSettled(page);
+  const opener = page.getByRole('button', { name: '+ New', exact: true });
+  await opener.click();
+  const dialog = page.getByRole('dialog');
+  await dialog.waitFor();
+  expect(await dialog.evaluate((el) => (el as HTMLDialogElement).matches(':modal'))).toBe(true);
+  expect(await violationsOn(page)).toEqual([]);
+  await page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'detached' });
+  expect(await opener.evaluate((el) => el === document.activeElement)).toBe(true);
+  // The keys are said on screen, and the current view is marked in the nav.
+  expect(await page.locator('.tl-keys').isVisible()).toBe(true);
+  expect(await page.getByRole('link', { name: 'Timeline' }).getAttribute('aria-current')).toBe('page');
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
+it('goes from the landing page into the demo in one click', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  await page.getByRole('link', { name: /Try the demo/ }).first().click();
+  await timelineSettled(page);
+  expect(await page.locator('.demo-chip').isVisible()).toBe(true);
+  // The fragment is spent, so a reload does not depend on it.
+  expect(await page.evaluate(() => location.hash)).not.toBe('#demo');
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
+it('opens on Horizons on a phone, with content near the top and the nav at the bottom', async () => {
   const page = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
   const problems = await watch(page);
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  // The chart is the default on a phone.
+  const first = page.locator('.hz-column').first();
+  await first.waitFor();
+  // Measure once the load has settled. Before it starts, the count reads 0 and
+  // the empty-space card sits above the columns for a moment.
+  await page
+    .locator('.refresh-bar .fineprint', { hasText: /^[1-9]\d* items placed/ })
+    .first()
+    .waitFor({ state: 'attached' });
+  await page.locator('.hz-card, .hz-goal').first().waitFor();
+  expect(await page.locator('.horizons-view .setup-card').count()).toBe(0);
+  expect((await first.boundingBox())!.y).toBeLessThan(250);
+  expect(await page.getByRole('link', { name: 'Horizons' }).getAttribute('aria-current')).toBe('page');
+  const nav = (await page.getByRole('navigation', { name: 'Views' }).boundingBox())!;
+  expect(nav.y + nav.height).toBeCloseTo(VIEWPORTS[0]!.height, 0);
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
+it('keeps the phone chart near the top, with its controls in one sheet', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await page.evaluate(() => {
+    location.hash = '#/timeline';
+  });
   await page.locator('svg.tl-svg').waitFor();
+  // First content above 250px: the chart and its first item.
+  expect((await page.locator('svg.tl-svg').boundingBox())!.y).toBeLessThan(250);
+  expect((await page.locator('g.tl-item').first().boundingBox())!.y).toBeLessThan(250);
+  // The controls are behind one button.
+  expect(await page.getByRole('button', { name: 'Chart', exact: true }).isVisible()).toBe(false);
+  expect(await page.locator('.refresh-bar .fineprint').first().isVisible()).toBe(false);
+  await page.locator('g.tl-item').first().click({ force: true });
+  await page.waitForTimeout(300);
+  const view = page.getByRole('button', { name: 'View', exact: true });
+  await view.click();
   expect(await page.getByRole('button', { name: 'Chart', exact: true }).getAttribute('aria-pressed')).toBe('true');
   // Saving a file stays on the desktop toolbar.
   expect(await page.getByRole('button', { name: 'Save as SVG', exact: true }).isVisible()).toBe(false);
-  await page.locator('g.tl-item').first().click({ force: true });
-  await page.waitForTimeout(300);
+  expect(await page.getByRole('button', { name: 'Refresh', exact: true }).isVisible()).toBe(true);
+  await page.getByRole('button', { name: 'Far view', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.locator('svg.fv-svg').waitFor();
+  expect((await page.locator('svg.fv-svg .tl-item').first().boundingBox())!.y).toBeLessThan(250);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(VIEWPORTS[0]!.width);
+  await view.click();
   await page.getByRole('button', { name: 'List', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.waitForTimeout(300);
   expect(await page.locator('svg.tl-svg').count()).toBe(0);
+  await view.click();
   await page.getByRole('button', { name: 'Chart', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.locator('svg.tl-svg').waitFor();
   await page.close();
   expect(problems).toEqual([]);
@@ -163,9 +245,21 @@ describe.each(['light', 'dark'] as const)('accessibility in %s', (colorScheme) =
       await page.evaluate(() => {
         location.hash = '#/timeline';
       });
-      await page.getByRole('button', { name: 'Chart', exact: true }).click();
       await page.locator('svg.tl-svg').waitFor();
       problems.push(...(await violationsOn(page)).map((v) => `phone timeline: ${v}`));
+      await page.getByRole('button', { name: 'View', exact: true }).click();
+      problems.push(...(await violationsOn(page)).map((v) => `phone view sheet: ${v}`));
+      await page.getByRole('button', { name: 'Far view', exact: true }).click();
+      await page.getByRole('button', { name: 'Done', exact: true }).click();
+      await page.locator('svg.fv-svg').waitFor();
+      problems.push(...(await violationsOn(page)).map((v) => `phone far view: ${v}`));
+    } else {
+      await page.evaluate(() => {
+        location.hash = '#/timeline';
+      });
+      await page.getByRole('button', { name: 'Far view', exact: true }).click();
+      await page.locator('svg.fv-svg').waitFor();
+      problems.push(...(await violationsOn(page)).map((v) => `far view: ${v}`));
     }
     await page.close();
     expect(problems).toEqual([]);
@@ -176,7 +270,11 @@ it('moves the theme choice with the arrow keys and keeps one option in the tab o
   const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await page.evaluate(() => {
+    location.hash = '#/settings';
+  });
   const radio = (name: string) => page.getByRole('radio', { name, exact: true });
+  await radio('Auto').waitFor();
   await radio('Auto').focus();
   await page.keyboard.press('ArrowRight');
   expect(await radio('Light').getAttribute('aria-checked')).toBe('true');
@@ -191,13 +289,14 @@ it('moves the theme choice with the arrow keys and keeps one option in the tab o
   await page.close();
 });
 
-it('shows one theme choice at either size, in Settings on a phone', async () => {
+it('keeps the full theme choice in Settings and a quick button in the top bar', async () => {
   const visible = (page: Page) => page.locator('.theme-choice:visible').count();
   const phone = await browser.newPage({ viewport: VIEWPORTS[0]! });
   await phone.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await phone.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  await phone.locator('svg.tl-svg').waitFor();
-  expect(await visible(phone)).toBe(0); // no copy in the footer any more
+  await phone.locator('.hz-column').first().waitFor();
+  expect(await visible(phone)).toBe(0);
+  expect(await phone.locator('.theme-cycle').isVisible()).toBe(false); // the phone's bar stays slim
   await phone.evaluate(() => {
     location.hash = '#/settings';
   });
@@ -217,15 +316,58 @@ it('shows one theme choice at either size, in Settings on a phone', async () => 
   await phone.close();
 
   const desk = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(desk);
   await desk.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await desk.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  expect(await visible(desk)).toBe(1);
+  await timelineSettled(desk);
+  expect(await visible(desk)).toBe(0);
+  // The button names the theme and steps Auto, Light, Dark, Auto.
+  const cycle = desk.locator('.theme-cycle');
+  expect(await cycle.innerText()).toBe('Auto');
+  await cycle.click();
+  expect(await cycle.innerText()).toBe('Light');
+  expect(await desk.evaluate(() => document.documentElement.dataset['theme'])).toBe('light');
+  await cycle.click();
+  expect(await desk.evaluate(() => document.documentElement.dataset['theme'])).toBe('dark');
+  await cycle.click();
+  expect(await desk.evaluate(() => document.documentElement.dataset['theme'])).toBeUndefined();
   await desk.evaluate(() => {
     location.hash = '#/settings';
   });
   await desk.getByRole('heading', { name: 'Display', exact: true }).waitFor();
   expect(await visible(desk)).toBe(1);
   await desk.close();
+  expect(problems).toEqual([]);
+});
+
+it('puts navigation on a top bar, gives the chart the width, and lets the demo be left', async () => {
+  const desk = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(desk);
+  await desk.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await desk.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await timelineSettled(desk);
+  const nav = (await desk.getByRole('navigation', { name: 'Views' }).boundingBox())!;
+  expect(nav.y + nav.height).toBeLessThan(70);
+  // No sidebar: the chart takes all but the page's gutters.
+  const chart = (await desk.locator('.tl-wrap').boundingBox())!;
+  expect(chart.width).toBeGreaterThan(VIEWPORTS[1]!.width - 80);
+  const chip = desk.locator('.demo-chip');
+  expect(await chip.innerText()).toContain('Made-up space: Saltmarsh Boatyard');
+  await chip.getByRole('button', { name: 'leave', exact: true }).click();
+  await desk.getByRole('button', { name: 'Try the demo', exact: true }).waitFor();
+  await desk.close();
+
+  // On a phone the chip shortens and the way out is still there.
+  const phone = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
+  await phone.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await phone.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await phone.locator('.hz-column').first().waitFor();
+  expect((await phone.locator('.demo-chip').innerText()).replace(/\s+/g, ' ')).toBe('Made-up space leave');
+  expect(await phone.evaluate(() => document.documentElement.scrollWidth)).toBe(VIEWPORTS[0]!.width);
+  await phone.locator('.demo-chip').getByRole('button', { name: 'leave', exact: true }).click();
+  await phone.getByRole('button', { name: 'Try the demo', exact: true }).waitFor();
+  await phone.close();
+  expect(problems).toEqual([]);
 });
 
 it('focuses on one pillar, remembers it and brings the others back', async () => {
@@ -317,10 +459,29 @@ describe.each(['light', 'dark'] as const)('first setup in %s', (colorScheme) => 
     await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
     await page.getByText('More demos', { exact: true }).click();
     await page.getByRole('button', { name: STANDARD, exact: true }).click();
+    // The timeline is drawn from the detected mapping before anything is asked.
+    await page.getByRole('heading', { name: 'Your timeline, drawn from what is in your space' }).waitFor();
+    await page.locator('.setup-drawn g.tl-item').first().waitFor();
+    expect(await page.getByRole('heading', { name: 'Start with what is in your space' }).isVisible()).toBe(false);
+    expect(await violationsOn(page)).toEqual([]);
+    await page.getByText('Looks wrong? Adjust', { exact: true }).click();
     await page.getByRole('heading', { name: 'Start with what is in your space' }).waitFor();
     expect(await violationsOn(page)).toEqual([]);
     await page.close();
   });
+});
+
+it('opens the timeline in one click from the drawn first setup', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByText('More demos', { exact: true }).click();
+  await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByRole('button', { name: 'Open the timeline', exact: true }).click();
+  await timelineSettled(page);
+  await page.locator('g.tl-item').nth(3).waitFor();
+  await page.close();
+  expect(problems).toEqual([]);
 });
 
 it('opens the timeline with one tick on a standard setup', async () => {
@@ -329,6 +490,7 @@ it('opens the timeline with one tick on a standard setup', async () => {
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByText('More demos', { exact: true }).click();
     await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByText('Looks wrong? Adjust', { exact: true }).click();
   const projects = page.getByRole('checkbox', { name: /Your projects are “Project”/ });
   expect(await projects.isChecked()).toBe(true); // a name it knows starts ticked
   await page.getByRole('button', { name: 'Use these and open the timeline', exact: true }).click();
@@ -343,6 +505,7 @@ it('shows the form when the offer is set aside', async () => {
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByText('More demos', { exact: true }).click();
     await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByText('Looks wrong? Adjust', { exact: true }).click();
   await page.getByRole('button', { name: 'Set it up by hand', exact: true }).click();
   await page.getByRole('heading', { name: 'Map your space' }).waitFor();
   // The required part is open; goals, actions, grouping and display are folded away.
@@ -365,10 +528,15 @@ it('shows how many projects are active each month, and follows the zoom', async 
   const strip = page.locator('svg.load-svg');
   expect(await strip.getAttribute('aria-label')).toMatch(/^Projects active each month, from \d+ to \d+/);
   expect(await strip.locator('title').count()).toBeGreaterThan(2);
-  // A decade is too wide for months to say anything, so the strip steps aside.
-  await page.getByRole('button', { name: 'Decade', exact: true }).click();
-  await page.waitForTimeout(500);
+  // The far view has no even months for the strip to line up with, so it steps aside.
+  await page.getByRole('button', { name: 'Far view', exact: true }).click();
+  await page.waitForTimeout(300);
   expect(await page.locator('svg.load-svg').count()).toBe(0);
+  // Every item in the far view carries its name.
+  const items = page.locator('svg.fv-svg .tl-item');
+  expect(await items.count()).toBeGreaterThan(10);
+  expect(await page.locator('svg.fv-svg .tl-item text.tl-label').count()).toBe(await items.count());
+  expect(await page.locator('svg.fv-svg').textContent()).toContain('Circumnavigate');
   await page.close();
   expect(problems).toEqual([]);
 });

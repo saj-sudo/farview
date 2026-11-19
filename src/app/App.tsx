@@ -14,15 +14,17 @@ import { loadCollectionTags } from '../pipeline/load';
 import type { FarviewConfig, LocalDate } from '../engine/types';
 import { loadStoredConfig, saveStoredConfig } from './configStore';
 import { useEditActions, type EditActions } from './edits';
-import { Icon } from './components/Icon';
-import { ThemeChoice } from './components/ThemeChoice';
+import { ThemeCycle } from './components/ThemeChoice';
+import { openingView, pullArmed } from './phoneView';
 import { HASH_FOR, useView, type View } from './router';
+import { usePullToRefresh } from './usePullToRefresh';
 import {
   CLIENT_ID,
   connect,
   createSession,
   disconnect,
   endDemo,
+  enterDemoFromLink,
   isAuthLoss,
   STALL_MS,
   suggestsReconnect,
@@ -55,14 +57,16 @@ export interface Boot {
   collectionTags: CollectionTags;
 }
 
-const NAV: { view: View; label: string; icon: string }[] = [
-  { view: 'timeline', label: 'Timeline', icon: 'timeline' },
-  { view: 'horizons', label: 'Horizons', icon: 'horizons' },
-  { view: 'settings', label: 'Settings', icon: 'settings' },
+const NAV: { view: View; label: string }[] = [
+  { view: 'timeline', label: 'Timeline' },
+  { view: 'horizons', label: 'Horizons' },
+  { view: 'settings', label: 'Settings' },
 ];
 
 export function App() {
   const [tick, setTick] = useState(0);
+  // Arriving by the landing page's demo link starts the demo before the first session is read.
+  useState(enterDemoFromLink);
   const session = useMemo(createSession, [tick]);
   if (!session) {
     return <Connect onDemo={() => setTick((t) => t + 1)} onConnected={() => setTick((t) => t + 1)} />;
@@ -84,7 +88,16 @@ function ConnectedApp(props: { session: Session }) {
     // A demo never reads the visitor's stored config; the standard demo starts unset.
     () => (session.kind === 'demo' ? session.demoConfig : loadStoredConfig()),
   );
-  const view = useView(config?.display.defaultView ?? 'timeline');
+  const [narrow, setNarrow] = useState(
+    () => typeof matchMedia !== 'undefined' && matchMedia('(max-width: 720px)').matches,
+  );
+  useEffect(() => {
+    const mq = matchMedia('(max-width: 720px)');
+    const onChange = (): void => setNarrow(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const view = useView(openingView(narrow, config?.display.defaultView ?? 'timeline'));
 
   // Boot reads the config that exists when it runs, and must not re-run when
   // the config changes: it would refetch the whole space (structures alone is
@@ -179,6 +192,19 @@ function ConnectedApp(props: { session: Session }) {
     if (session.kind === 'live') saveStoredConfig(next);
   };
 
+  // On a phone the status line is off the page, so a pull from the top refreshes.
+  const refreshRef = useRef(data.refresh);
+  refreshRef.current = data.refresh;
+  const pullRefresh = useMemo(() => (): void => refreshRef.current(true), []);
+  const pull = usePullToRefresh(narrow && boot !== null && !data.loading, pullRefresh);
+
+  // What a screen reader hears when a load finishes or an edit lands.
+  const status = !boot
+    ? ''
+    : data.loading
+      ? 'Reading the space'
+      : `${data.items.length} items placed.${edit?.notice ? ` ${edit.notice}` : ''}`;
+
   const leaveDemo = (): void => {
     endDemo();
     location.assign('/app/');
@@ -188,7 +214,7 @@ function ConnectedApp(props: { session: Session }) {
 
   return (
     <div class="app">
-      <aside class="sidebar">
+      <header class="topbar">
         <span class="brand">
           <span class="brand-mark" aria-hidden="true" />
           Farview
@@ -199,33 +225,37 @@ function ConnectedApp(props: { session: Session }) {
               key={item.view}
               href={HASH_FOR[item.view]}
               class={view === item.view ? 'active' : ''}
+              aria-current={view === item.view ? 'page' : undefined}
             >
-              <Icon name={item.icon} />
               {item.label}
             </a>
           ))}
         </nav>
-        <div class="sidebar-foot">
+        <div class="topbar-end">
           {session.kind === 'demo' ? (
-            <span class="demo-badge">
-              Demo
+            <p class="demo-chip" title="Nothing here is real, and nothing leaves this tab.">
+              <span class="demo-chip-long">
+                Made-up space{boot ? `: ${boot.space.title}` : ''}
+              </span>
+              <span class="demo-chip-short">Made-up space</span>
               <button class="subtle" onClick={leaveDemo}>
                 leave
               </button>
-            </span>
+            </p>
           ) : (
             boot && <span class="space-name">{boot.space.title}</span>
           )}
-          <ThemeChoice />
-          <p class="disclaimer">{DISCLAIMER}</p>
+          <ThemeCycle />
         </div>
-      </aside>
+      </header>
       <div class="content">
-        {session.kind === 'demo' && (
-          <aside class="demo-banner" aria-label="Demo space">
-            This is a made-up space{boot ? `, ${boot.space.title}` : ''}. Nothing
-            here is real, and nothing leaves this tab.
-          </aside>
+        <p class="sr-only" role="status" aria-live="polite">
+          {status}
+        </p>
+        {pull > 0 && (
+          <p class="pull-hint" aria-hidden="true">
+            {pullArmed(pull) ? 'Release to refresh' : 'Pull to refresh'}
+          </p>
         )}
         <main class="app-main">
           {loadError && boot && (
@@ -244,6 +274,12 @@ function ConnectedApp(props: { session: Session }) {
             <>
               {loadError && <p class="notice">{loadError}</p>}
               <p class="loading">Reading the space…</p>
+              <div class="skeleton" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
             </>
           ) : !config || !resolved ? (
             <Settings

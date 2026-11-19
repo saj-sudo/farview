@@ -8,7 +8,12 @@ import {
 } from '../../engine/config';
 import type { CollectionDef, PropertyDef, StructureDef, TagDef } from '../../engine/provider';
 import { resolveSchema, type CollectionTags } from '../../engine/resolve';
-import { applySuggestion, suggestionKey, suggestMapping } from '../../engine/suggest';
+import {
+  applySuggestion,
+  pickSuggestion,
+  suggestionKey,
+  suggestMapping,
+} from '../../engine/suggest';
 import { layoutTimeline } from '../../engine/timeline/layout';
 import { defaultView } from '../../engine/timeline/scale';
 import type { FarviewConfig, LocalDate, TimelineItem, TypeRole } from '../../engine/types';
@@ -295,21 +300,53 @@ export function Settings(props: {
     setByHand(true);
   };
 
-  // First screen: when the space has something to recognise, one tick replaces
-  // the form. The form is one button away.
+  // First screen: when the space has something to recognise, the timeline is
+  // drawn from that guess before anything is asked. The ticks and the form
+  // are one step away, under "Looks wrong? Adjust".
   if (props.onboarding && offer && useSuggestion && !byHand) {
+    const sure = pickSuggestion(
+      offer,
+      new Set(offer.types.filter((t) => !t.guess).map((t) => t.role)),
+    );
+    const applyOffer = useSuggestion;
+    const drawable = sure.types.some((t) => t.role === 'project');
+    const guess = drawable ? normalizeConfig(applySuggestion(draft, sure, customTypes)) : null;
     return (
       <section class="settings">
         <div class="view-head">
           <h1>Set up Farview</h1>
         </div>
-        <MappingSuggestions
-          suggestion={offer}
-          spaceTitle={boot.space.title}
-          firstRun={true}
-          onUse={useSuggestion}
-          onSkip={skipSuggestion}
-        />
+        {guess && (
+          <section class="setup-drawn" aria-labelledby="drawn-title">
+            <h2 id="drawn-title">Your timeline, drawn from what is in your space</h2>
+            <p>
+              Farview read the object types and properties in “{boot.space.title}” and placed what
+              has a date. Nothing is saved until you open it.
+            </p>
+            <LivePreview
+              session={props.session}
+              boot={boot}
+              collectionMembers={collectionMembers}
+              draft={guess}
+              today={props.today}
+            />
+            <div class="suggest-actions">
+              <button class="primary" onClick={() => applyOffer(sure)}>
+                Open the timeline
+              </button>
+            </div>
+          </section>
+        )}
+        <details class="setup-adjust" open={!guess}>
+          <summary>Looks wrong? Adjust</summary>
+          <MappingSuggestions
+            suggestion={offer}
+            spaceTitle={boot.space.title}
+            firstRun={true}
+            onUse={useSuggestion}
+            onSkip={skipSuggestion}
+          />
+        </details>
       </section>
     );
   }
@@ -620,6 +657,11 @@ export function Settings(props: {
             read live from “{boot.space.title}”. Nothing is written to your
             space; these settings are kept in this browser.
           </p>
+          {props.session.kind === 'demo' && (
+            <p class="fineprint">
+              This is a made-up space. Nothing here is real, and nothing leaves this tab.
+            </p>
+          )}
         </div>
       </div>
 

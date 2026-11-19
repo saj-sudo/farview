@@ -31,6 +31,11 @@ describe.each([...sourcePages, ...distPages])('%s', (page) => {
     }
   });
 
+  it('loads fonts from its own origin only', () => {
+    const fontSrc = /font-src ([^;"]+)/.exec(html)?.[1]?.trim();
+    expect(fontSrc).toBe("'self'");
+  });
+
   it('has no inline script bodies', () => {
     for (const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
       const [, attrs = '', body = ''] = match;

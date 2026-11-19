@@ -98,24 +98,26 @@ describe('layoutTimeline', () => {
     expect(epic.x + epic.fillW).toBeCloseTo(layout.nowX, 4);
   });
 
-  it('collapses to dots at decade density and hides narrow labels', () => {
+  it('collapses a short bar to a dot when zoomed far out and still labels it', () => {
     const layout = lay(
-      [item({ id: 'short', start: '2026-09-01', target: '2026-09-20' })],
-      3653, // decade window: ~0.27 px/day
+      [item({ id: 'short', title: 'Short one', start: '2026-09-01', target: '2026-09-03' })],
+      1461, // the widest linear window
     );
     const short = layout.bars.find((b) => b.item.id === 'short')!;
     expect(short.kind).toBe('dot');
-    expect(short.label.placement).toBe('hidden');
+    expect(short.label.placement).toBe('above');
+    expect(short.label.text).toBe('Short one');
   });
 
-  it('places labels inside wide bars and outside narrow ones', () => {
+  it('puts every label above its bar, never inside it', () => {
     const layout = lay([
       item({ id: 'wide', title: 'Wide', start: '2026-03-01', target: '2027-03-01' }),
       item({ id: 'narrow', title: 'A narrow little bar', start: '2026-09-01', target: '2026-09-08' }),
     ]);
-    const by = new Map(layout.bars.map((b) => [b.item.id, b]));
-    expect(by.get('wide')!.label.placement).toBe('inside');
-    expect(by.get('narrow')!.label.placement).toBe('right');
+    for (const bar of layout.bars) {
+      expect(bar.label.placement).toBe('above');
+      expect(bar.label.x).toBeGreaterThanOrEqual(4);
+    }
   });
 
   it('gives goals their own top lane and lanes vertical order', () => {
