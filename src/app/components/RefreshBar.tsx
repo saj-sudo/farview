@@ -19,7 +19,8 @@ export function RefreshBar(props: { data: TimelineData; itemNoun?: string }) {
   };
 
   return (
-    <div class="refresh-bar">
+    // Settled with nothing more to load: a phone keeps this off the page.
+    <div class={`refresh-bar ${!data.loading && data.remaining === 0 ? 'quiet' : ''}`}>
       {data.loading && data.progress ? (
         <span class="loading">
           Placing your {noun} on the line… {data.progress.done} of {data.progress.total}

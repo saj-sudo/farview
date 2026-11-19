@@ -62,7 +62,11 @@ async function watch(page: Page): Promise<string[]> {
  */
 async function timelineSettled(page: Page): Promise<void> {
   await page.locator('svg.tl-svg').waitFor();
-  await page.locator('.refresh-bar .fineprint', { hasText: /^[1-9]\d* items placed/ }).waitFor();
+  // On a phone the line is off the page (it lives in the View sheet), so wait for it to exist.
+  await page
+    .locator('.refresh-bar .fineprint', { hasText: /^[1-9]\d* items placed/ })
+    .first()
+    .waitFor({ state: 'attached' });
 }
 
 describe.each(VIEWPORTS)('on $name', (viewport) => {
@@ -92,22 +96,57 @@ describe.each(VIEWPORTS)('on $name', (viewport) => {
   });
 });
 
-it('opens the chart on a phone, taps a bar and goes to the list and back', async () => {
+it('opens on Horizons on a phone, with content near the top and the nav at the bottom', async () => {
   const page = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
   const problems = await watch(page);
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  // The chart is the default on a phone.
+  const first = page.locator('.hz-column').first();
+  await first.waitFor();
+  expect((await first.boundingBox())!.y).toBeLessThan(250);
+  expect(await page.getByRole('link', { name: 'Horizons' }).getAttribute('aria-current')).toBe('page');
+  const nav = (await page.getByRole('navigation', { name: 'Views' }).boundingBox())!;
+  expect(nav.y + nav.height).toBeCloseTo(VIEWPORTS[0]!.height, 0);
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
+it('keeps the phone chart near the top, with its controls in one sheet', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await page.evaluate(() => {
+    location.hash = '#/timeline';
+  });
   await page.locator('svg.tl-svg').waitFor();
+  // First content above 250px: the chart and its first item.
+  expect((await page.locator('svg.tl-svg').boundingBox())!.y).toBeLessThan(250);
+  expect((await page.locator('g.tl-item').first().boundingBox())!.y).toBeLessThan(250);
+  // The controls are behind one button.
+  expect(await page.getByRole('button', { name: 'Chart', exact: true }).isVisible()).toBe(false);
+  expect(await page.locator('.refresh-bar .fineprint').first().isVisible()).toBe(false);
+  await page.locator('g.tl-item').first().click({ force: true });
+  await page.waitForTimeout(300);
+  const view = page.getByRole('button', { name: 'View', exact: true });
+  await view.click();
   expect(await page.getByRole('button', { name: 'Chart', exact: true }).getAttribute('aria-pressed')).toBe('true');
   // Saving a file stays on the desktop toolbar.
   expect(await page.getByRole('button', { name: 'Save as SVG', exact: true }).isVisible()).toBe(false);
-  await page.locator('g.tl-item').first().click({ force: true });
-  await page.waitForTimeout(300);
+  expect(await page.getByRole('button', { name: 'Refresh', exact: true }).isVisible()).toBe(true);
+  await page.getByRole('button', { name: 'Far view', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
+  await page.locator('svg.fv-svg').waitFor();
+  expect((await page.locator('svg.fv-svg .tl-item').first().boundingBox())!.y).toBeLessThan(250);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(VIEWPORTS[0]!.width);
+  await view.click();
   await page.getByRole('button', { name: 'List', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.waitForTimeout(300);
   expect(await page.locator('svg.tl-svg').count()).toBe(0);
+  await view.click();
   await page.getByRole('button', { name: 'Chart', exact: true }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await page.locator('svg.tl-svg').waitFor();
   await page.close();
   expect(problems).toEqual([]);
@@ -163,9 +202,21 @@ describe.each(['light', 'dark'] as const)('accessibility in %s', (colorScheme) =
       await page.evaluate(() => {
         location.hash = '#/timeline';
       });
-      await page.getByRole('button', { name: 'Chart', exact: true }).click();
       await page.locator('svg.tl-svg').waitFor();
       problems.push(...(await violationsOn(page)).map((v) => `phone timeline: ${v}`));
+      await page.getByRole('button', { name: 'View', exact: true }).click();
+      problems.push(...(await violationsOn(page)).map((v) => `phone view sheet: ${v}`));
+      await page.getByRole('button', { name: 'Far view', exact: true }).click();
+      await page.getByRole('button', { name: 'Done', exact: true }).click();
+      await page.locator('svg.fv-svg').waitFor();
+      problems.push(...(await violationsOn(page)).map((v) => `phone far view: ${v}`));
+    } else {
+      await page.evaluate(() => {
+        location.hash = '#/timeline';
+      });
+      await page.getByRole('button', { name: 'Far view', exact: true }).click();
+      await page.locator('svg.fv-svg').waitFor();
+      problems.push(...(await violationsOn(page)).map((v) => `far view: ${v}`));
     }
     await page.close();
     expect(problems).toEqual([]);
@@ -196,7 +247,7 @@ it('shows one theme choice at either size, in Settings on a phone', async () => 
   const phone = await browser.newPage({ viewport: VIEWPORTS[0]! });
   await phone.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await phone.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  await phone.locator('svg.tl-svg').waitFor();
+  await phone.locator('.hz-column').first().waitFor();
   expect(await visible(phone)).toBe(0); // no copy in the footer any more
   await phone.evaluate(() => {
     location.hash = '#/settings';

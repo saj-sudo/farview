@@ -16,7 +16,9 @@ import { loadStoredConfig, saveStoredConfig } from './configStore';
 import { useEditActions, type EditActions } from './edits';
 import { Icon } from './components/Icon';
 import { ThemeChoice } from './components/ThemeChoice';
+import { openingView, pullArmed } from './phoneView';
 import { HASH_FOR, useView, type View } from './router';
+import { usePullToRefresh } from './usePullToRefresh';
 import {
   CLIENT_ID,
   connect,
@@ -84,7 +86,16 @@ function ConnectedApp(props: { session: Session }) {
     // A demo never reads the visitor's stored config; the standard demo starts unset.
     () => (session.kind === 'demo' ? session.demoConfig : loadStoredConfig()),
   );
-  const view = useView(config?.display.defaultView ?? 'timeline');
+  const [narrow, setNarrow] = useState(
+    () => typeof matchMedia !== 'undefined' && matchMedia('(max-width: 720px)').matches,
+  );
+  useEffect(() => {
+    const mq = matchMedia('(max-width: 720px)');
+    const onChange = (): void => setNarrow(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const view = useView(openingView(narrow, config?.display.defaultView ?? 'timeline'));
 
   // Boot reads the config that exists when it runs, and must not re-run when
   // the config changes: it would refetch the whole space (structures alone is
@@ -179,6 +190,19 @@ function ConnectedApp(props: { session: Session }) {
     if (session.kind === 'live') saveStoredConfig(next);
   };
 
+  // On a phone the status line is off the page, so a pull from the top refreshes.
+  const refreshRef = useRef(data.refresh);
+  refreshRef.current = data.refresh;
+  const pullRefresh = useMemo(() => (): void => refreshRef.current(true), []);
+  const pull = usePullToRefresh(narrow && boot !== null && !data.loading, pullRefresh);
+
+  // What a screen reader hears when a load finishes or an edit lands.
+  const status = !boot
+    ? ''
+    : data.loading
+      ? 'Reading the space'
+      : `${data.items.length} items placed.${edit?.notice ? ` ${edit.notice}` : ''}`;
+
   const leaveDemo = (): void => {
     endDemo();
     location.assign('/app/');
@@ -199,6 +223,7 @@ function ConnectedApp(props: { session: Session }) {
               key={item.view}
               href={HASH_FOR[item.view]}
               class={view === item.view ? 'active' : ''}
+              aria-current={view === item.view ? 'page' : undefined}
             >
               <Icon name={item.icon} />
               {item.label}
@@ -223,9 +248,22 @@ function ConnectedApp(props: { session: Session }) {
       <div class="content">
         {session.kind === 'demo' && (
           <aside class="demo-banner" aria-label="Demo space">
-            This is a made-up space{boot ? `, ${boot.space.title}` : ''}. Nothing
-            here is real, and nothing leaves this tab.
+            <span class="demo-banner-long">
+              This is a made-up space{boot ? `, ${boot.space.title}` : ''}. Nothing
+              here is real, and nothing leaves this tab.
+            </span>
+            <span class="demo-banner-short">
+              Made-up space{boot ? `: ${boot.space.title}` : ''}
+            </span>
           </aside>
+        )}
+        <p class="sr-only" role="status" aria-live="polite">
+          {status}
+        </p>
+        {pull > 0 && (
+          <p class="pull-hint" aria-hidden="true">
+            {pullArmed(pull) ? 'Release to refresh' : 'Pull to refresh'}
+          </p>
         )}
         <main class="app-main">
           {loadError && boot && (

@@ -38,6 +38,7 @@ import { RefreshBar } from '../components/RefreshBar';
 import { SomedayTray } from '../components/SomedayTray';
 import { FarViewSvg } from '../components/FarViewSvg';
 import { TimelineSvg } from '../components/TimelineSvg';
+import { ViewSheet } from '../components/ViewSheet';
 
 /**
  * The timeline view: zoom, pan, keyboard and selection, which is all the
@@ -691,12 +692,20 @@ export function Timeline(props: {
     </div>
   ) : null;
 
+  // On a phone every control lives in one sheet behind a single row.
+  const zoomName = far
+    ? 'Far view'
+    : (ZOOM_PRESETS.find((p) => p.id === activePreset)?.label ?? '');
+  const sheetSummary = `${showList ? 'List' : `Chart · ${zoomName}`}${focus ? ` · ${focus}` : ''}`;
+
   if (showList) {
     return (
       <section class="timeline-view">
-        {phoneSwitch}
-        <PillarFocus pillars={pillars} focus={focus} onFocus={choosePillar} />
-        <RefreshBar data={props.data} itemNoun="items" />
+        <ViewSheet summary={sheetSummary}>
+          {phoneSwitch}
+          <PillarFocus pillars={pillars} focus={focus} onFocus={choosePillar} />
+          <RefreshBar data={props.data} itemNoun="items" />
+        </ViewSheet>
         {props.edit?.notice && (
           <p class="notice">
             {props.edit.notice}{' '}
@@ -730,8 +739,8 @@ export function Timeline(props: {
 
   const card = liveSelected ? cardFor(liveSelected) : null;
 
-  return (
-    <section class="timeline-view">
+  const controls = (
+    <>
       {phoneSwitch}
       <PillarFocus pillars={pillars} focus={focus} onFocus={choosePillar} />
       <div class="tl-toolbar">
@@ -764,6 +773,12 @@ export function Timeline(props: {
           )}
         </div>
       </div>
+    </>
+  );
+
+  return (
+    <section class="timeline-view">
+      {narrow ? <ViewSheet summary={sheetSummary}>{controls}</ViewSheet> : controls}
 
       {props.data.warnings.map((w) => (
         <p key={w} class="notice">

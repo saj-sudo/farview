@@ -19,7 +19,7 @@ import {
 import { createScale, windowAroundToday } from '../../../src/engine/timeline/scale';
 import { generateTicks } from '../../../src/engine/timeline/ticks';
 import type { LocalDate, TimelineItem } from '../../../src/engine/types';
-import { parsePhoneView } from '../../../src/app/phoneView';
+import { openingView, parsePhoneView, pullArmed, PULL_THRESHOLD_PX } from '../../../src/app/phoneView';
 import { memoryCache } from '../../../src/pipeline/cache';
 import { loadCollectionTags, loadTimelineData } from '../../../src/pipeline/load';
 import { buildEmptySpace } from '../../../src/providers/fixture/emptySpace';
@@ -301,3 +301,16 @@ describe('the remembered phone view', () => {
     expect(parsePhoneView('garbage')).toBe('timeline');
   });
 });
+describe('what a phone opens on', () => {
+  it('opens on Horizons on a phone and on the configured view elsewhere', () => {
+    expect(openingView(true, 'timeline')).toBe('horizons');
+    expect(openingView(false, 'timeline')).toBe('timeline');
+    expect(openingView(false, 'horizons')).toBe('horizons');
+  });
+
+  it('refreshes only when a pull passes the threshold', () => {
+    expect(pullArmed(PULL_THRESHOLD_PX - 1)).toBe(false);
+    expect(pullArmed(PULL_THRESHOLD_PX)).toBe(true);
+  });
+});
+

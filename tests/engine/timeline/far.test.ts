@@ -239,6 +239,18 @@ describe("far view of the stranger's space", () => {
     }
   });
 
+  it('never prints a goal\'s label across its own pole', async () => {
+    for (const width of [320, 358, 412, 600, 1000]) {
+      const layout = await lay(width);
+      for (const group of layout.groups) {
+        if (group.goal?.kind !== 'flag') continue;
+        const [left, right] = labelBox(group.goal);
+        const pole = group.goal.x;
+        expect(right <= pole - 5 || left >= pole + 17).toBe(true);
+      }
+    }
+  });
+
   it('says what the dates are in words', async () => {
     const layout = await lay(1000);
     const meta = (title: string) => named(layout, title).map((b) => b.label.meta);

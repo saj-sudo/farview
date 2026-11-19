@@ -27,3 +27,20 @@ export function savePhoneView(view: PhoneView): void {
     // Storage blocked: the choice holds until the page closes.
   }
 }
+
+/**
+ * The view a visit opens on when the address names none. A phone opens on
+ * Horizons, which answers "what now, what next" in one column; a wider
+ * screen opens on the configured view.
+ */
+export function openingView<V extends string>(narrow: boolean, configured: V): V | 'horizons' {
+  return narrow ? 'horizons' : configured;
+}
+
+/** A pull this long, in px, refreshes when the finger lets go. */
+export const PULL_THRESHOLD_PX = 72;
+export const PULL_MAX_PX = 120;
+
+export function pullArmed(distancePx: number): boolean {
+  return distancePx >= PULL_THRESHOLD_PX;
+}

@@ -292,15 +292,30 @@ export function layoutFarView(items: TimelineItem[], opts: FarLayoutOptions): Fa
       if (x + w > width) x = width - w;
     }
 
-    const fit = fitLabel(item.title, meta, room);
+    let fit = fitLabel(item.title, meta, room);
     let labelX: number;
     let anchor: FarLabel['anchor'] = 'start';
     if (kind === 'flag') {
-      // Beside the pennant; on the pole's other side when it would run off the chart.
-      if (x + 18 + fit.w <= right) labelX = x + 18;
-      else if (x - 6 - fit.w >= EDGE) {
-        labelX = x - 6;
-        anchor = 'end';
+      // Beside the pennant, or on the pole's other side when it would run off
+      // the chart. If the dates fit on neither side, the name goes alone.
+      const beside = (w: number): { x: number; anchor: FarLabel['anchor'] } | null => {
+        if (x + 18 + w <= right) return { x: x + 18, anchor: 'start' };
+        if (x - 6 - w >= EDGE) return { x: x - 6, anchor: 'end' };
+        return null;
+      };
+      let spot = beside(fit.w);
+      if (spot === null && fit.meta !== null) {
+        const alone = fitLabel(item.title, '', estTextWidth(item.title));
+        const nameOnly = { text: alone.text, meta: null, w: estTextWidth(alone.text) };
+        const retry = beside(nameOnly.w);
+        if (retry !== null) {
+          fit = nameOnly;
+          spot = retry;
+        }
+      }
+      if (spot !== null) {
+        labelX = spot.x;
+        anchor = spot.anchor;
       } else labelX = Math.max(EDGE, right - fit.w);
     } else {
       const from = kind === 'point' ? x - 6 : x;
