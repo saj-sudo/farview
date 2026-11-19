@@ -86,7 +86,7 @@ export function timelineSvgMarkup(
 
   const label = (lane: LaneGeometry): string => {
     const text = laneName(lane);
-    const w = Math.round(text.length * 6.6 + 20);
+    const w = Math.round(text.length * 6.4 + 20);
     return (
       `<g><rect x="8" y="${lane.y + 4}" width="${w}" height="22" rx="6" fill="${surface}" stroke="${line}"/>` +
       `<text x="18" y="${lane.y + 19}" fill="${ink}" font-family="${page.fontFamily.replace(/"/g, "'")}" ` +

@@ -18,16 +18,17 @@ export function todayLabel(
   width: number,
   text: string,
 ): { x: number; w: number; text: string } {
-  const w = text.length * 6.6 + 4;
+  // Bold at the smallest text size: about 6.7px a character, measured.
+  const w = text.length * 7.2 + 4;
   let x = nowX + 5;
   if (x + w > width - PILL_MARGIN) x = nowX - 5 - w;
   x = Math.min(Math.max(PILL_MARGIN, width - w - PILL_MARGIN), Math.max(PILL_MARGIN, x));
   return { x, w, text };
 }
 
-/** Estimated width of an axis label: major ticks are 11px bold, minor 10px. */
+/** Estimated width of an axis label at the smallest text size: majors are bold. */
 export function axisLabelWidth(label: string, level: Tick['level']): number {
-  return label.length * (level === 'major' ? 7 : 6) + 2;
+  return label.length * (level === 'major' ? 7.8 : 7.2) + 2;
 }
 
 export interface AxisLabel {

@@ -15,7 +15,7 @@ import type { LocalDate, TimelineItem } from '../types';
 import { assignGroupColors } from './colors';
 import { axisLabels, todayLabel, type AxisLabel } from './edges';
 import { createFarScale, type FarScale, type FarSegmentId } from './farScale';
-import { estTextWidth, place, type Placed } from './lanes';
+import { CHAR_PX, estTextWidth, place, type Placed } from './lanes';
 import type { Tick } from './ticks';
 
 /**
@@ -151,7 +151,7 @@ export function farMeta(p: Placed, today: LocalDate, windowStart: number): strin
 }
 
 function shorten(text: string, px: number): string {
-  const max = Math.floor((px - 8) / 6.4);
+  const max = Math.floor((px - 8) / CHAR_PX);
   if (text.length <= max) return text;
   if (max <= 1) return '…';
   return `${text.slice(0, Math.max(1, max - 1)).trimEnd()}…`;
@@ -422,7 +422,7 @@ export function layoutFarView(items: TimelineItem[], opts: FarLayoutOptions): Fa
   const headings: FarHeading[] = scale.segments.map((s) => {
     const text = headingText(s.id, s.endDay, opts.today, narrow);
     const w = s.x1 - s.x0;
-    return { id: s.id, x: s.x0, width: w, label: text !== '' && text.length * 7.4 + 12 <= w ? text : null };
+    return { id: s.id, x: s.x0, width: w, label: text !== '' && text.length * 7.2 + 12 <= w ? text : null };
   });
 
   return {

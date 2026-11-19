@@ -48,9 +48,16 @@ export interface PackOptions {
   span?: (p: Placed) => { start: number; end: number };
 }
 
+/**
+ * Average advance of one character at font-size 12, with headroom. Measured
+ * in Chromium on the fixture titles in Instrument Sans: 5.7px regular and
+ * 5.8px semibold on average, so 6.2 leaves about 7% spare.
+ */
+export const CHAR_PX = 6.2;
+
 /** Char-width heuristic at font-size 12; pure so tests can pin it. */
 export function estTextWidth(text: string): number {
-  return text.length * 6.4 + 8;
+  return text.length * CHAR_PX + 8;
 }
 
 /** Where an item sits on the axis, before pixels exist. */

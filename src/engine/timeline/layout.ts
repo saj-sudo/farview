@@ -1,7 +1,7 @@
 import { dayNumber } from '../dates';
 import type { LocalDate, TimelineItem } from '../types';
 import { assignGroupColors } from './colors';
-import { estTextWidth, packLanes, type Placed } from './lanes';
+import { CHAR_PX, estTextWidth, packLanes, type Placed } from './lanes';
 import { createScale, type Scale, type ViewState } from './scale';
 import { generateTicks, type TickSet } from './ticks';
 
@@ -98,7 +98,7 @@ export interface LayoutOptions {
 const GOALS_LANE = '__goals__';
 
 function truncate(text: string, px: number): string {
-  const max = Math.floor((px - 8) / 6.4);
+  const max = Math.floor((px - 8) / CHAR_PX);
   if (text.length <= max) return text;
   if (max <= 1) return '…';
   return `${text.slice(0, Math.max(1, max - 1)).trimEnd()}…`;
