@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { dayNumber } from '../../engine/dates';
 import type { ResolvedSchema } from '../../engine/resolve';
-import { layoutTimeline, TOUCH_BAR_H, TOUCH_TOP_PAD } from '../../engine/timeline/layout';
+import { layoutFarView } from '../../engine/timeline/farLayout';
+import { layoutTimeline, TOUCH_BAR_H } from '../../engine/timeline/layout';
 import {
   clampView,
   clampZoom,
@@ -35,6 +36,7 @@ import { NewItemDialog } from '../components/NewItemDialog';
 import { PillarFocus } from '../components/PillarFocus';
 import { RefreshBar } from '../components/RefreshBar';
 import { SomedayTray } from '../components/SomedayTray';
+import { FarViewSvg } from '../components/FarViewSvg';
 import { TimelineSvg } from '../components/TimelineSvg';
 
 /**
@@ -55,7 +57,11 @@ function loadViewState(todayDay: number, phoneTimeline: boolean): ViewState {
         typeof parsed.centerDay === 'number' &&
         typeof parsed.daysVisible === 'number'
       ) {
-        return { centerDay: parsed.centerDay, daysVisible: clampZoom(parsed.daysVisible) };
+        return {
+          centerDay: parsed.centerDay,
+          daysVisible: clampZoom(parsed.daysVisible),
+          ...(parsed.far === true ? { far: true } : {}),
+        };
       }
     }
   } catch {
@@ -199,6 +205,8 @@ export function Timeline(props: {
   }, [shown, todayDay]);
 
   const clamped = useMemo(() => clampView(view, extent), [view, extent]);
+  // The far view: a fixed window with its own scale. Nothing pans or drags in it.
+  const far = view.far === true;
   const pxPerDay = width / clamped.daysVisible;
 
   // A live drag substitutes its ghost dates before layout, so the bar
@@ -221,8 +229,7 @@ export function Timeline(props: {
         today: props.today,
         groupOrder: props.resolved.groupValues,
         subGroupOrder: props.resolved.subGroupValues,
-        ...(pxPerDay < 0.35 ? { maxRowsPerLane: 6 } : {}),
-        ...(narrow ? { barHeight: TOUCH_BAR_H, topPad: TOUCH_TOP_PAD, labelsAbove: true } : {}),
+        ...(narrow ? { barHeight: TOUCH_BAR_H } : {}),
       }),
     [
       layoutItems,
@@ -231,9 +238,21 @@ export function Timeline(props: {
       props.today,
       props.resolved.groupValues,
       props.resolved.subGroupValues,
-      pxPerDay,
       narrow,
     ],
+  );
+
+  const farLayout = useMemo(
+    () =>
+      far
+        ? layoutFarView(dated, {
+            width,
+            today: props.today,
+            groupOrder: props.resolved.groupValues,
+            narrow,
+          })
+        : null,
+    [far, dated, width, props.today, props.resolved.groupValues, narrow],
   );
 
   // How many projects are active in each month the chart shows. It follows a
@@ -281,13 +300,26 @@ export function Timeline(props: {
   }, []);
 
   const zoomPreset = (days: number): void => {
+    if (far) {
+      // Out of the far view: open the chosen window around today.
+      if (animRef.current !== null) cancelAnimationFrame(animRef.current);
+      setView(windowAroundToday(todayDay, days));
+      return;
+    }
     const nowVisible =
       todayDay > clamped.centerDay - clamped.daysVisible / 2 &&
       todayDay < clamped.centerDay + clamped.daysVisible / 2;
     animateTo(zoomTo(clamped, days, nowVisible ? todayDay : clamped.centerDay));
   };
 
+  const showFar = (): void => {
+    if (animRef.current !== null) cancelAnimationFrame(animRef.current);
+    animRef.current = null;
+    setView({ ...clamped, far: true });
+  };
+
   const goToToday = (): void => {
+    if (far) return; // today is always in the far view
     // Same window the page opens on: today a third of the way in, with some
     // history behind it. The zoom stays where it is.
     animateTo(windowAroundToday(todayDay, clamped.daysVisible));
@@ -296,12 +328,21 @@ export function Timeline(props: {
   const saveAsSvg = (): void => {
     const chart = wrapRef.current?.querySelector<SVGSVGElement>('svg.tl-svg');
     if (!chart) return;
-    const markup = timelineSvgMarkup(chart, layout.lanes, `Farview timeline, saved ${props.today}`);
+    const markup = timelineSvgMarkup(chart, far ? [] : layout.lanes, `Farview timeline, saved ${props.today}`);
     downloadSvg(markup, `farview-timeline-${props.today}.svg`);
   };
 
   const stepPreset = (direction: 1 | -1): void => {
     const days = [...ZOOM_PRESETS].map((p) => p.days);
+    // The far view sits one step past the widest linear window.
+    if (far) {
+      if (direction === -1) zoomPreset(days[days.length - 1]!);
+      return;
+    }
+    if (direction === 1 && clamped.daysVisible * 1.05 >= days[days.length - 1]!) {
+      showFar();
+      return;
+    }
     const current = clamped.daysVisible;
     const next =
       direction === 1
@@ -360,7 +401,7 @@ export function Timeline(props: {
       return;
     }
     const drag = dragRef.current;
-    if (!drag) return;
+    if (!drag || far) return;
     const dx = e.clientX - drag.x;
     if (!drag.moved && Math.abs(dx) > 4) {
       drag.moved = true;
@@ -394,6 +435,7 @@ export function Timeline(props: {
   };
 
   const onWheel = (e: WheelEvent): void => {
+    if (far) return;
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
       const rect = wrapRef.current?.getBoundingClientRect();
@@ -408,8 +450,9 @@ export function Timeline(props: {
   };
 
   const onKeyDown = (e: KeyboardEvent): void => {
-    const panBy = (frac: number): void =>
-      setView((v) => ({ ...v, centerDay: v.centerDay + v.daysVisible * frac }));
+    const panBy = (frac: number): void => {
+      if (!far) setView((v) => ({ ...v, centerDay: v.centerDay + v.daysVisible * frac }));
+    };
     switch (e.key) {
       case 'ArrowLeft':
         panBy(e.shiftKey ? -0.5 : -0.1);
@@ -434,11 +477,11 @@ export function Timeline(props: {
         e.preventDefault();
         break;
       case 'Home':
-        animateTo({ ...clamped, centerDay: extent.minDay + clamped.daysVisible / 3 });
+        if (!far) animateTo({ ...clamped, centerDay: extent.minDay + clamped.daysVisible / 3 });
         e.preventDefault();
         break;
       case 'End':
-        animateTo({ ...clamped, centerDay: extent.maxDay - clamped.daysVisible / 3 });
+        if (!far) animateTo({ ...clamped, centerDay: extent.maxDay - clamped.daysVisible / 3 });
         e.preventDefault();
         break;
       case 'Escape':
@@ -452,7 +495,7 @@ export function Timeline(props: {
         break;
       case '[':
       case ']':
-        if (props.edit && focusedBarId) {
+        if (props.edit && focusedBarId && !far) {
           const item = props.data.items.find((i) => i.id === focusedBarId);
           if (item) {
             const delta = (e.key === ']' ? 1 : -1) * (e.shiftKey ? 7 : 1);
@@ -499,7 +542,7 @@ export function Timeline(props: {
   /* ---------------- Someday tray: drag an item onto the chart ---------------- */
 
   const startTrayDrag = (item: TimelineItem, e: PointerEvent): void => {
-    if (!props.edit || narrow || e.button !== 0) return;
+    if (!props.edit || narrow || far || e.button !== 0) return;
     const edit = props.edit;
     const writable = editableDates(item);
     const startX = e.clientX;
@@ -558,7 +601,7 @@ export function Timeline(props: {
 
   const centerOn = (item: TimelineItem): void => {
     const date = item.target ?? item.start;
-    if (date !== null) {
+    if (date !== null && !far) {
       animateTo({ ...clamped, centerDay: dayNumber(date) });
     }
     setSelected({ item, anchor: null });
@@ -626,7 +669,7 @@ export function Timeline(props: {
     props.config.properties.projectTarget ??
     'a target date';
 
-  const activePreset = presetFor(clamped.daysVisible);
+  const activePreset = far ? 'far' : presetFor(clamped.daysVisible);
 
   const choosePhoneView = (next: PhoneView): void => {
     setPhoneView(next);
@@ -703,9 +746,14 @@ export function Timeline(props: {
               {preset.label}
             </button>
           ))}
-          <button class="tl-zoom-chip today" onClick={goToToday}>
-            Today
+          <button class={`tl-zoom-chip ${far ? 'active' : ''}`} onClick={showFar}>
+            Far view
           </button>
+          {!far && (
+            <button class="tl-zoom-chip today" onClick={goToToday}>
+              Today
+            </button>
+          )}
           <button class="tl-zoom-chip tl-save" onClick={saveAsSvg}>
             Save as SVG
           </button>
@@ -738,12 +786,14 @@ export function Timeline(props: {
       ) : null}
 
       <div
-        class={`tl-wrap ${trayDrag?.day != null ? 'drop-target' : ''}`}
+        class={`tl-wrap ${far ? 'far' : ''} ${trayDrag?.day != null ? 'drop-target' : ''}`}
         ref={wrapRef}
         tabIndex={0}
         role="application"
         aria-label={
-          props.edit
+          far
+            ? 'Far view. A fixed window from 60 days back to ten years out. Tab walks the items, plus goes back to three years.'
+            : props.edit
             ? 'Timeline. Arrow keys pan, plus and minus zoom, T jumps to today, Tab walks the items. With an item focused, square brackets nudge its target date and Alt with brackets nudges the start; drag bars to move or resize.'
             : 'Timeline. Arrow keys pan, plus and minus zoom, T jumps to today, Tab walks the items.'
         }
@@ -755,9 +805,9 @@ export function Timeline(props: {
         onKeyDown={onKeyDown}
       >
         <div class="tl-lane-headers" aria-hidden="true">
-          {layout.lanes.map((lane) => (
+          {(far ? [] : layout.lanes).map((lane) => (
             <div
-              key={`${lane.group ?? ''}/${lane.subGroup ?? ''}`}
+              key={`${lane.label}/${lane.group ?? ''}/${lane.subGroup ?? ''}`}
               class={`tl-lane-header ${
                 lane.subGroup !== null || !lane.firstOfGroup ? 'is-sub' : ''
               }`}
@@ -780,6 +830,9 @@ export function Timeline(props: {
             </div>
           ))}
         </div>
+        {farLayout ? (
+          <FarViewSvg layout={farLayout} selectedId={selected?.item.id ?? null} onSelect={select} />
+        ) : (
         <TimelineSvg
           layout={layout}
           today={props.today}
@@ -792,6 +845,7 @@ export function Timeline(props: {
           {...(narrow ? {} : { onBarDragStart })}
           onFocusBar={setFocusedBarId}
         />
+        )}
         {liveSelected && selected && !narrow && (
           <div
             class="tl-card-holder"
@@ -810,16 +864,16 @@ export function Timeline(props: {
         )}
       </div>
 
-      <LoadStrip months={monthLoad} layout={layout} />
+      {!far && <LoadStrip months={monthLoad} layout={layout} />}
 
       <SomedayTray
         items={someday}
         onSelect={(i) => {
           if (trayClickRef.current) return;
-          if (narrow) setSelected({ item: i, anchor: null });
+          if (narrow || far) setSelected({ item: i, anchor: null });
           else centerOn(i);
         }}
-        {...(props.edit && !narrow
+        {...(props.edit && !narrow && !far
           ? { canDrag: canDropOnChart, onDragStart: startTrayDrag }
           : {})}
       />

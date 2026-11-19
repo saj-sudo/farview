@@ -365,10 +365,15 @@ it('shows how many projects are active each month, and follows the zoom', async 
   const strip = page.locator('svg.load-svg');
   expect(await strip.getAttribute('aria-label')).toMatch(/^Projects active each month, from \d+ to \d+/);
   expect(await strip.locator('title').count()).toBeGreaterThan(2);
-  // A decade is too wide for months to say anything, so the strip steps aside.
-  await page.getByRole('button', { name: 'Decade', exact: true }).click();
-  await page.waitForTimeout(500);
+  // The far view has no even months for the strip to line up with, so it steps aside.
+  await page.getByRole('button', { name: 'Far view', exact: true }).click();
+  await page.waitForTimeout(300);
   expect(await page.locator('svg.load-svg').count()).toBe(0);
+  // Every item in the far view carries its name.
+  const items = page.locator('svg.fv-svg .tl-item');
+  expect(await items.count()).toBeGreaterThan(10);
+  expect(await page.locator('svg.fv-svg .tl-item text.tl-label').count()).toBe(await items.count());
+  expect(await page.locator('svg.fv-svg').textContent()).toContain('Circumnavigate');
   await page.close();
   expect(problems).toEqual([]);
 });

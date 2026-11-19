@@ -6,18 +6,7 @@ import type { Tick } from './ticks';
  * so the rules are tested here rather than in the DOM.
  */
 
-export const PILL_W = 92;
 export const PILL_MARGIN = 2;
-
-/**
- * Where the today pill sits. The line stays at nowX; the pill slides to stay
- * inside [2, width - 94] and its text centres on the pill.
- */
-export function todayPill(nowX: number, width: number): { x: number; w: number; textX: number } {
-  const max = Math.max(PILL_MARGIN, width - PILL_W - PILL_MARGIN);
-  const x = Math.min(max, Math.max(PILL_MARGIN, nowX - PILL_W / 2));
-  return { x, w: PILL_W, textX: x + PILL_W / 2 };
-}
 
 /**
  * The plain "Today" label that sits on the axis row beside the today line.

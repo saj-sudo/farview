@@ -39,6 +39,9 @@
   /* Timeline furniture: alternating calendar bands and the past veil. */
   --band: rgba(28, 27, 32, 0.022);
   --veil: rgba(255, 255, 255, 0.35);
+  --far-past: rgba(28, 27, 32, 0.035);
+  --far-mid: rgba(0, 131, 138, 0.045);
+  --far-far: rgba(0, 131, 138, 0.1);
 
   /* Lane hues, assigned to lanes by the engine (src/engine/timeline/colors.ts).
      Two inks and their overprints; no red. */
@@ -109,6 +112,9 @@
   --blend: screen;
   --band: rgba(236, 235, 239, 0.03);
   --veil: rgba(27, 26, 30, 0.45);
+  --far-past: rgba(236, 235, 239, 0.04);
+  --far-mid: rgba(63, 193, 196, 0.05);
+  --far-far: rgba(63, 193, 196, 0.11);
   --g1: #3fc1c4;
   --g2: #ffc845;
   --g3: #86c27c;
@@ -143,6 +149,12 @@
     --blend: screen;
     --band: rgba(236, 235, 239, 0.03);
     --veil: rgba(27, 26, 30, 0.45);
+    --far-past: rgba(236, 235, 239, 0.04);
+    --far-mid: rgba(63, 193, 196, 0.05);
+    --far-far: rgba(63, 193, 196, 0.11);
+  --far-past: rgba(236, 235, 239, 0.04);
+  --far-mid: rgba(63, 193, 196, 0.05);
+  --far-far: rgba(63, 193, 196, 0.11);
     --g1: #3fc1c4;
     --g2: #ffc845;
     --g3: #86c27c;
@@ -1098,11 +1110,6 @@ body:has(.landing) {
   fill-opacity: 0.95;
 }
 
-/* A bar that carries its own name gets a lighter fill so ink reads on it. */
-.tl-item:has(.tl-label.inside) .tl-fill {
-  fill-opacity: 0.5;
-}
-
 .tl-item.is-done .tl-track,
 .tl-item.is-done .tl-fill {
   fill: var(--ink-soft);
@@ -1153,12 +1160,6 @@ body:has(.landing) {
   stroke-linejoin: round;
 }
 
-.tl-label.inside {
-  font-weight: 600;
-  stroke: none;
-  fill: var(--ink);
-}
-
 .tl-item:focus-visible .tl-track,
 .tl-item:focus-visible circle,
 .tl-item:focus-visible path {
@@ -1184,28 +1185,108 @@ body:has(.landing) {
   pointer-events: none;
 }
 
-/* Today: a sunflower band printed under an ink rule. */
-.tl-now-band {
-  stroke: var(--ink2);
-  stroke-width: 12;
-  opacity: 0.9;
-  mix-blend-mode: var(--blend);
-}
-
+/* Today: one thin ink line, named on the axis row. */
 .tl-now-line {
   stroke: var(--ink);
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 
-.tl-now-pill rect {
-  fill: var(--charcoal);
-}
-
-.tl-now-pill text {
+.tl-now-label {
   font-size: 11px;
   font-weight: 700;
-  text-anchor: middle;
-  fill: var(--on-charcoal-ink);
+  fill: var(--ink);
+}
+
+/* The far view: stretches of time that tint with distance, goals as flags. */
+.fv-seg {
+  pointer-events: none;
+  fill: none;
+}
+
+.fv-seg-recent {
+  fill: var(--far-past);
+}
+
+.fv-seg-year {
+  fill: var(--far-mid);
+}
+
+.fv-seg-decade {
+  fill: var(--far-far);
+}
+
+.fv-seam {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+}
+
+.tl-svg text.fv-heading {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--ink-soft);
+}
+
+.tl-svg text.fv-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  fill: var(--ink-soft);
+}
+
+.fv-pole {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.fv-flag {
+  fill: var(--ink1);
+}
+
+.fv-span {
+  fill: none;
+  stroke: var(--ink1);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.fv-connector {
+  stroke: var(--ink-soft);
+  stroke-width: 1;
+  stroke-dasharray: 1.5 3.5;
+  pointer-events: none;
+}
+
+.fv-chevron {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.fv-hit {
+  fill: transparent;
+  stroke: none;
+}
+
+.fv-name {
+  font-weight: 650;
+}
+
+.fv-meta {
+  fill: var(--ink-soft);
+}
+
+.fv-item:focus-visible .fv-bar,
+.fv-item:focus-visible .fv-span,
+.fv-item:focus-visible .fv-flag {
+  stroke: var(--focus);
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+.tl-wrap.far,
+.tl-wrap.far:active {
+  cursor: default;
 }
 
 /* Axis labels. */

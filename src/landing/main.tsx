@@ -113,7 +113,11 @@ function Landing() {
 
       <h2>From this quarter to the next decade</h2>
       <ul>
-        <li>Zoom between a quarter, a year, three years and a decade.</li>
+        <li>Zoom between a quarter, a year and three years.</li>
+        <li>
+          The far view keeps the next quarter wide and still reaches ten years
+          out, with every item named.
+        </li>
         <li>
           A bar fills as time passes, so you can see how much of its window is
           used up.
@@ -130,7 +134,7 @@ function Landing() {
           width={1280}
           height={800}
           loading="lazy"
-          alt="Farview's longer views: on a wide screen the decade zoom with year bands and short bars, on a phone the Horizons columns from Now to Long."
+          alt="Farview's longer views: on a wide screen the far view with goals as flags and their projects beneath, on a phone the Horizons columns from Now to Long."
         />
       </picture>
 

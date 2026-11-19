@@ -224,11 +224,6 @@ function farTicks(scale: FarScale): Tick[] {
   return ticks;
 }
 
-interface Entry {
-  placed: Placed;
-  bar: FarBar;
-}
-
 export function layoutFarView(items: TimelineItem[], opts: FarLayoutOptions): FarLayout {
   const narrow = opts.narrow === true;
   const width = opts.width;
@@ -272,8 +267,8 @@ export function layoutFarView(items: TimelineItem[], opts: FarLayoutOptions): Fa
     let kind: FarBarKind;
     let x: number;
     let w: number;
-    let clampedLeft = false;
-    let clampedRight = false;
+    let clampedLeft: boolean;
+    let clampedRight: boolean;
     if (isGoal && targetDay !== null && !usesDerived) {
       kind = 'flag';
       clampedLeft = targetDay < scale.startDay;
@@ -408,7 +403,7 @@ export function layoutFarView(items: TimelineItem[], opts: FarLayoutOptions): Fa
 
   const ticks = farTicks(scale);
   const today = todayLabel(nowX, width, `Today · ${formatMonthDay(opts.today)}`);
-  const axis = axisLabels(ticks, scale.xOf, width, [today.x, today.x + today.w]);
+  const axis = axisLabels(ticks, (day) => scale.xOf(day), width, [today.x, today.x + today.w]);
   const headings: FarHeading[] = scale.segments.map((s) => {
     const text = headingText(s.id, s.endDay, opts.today, narrow);
     const w = s.x1 - s.x0;

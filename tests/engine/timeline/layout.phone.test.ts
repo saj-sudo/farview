@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeConfig } from '../../../src/engine/config';
 import { dayNumber } from '../../../src/engine/dates';
 import { resolveSchema } from '../../../src/engine/resolve';
-import { axisLabels, todayPill } from '../../../src/engine/timeline/edges';
+import { axisLabels, todayLabel } from '../../../src/engine/timeline/edges';
 import { estTextWidth } from '../../../src/engine/timeline/lanes';
 import {
   BAR_H,
@@ -138,7 +138,6 @@ describe.each(Object.entries(spaces))('phone layout on %s', (_name, build) => {
       subGroupOrder: resolved.subGroupValues,
       barHeight: TOUCH_BAR_H,
       topPad: TOUCH_TOP_PAD,
-      labelsAbove: true,
     });
   };
   const rowsOf = (layout: TimelineLayout): BarGeometry[][] => {
@@ -175,7 +174,7 @@ describe.each(Object.entries(spaces))('phone layout on %s', (_name, build) => {
     const layout = await layPhone(width, days);
     for (const bar of layout.bars) {
       const { placement, text, x } = bar.label;
-      expect(['inside', 'above', 'hidden']).toContain(placement);
+      expect(['above', 'hidden']).toContain(placement);
       if (placement === 'hidden') continue;
       expect(x).toBeGreaterThanOrEqual(0);
       expect(x + estTextWidth(text)).toBeLessThanOrEqual(width);
@@ -224,16 +223,52 @@ describe('windowAroundToday', () => {
   });
 });
 
-describe('the today pill', () => {
-  it('stays inside the chart at either edge, with its text centred on it', () => {
+describe('the today label', () => {
+  it('stays inside the chart at either edge and flips left when it would run off', () => {
     for (const nowX of [-20, 0, 10, 46, 179, 340, 358, 400]) {
-      const pill = todayPill(nowX, 358);
-      expect(pill.x).toBeGreaterThanOrEqual(2);
-      expect(pill.x + pill.w).toBeLessThanOrEqual(358 - 2);
-      expect(pill.textX).toBeCloseTo(pill.x + pill.w / 2, 6);
+      const label = todayLabel(nowX, 358, 'Today · Aug 25');
+      expect(label.x).toBeGreaterThanOrEqual(2);
+      expect(label.x + label.w).toBeLessThanOrEqual(358 - 2);
     }
-    // In the open middle it centres on the line.
-    expect(todayPill(179, 358).textX).toBeCloseTo(179, 6);
+    // In the open middle it sits just right of the line; near the right edge, just left.
+    expect(todayLabel(179, 358, 'Today · Aug 25').x).toBeCloseTo(184, 6);
+    const flipped = todayLabel(340, 358, 'Today · Aug 25');
+    expect(flipped.x + flipped.w).toBeCloseTo(335, 6);
+  });
+
+  it('pushes out an axis label it would sit on', () => {
+    const scale = createScale(windowAroundToday(TODAY_DAY, 91), 358);
+    const ticks = generateTicks(scale.startDay, scale.endDay, scale.pxPerDay);
+    const today = todayLabel(scale.xOf(TODAY_DAY), 358, 'Today · Aug 25');
+    const labels = axisLabels(ticks.ticks, (day) => scale.xOf(day), 358, [today.x, today.x + today.w]);
+    for (const label of labels) {
+      expect(label.x + label.w <= today.x || label.x >= today.x + today.w).toBe(true);
+    }
+  });
+});
+
+describe.each(Object.entries(spaces))('labels at every zoom on %s', (_name, build) => {
+  it.each([
+    [358, 91], [358, 365], [358, 1096],
+    [960, 91], [960, 365], [960, 1096],
+    [1400, 91], [1400, 365], [1400, 1096], [1400, 1461],
+  ] as const)('labels every item on screen at %ipx over %i days', async (width, days) => {
+    const { items, resolved } = await build();
+    const layout = layoutTimeline(items, {
+      view: windowAroundToday(TODAY_DAY, days),
+      width,
+      today: TODAY,
+      groupOrder: resolved.groupValues,
+      subGroupOrder: resolved.subGroupValues,
+    });
+    for (const lane of layout.lanes) expect(lane.overflowCount).toBe(0);
+    for (const bar of layout.bars) {
+      const onScreen = bar.x + bar.w >= 0 && bar.x <= width;
+      if (!onScreen) continue;
+      expect(bar.label.placement).toBe('above');
+      expect(bar.label.text.length).toBeGreaterThan(0);
+      expect(bar.label.x + estTextWidth(bar.label.text)).toBeLessThanOrEqual(width);
+    }
   });
 });
 

@@ -9,6 +9,12 @@
 export interface ViewState {
   centerDay: number;
   daysVisible: number;
+  /**
+   * The far view is showing: a fixed window with its own stretched scale
+   * (see farScale.ts). The linear window above is kept, so leaving the far
+   * view returns to where the reader was.
+   */
+  far?: boolean;
 }
 
 export interface Scale {
@@ -19,19 +25,17 @@ export interface Scale {
   dayAt(x: number): number;
 }
 
-export type ZoomPresetId = 'quarter' | 'year' | 'threeYears' | 'decade';
+export type ZoomPresetId = 'quarter' | 'year' | 'threeYears';
 
 /**
- * Zoom presets (spec §9.1 plus the Decade view): how many days the
- * window holds. The decade preset is first-class: years become the
- * unit, and the view reads as the shape of a decade, not a squeezed
- * year.
+ * The linear zoom presets (spec §9.1): how many days the window holds.
+ * Anything longer than three years is the far view's job, which keeps
+ * near time wide while it reaches a decade out.
  */
 export const ZOOM_PRESETS: { id: ZoomPresetId; label: string; days: number }[] = [
   { id: 'quarter', label: 'Quarter', days: 91 },
   { id: 'year', label: 'Year', days: 365 },
   { id: 'threeYears', label: '3 years', days: 1096 },
-  { id: 'decade', label: 'Decade', days: 3653 },
 ];
 
 export function createScale(view: ViewState, widthPx: number): Scale {
@@ -83,7 +87,7 @@ export function zoomTo(
 
 /** The smallest and largest windows continuous zoom may reach. */
 export const MIN_DAYS_VISIBLE = 28;
-export const MAX_DAYS_VISIBLE = 36530; // a century: beyond Decade, but bounded
+export const MAX_DAYS_VISIBLE = 1461; // four years: past that, labels would crowd and the far view takes over
 
 export function clampZoom(daysVisible: number): number {
   return Math.min(MAX_DAYS_VISIBLE, Math.max(MIN_DAYS_VISIBLE, daysVisible));
