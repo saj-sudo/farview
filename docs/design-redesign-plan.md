@@ -96,8 +96,8 @@ From the code audit of 2026-11-18:
 | Stage | State | Link | Date |
 |---|---|---|---|
 | Review of the running app | Done | this file | 2026-11-18 |
-| Mockup | Not started. Farview is fifth in the order | | |
-| Saj picks a direction | Waiting on the mockup | | |
+| Mockup | Published, timeline only: today's Decade zoom beside the far view | https://claude.ai/artifact/1MkefyeDo3Ehnii4zR3TTs | 2026-11-19 |
+| Saj picks a direction | Open. A, B or C on the mockup page | | |
 | Build and pull request | Not started | | |
 
 ## Starting a session on this build
