@@ -138,6 +138,14 @@ it('opens on Horizons on a phone, with content near the top and the nav at the b
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
   const first = page.locator('.hz-column').first();
   await first.waitFor();
+  // Measure once the load has settled. Before it starts, the count reads 0 and
+  // the empty-space card sits above the columns for a moment.
+  await page
+    .locator('.refresh-bar .fineprint', { hasText: /^[1-9]\d* items placed/ })
+    .first()
+    .waitFor({ state: 'attached' });
+  await page.locator('.hz-card, .hz-goal').first().waitFor();
+  expect(await page.locator('.horizons-view .setup-card').count()).toBe(0);
   expect((await first.boundingBox())!.y).toBeLessThan(250);
   expect(await page.getByRole('link', { name: 'Horizons' }).getAttribute('aria-current')).toBe('page');
   const nav = (await page.getByRole('navigation', { name: 'Views' }).boundingBox())!;
