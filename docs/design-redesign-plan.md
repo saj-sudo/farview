@@ -99,7 +99,7 @@ From the code audit of 2026-11-18:
 | Mockup | Published, timeline only: today's Decade zoom beside the far view | https://claude.ai/artifact/1MkefyeDo3Ehnii4zR3TTs | 2026-11-19 |
 | Saj picks a direction | Done. A: the far view as drawn, replacing Decade. Thin today line on every zoom | | 2026-11-19 |
 | Build and pull request | In review | https://github.com/saj-sudo/farview/pull/15 | 2026-11-19 |
-| Identity mockup (sidebar, banner, palette) | Not started. Saj asked for a mockup before any full restyle | | |
+| Identity mockup (sidebar, banner, palette) | Published: Horizon and Chart room beside today's chrome. Waiting on Saj's pick | https://claude.ai/artifact/FcLccUWjmVpTjTqxLJo4S6 | 2026-11-19 |
 | Identity build | Waiting on the identity mockup | | |
 
 Notes from the build, 2026-11-19:
