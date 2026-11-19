@@ -96,6 +96,28 @@ describe.each(VIEWPORTS)('on $name', (viewport) => {
   });
 });
 
+it('opens New as a modal dialog, and Escape hands focus back', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await timelineSettled(page);
+  const opener = page.getByRole('button', { name: '+ New', exact: true });
+  await opener.click();
+  const dialog = page.getByRole('dialog');
+  await dialog.waitFor();
+  expect(await dialog.evaluate((el) => (el as HTMLDialogElement).matches(':modal'))).toBe(true);
+  expect(await violationsOn(page)).toEqual([]);
+  await page.keyboard.press('Escape');
+  await dialog.waitFor({ state: 'detached' });
+  expect(await opener.evaluate((el) => el === document.activeElement)).toBe(true);
+  // The keys are said on screen, and the current view is marked in the nav.
+  expect(await page.locator('.tl-keys').isVisible()).toBe(true);
+  expect(await page.getByRole('link', { name: 'Timeline' }).getAttribute('aria-current')).toBe('page');
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
 it('goes from the landing page into the demo in one click', async () => {
   const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
   const problems = await watch(page);

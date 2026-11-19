@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { CreatableKind, NewItemSpec } from '../../engine/editor';
 import { isLocalDate } from '../../engine/dates';
 import type { ResolvedSchema } from '../../engine/resolve';
@@ -43,6 +43,14 @@ export function NewItemDialog(props: {
   const typeName = (k: CreatableKind): string =>
     props.resolved.types[k]!.structure.title;
 
+  // A real modal dialog: the browser traps focus, Escape closes it, and
+  // focus goes back to the button that opened it.
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const el = dialogRef.current;
+    if (el && !el.open) el.showModal();
+  }, []);
+
   const submit = async (): Promise<void> => {
     if (title.trim() === '' || saving) return;
     setSaving(true);
@@ -54,21 +62,22 @@ export function NewItemDialog(props: {
       horizonLabel: kind === 'goal' && horizonLabel !== '' ? horizonLabel : null,
     });
     setSaving(false);
-    if (ok) props.onClose();
+    if (ok) dialogRef.current?.close();
   };
 
   return (
-    <div class="dialog-backdrop" onClick={props.onClose}>
-      <div
-        class="dialog"
-        role="dialog"
-        aria-label="New item"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') props.onClose();
-        }}
-      >
-        <h3>New {typeName(kind)}</h3>
+    <dialog
+      ref={dialogRef}
+      class="dialog new-item"
+      aria-labelledby="new-item-title"
+      onClose={props.onClose}
+      onClick={(e) => {
+        // A click on the backdrop lands on the dialog element itself.
+        if (e.target === dialogRef.current) dialogRef.current?.close();
+      }}
+    >
+      <div class="dialog-body">
+        <h3 id="new-item-title">New {typeName(kind)}</h3>
         {props.parentTitle && (
           <p class="fineprint">Linked to “{props.parentTitle}”.</p>
         )}
@@ -140,7 +149,7 @@ export function NewItemDialog(props: {
           <button class="primary" onClick={() => void submit()} disabled={title.trim() === '' || saving}>
             {saving ? 'Creating…' : 'Create in Capacities'}
           </button>
-          <button class="subtle" onClick={props.onClose}>
+          <button class="subtle" onClick={() => dialogRef.current?.close()}>
             Cancel
           </button>
         </div>
@@ -148,6 +157,6 @@ export function NewItemDialog(props: {
           This adds one new object to your space and changes nothing else.
         </p>
       </div>
-    </div>
+    </dialog>
   );
 }

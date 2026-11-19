@@ -879,6 +879,20 @@ export function Timeline(props: {
         )}
       </div>
 
+      <p class="fineprint tl-keys">
+        {far ? (
+          <>
+            <kbd>Tab</kbd> walks the items, <kbd>Enter</kbd> opens one, <kbd>+</kbd> goes back to
+            three years.
+          </>
+        ) : (
+          <>
+            <kbd>←</kbd> <kbd>→</kbd> pan, <kbd>+</kbd> <kbd>-</kbd> zoom, <kbd>T</kbd> today,{' '}
+            <kbd>Tab</kbd> walks the items.
+          </>
+        )}
+      </p>
+
       {!far && <LoadStrip months={monthLoad} layout={layout} />}
 
       <SomedayTray

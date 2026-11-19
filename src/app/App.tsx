@@ -285,6 +285,12 @@ function ConnectedApp(props: { session: Session }) {
             <>
               {loadError && <p class="notice">{loadError}</p>}
               <p class="loading">Reading the space…</p>
+              <div class="skeleton" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
             </>
           ) : !config || !resolved ? (
             <Settings
