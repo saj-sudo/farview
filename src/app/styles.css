@@ -2191,3 +2191,26 @@ body:has(.landing) {
     display: flex;
   }
 }
+
+/* First setup: the timeline drawn from the detected mapping comes first. */
+.setup-drawn h2 {
+  margin: 0 0 var(--space-2);
+}
+
+.setup-drawn .preview-block {
+  margin: var(--space-4) 0;
+}
+
+.setup-adjust {
+  margin-top: var(--space-5);
+}
+
+.setup-adjust > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.setup-adjust .suggestions {
+  margin-top: var(--space-3);
+}

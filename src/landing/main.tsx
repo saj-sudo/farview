@@ -29,7 +29,7 @@ function Landing() {
         <a class="cta" href="/app/">
           Open Farview
         </a>
-        <a class="cta-secondary" href="/app/">
+        <a class="cta-secondary" href="/app/#demo">
           Try the demo (no account needed)
         </a>
       </p>

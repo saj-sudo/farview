@@ -25,6 +25,7 @@ import {
   createSession,
   disconnect,
   endDemo,
+  enterDemoFromLink,
   isAuthLoss,
   STALL_MS,
   suggestsReconnect,
@@ -65,6 +66,8 @@ const NAV: { view: View; label: string; icon: string }[] = [
 
 export function App() {
   const [tick, setTick] = useState(0);
+  // Arriving by the landing page's demo link starts the demo before the first session is read.
+  useState(enterDemoFromLink);
   const session = useMemo(createSession, [tick]);
   if (!session) {
     return <Connect onDemo={() => setTick((t) => t + 1)} onConnected={() => setTick((t) => t + 1)} />;

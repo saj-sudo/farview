@@ -83,6 +83,24 @@ export function startDemo(flavor: DemoFlavor): void {
   }
 }
 
+/** The fragment the landing page's demo link carries: `/app/#demo`. */
+export const DEMO_LINK_HASH = '#demo';
+
+export function isDemoLink(hash: string): boolean {
+  return hash === DEMO_LINK_HASH;
+}
+
+/**
+ * Arriving by the landing page's demo link starts the made-up space at
+ * once, so the demo is one click from the landing page. The fragment is
+ * cleared so a reload or a shared address does not start it again.
+ */
+export function enterDemoFromLink(): void {
+  if (typeof location === 'undefined' || !isDemoLink(location.hash)) return;
+  startDemo('strangers');
+  history.replaceState(null, '', location.pathname + location.search);
+}
+
 export function endDemo(): void {
   try {
     sessionStorage.removeItem(DEMO_KEY);

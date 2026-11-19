@@ -64,7 +64,9 @@ describe('rollup facts', () => {
       actionsDone: 1,
       actionsTotal: 2,
     });
-    expect(factSentence(facts)).toBe('1 of 3 projects completed · 1 of 2 actions done');
+    expect(factSentence(facts)).toBe('3 projects · 2 actions');
+    // Never a fraction of finished work.
+    expect(factSentence(facts)).not.toMatch(/ of |%/);
   });
 
   it('says nothing when there are no children', () => {

@@ -96,6 +96,19 @@ describe.each(VIEWPORTS)('on $name', (viewport) => {
   });
 });
 
+it('goes from the landing page into the demo in one click', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  await page.getByRole('link', { name: /Try the demo/ }).first().click();
+  await timelineSettled(page);
+  expect(await page.locator('.demo-banner').isVisible()).toBe(true);
+  // The fragment is spent, so a reload does not depend on it.
+  expect(await page.evaluate(() => location.hash)).not.toBe('#demo');
+  await page.close();
+  expect(problems).toEqual([]);
+});
+
 it('opens on Horizons on a phone, with content near the top and the nav at the bottom', async () => {
   const page = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
   const problems = await watch(page);
@@ -368,10 +381,29 @@ describe.each(['light', 'dark'] as const)('first setup in %s', (colorScheme) => 
     await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
     await page.getByText('More demos', { exact: true }).click();
     await page.getByRole('button', { name: STANDARD, exact: true }).click();
+    // The timeline is drawn from the detected mapping before anything is asked.
+    await page.getByRole('heading', { name: 'Your timeline, drawn from what is in your space' }).waitFor();
+    await page.locator('.setup-drawn g.tl-item').first().waitFor();
+    expect(await page.getByRole('heading', { name: 'Start with what is in your space' }).isVisible()).toBe(false);
+    expect(await violationsOn(page)).toEqual([]);
+    await page.getByText('Looks wrong? Adjust', { exact: true }).click();
     await page.getByRole('heading', { name: 'Start with what is in your space' }).waitFor();
     expect(await violationsOn(page)).toEqual([]);
     await page.close();
   });
+});
+
+it('opens the timeline in one click from the drawn first setup', async () => {
+  const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(page);
+  await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await page.getByText('More demos', { exact: true }).click();
+  await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByRole('button', { name: 'Open the timeline', exact: true }).click();
+  await timelineSettled(page);
+  await page.locator('g.tl-item').nth(3).waitFor();
+  await page.close();
+  expect(problems).toEqual([]);
 });
 
 it('opens the timeline with one tick on a standard setup', async () => {
@@ -380,6 +412,7 @@ it('opens the timeline with one tick on a standard setup', async () => {
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByText('More demos', { exact: true }).click();
     await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByText('Looks wrong? Adjust', { exact: true }).click();
   const projects = page.getByRole('checkbox', { name: /Your projects are “Project”/ });
   expect(await projects.isChecked()).toBe(true); // a name it knows starts ticked
   await page.getByRole('button', { name: 'Use these and open the timeline', exact: true }).click();
@@ -394,6 +427,7 @@ it('shows the form when the offer is set aside', async () => {
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByText('More demos', { exact: true }).click();
     await page.getByRole('button', { name: STANDARD, exact: true }).click();
+  await page.getByText('Looks wrong? Adjust', { exact: true }).click();
   await page.getByRole('button', { name: 'Set it up by hand', exact: true }).click();
   await page.getByRole('heading', { name: 'Map your space' }).waitFor();
   // The required part is open; goals, actions, grouping and display are folded away.
