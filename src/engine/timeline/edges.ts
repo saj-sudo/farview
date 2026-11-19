@@ -19,6 +19,23 @@ export function todayPill(nowX: number, width: number): { x: number; w: number; 
   return { x, w: PILL_W, textX: x + PILL_W / 2 };
 }
 
+/**
+ * The plain "Today" label that sits on the axis row beside the today line.
+ * It starts 5px right of the line and flips to the left when it would run
+ * off the chart.
+ */
+export function todayLabel(
+  nowX: number,
+  width: number,
+  text: string,
+): { x: number; w: number; text: string } {
+  const w = text.length * 6.6 + 4;
+  let x = nowX + 5;
+  if (x + w > width - PILL_MARGIN) x = nowX - 5 - w;
+  x = Math.min(Math.max(PILL_MARGIN, width - w - PILL_MARGIN), Math.max(PILL_MARGIN, x));
+  return { x, w, text };
+}
+
 /** Estimated width of an axis label: major ticks are 11px bold, minor 10px. */
 export function axisLabelWidth(label: string, level: Tick['level']): number {
   return label.length * (level === 'major' ? 7 : 6) + 2;
@@ -42,6 +59,8 @@ export function axisLabels(
   ticks: readonly Tick[],
   xOf: (day: number) => number,
   width: number,
+  /** A stretch of the axis row already taken (the today label): labels touching it drop. */
+  avoid?: readonly [number, number],
 ): AxisLabel[] {
   const gap = 6;
   const candidates = ticks
@@ -56,6 +75,7 @@ export function axisLabels(
     const w = axisLabelWidth(tick.label, tick.level);
     if (w + 2 * PILL_MARGIN > width) continue;
     const x = Math.min(width - w - PILL_MARGIN, Math.max(PILL_MARGIN, tx + 4));
+    if (avoid && x < avoid[1] + gap && x + w > avoid[0] - gap) continue;
     const label: AxisLabel = { label: tick.label, level: tick.level, x, w, index };
     const prev = out[out.length - 1];
     if (prev && x < prev.x + prev.w + gap) {
