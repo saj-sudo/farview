@@ -97,8 +97,21 @@ From the code audit of 2026-11-18:
 |---|---|---|---|
 | Review of the running app | Done | this file | 2026-11-18 |
 | Mockup | Published, timeline only: today's Decade zoom beside the far view | https://claude.ai/artifact/1MkefyeDo3Ehnii4zR3TTs | 2026-11-19 |
-| Saj picks a direction | Open. A, B or C on the mockup page | | |
-| Build and pull request | Not started | | |
+| Saj picks a direction | Done. A: the far view as drawn, replacing Decade. Thin today line on every zoom | | 2026-11-19 |
+| Build and pull request | In review | PRLINK | 2026-11-19 |
+| Identity mockup (sidebar, banner, palette) | Not started. Saj asked for a mockup before any full restyle | | |
+| Identity build | Waiting on the identity mockup | | |
+
+Notes from the build, 2026-11-19:
+
+- Typeface: Instrument Sans, self-hosted, picked in the build at Saj's request. Swap it at the
+  identity mockup if it is wrong.
+- First content on a 390 by 844 phone: 105px on Horizons, 146px to the chart and 176px to the
+  first item on the timeline (424px and 650px before).
+- Date inputs and "+ Action" on item detail were already shown only with editing on. The demo
+  runs with editing on, which is why the review saw them.
+- Shared with Yesteryear and not mirrored from here: `font-src 'self'` in the CSP,
+  `viewport-fit=cover`, and the landing page's `/app/#demo` link.
 
 ## Starting a session on this build
 

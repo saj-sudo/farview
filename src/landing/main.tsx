@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import timelineShot from '../../docs/timeline.png';
-import decadeShot from '../../docs/decade.png';
+import farViewShot from '../../docs/far-view.png';
 import phoneTimelineShot from '../../docs/phone-timeline.png';
 import phoneHorizonsShot from '../../docs/phone-horizons.png';
 
@@ -40,7 +40,7 @@ function Landing() {
           width={1280}
           height={880}
           loading="lazy"
-          alt="The Farview timeline for a synthetic boatyard: lanes of teal and sunflower bars, a sunflower band marking today, and small flags for goals."
+          alt="The Farview timeline for a synthetic boatyard: lanes of teal and sunflower bars named above each bar, a thin line marking today, and small flags for goals."
         />
       </picture>
 
@@ -130,7 +130,7 @@ function Landing() {
       <picture>
         <source media={PHONE} srcset={phoneHorizonsShot} width={824} height={1678} />
         <img
-          src={decadeShot}
+          src={farViewShot}
           width={1280}
           height={800}
           loading="lazy"
