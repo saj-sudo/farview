@@ -14,8 +14,7 @@ import { loadCollectionTags } from '../pipeline/load';
 import type { FarviewConfig, LocalDate } from '../engine/types';
 import { loadStoredConfig, saveStoredConfig } from './configStore';
 import { useEditActions, type EditActions } from './edits';
-import { Icon } from './components/Icon';
-import { ThemeChoice } from './components/ThemeChoice';
+import { ThemeCycle } from './components/ThemeChoice';
 import { openingView, pullArmed } from './phoneView';
 import { HASH_FOR, useView, type View } from './router';
 import { usePullToRefresh } from './usePullToRefresh';
@@ -58,10 +57,10 @@ export interface Boot {
   collectionTags: CollectionTags;
 }
 
-const NAV: { view: View; label: string; icon: string }[] = [
-  { view: 'timeline', label: 'Timeline', icon: 'timeline' },
-  { view: 'horizons', label: 'Horizons', icon: 'horizons' },
-  { view: 'settings', label: 'Settings', icon: 'settings' },
+const NAV: { view: View; label: string }[] = [
+  { view: 'timeline', label: 'Timeline' },
+  { view: 'horizons', label: 'Horizons' },
+  { view: 'settings', label: 'Settings' },
 ];
 
 export function App() {
@@ -215,7 +214,7 @@ function ConnectedApp(props: { session: Session }) {
 
   return (
     <div class="app">
-      <aside class="sidebar">
+      <header class="topbar">
         <span class="brand">
           <span class="brand-mark" aria-hidden="true" />
           Farview
@@ -228,38 +227,28 @@ function ConnectedApp(props: { session: Session }) {
               class={view === item.view ? 'active' : ''}
               aria-current={view === item.view ? 'page' : undefined}
             >
-              <Icon name={item.icon} />
               {item.label}
             </a>
           ))}
         </nav>
-        <div class="sidebar-foot">
+        <div class="topbar-end">
           {session.kind === 'demo' ? (
-            <span class="demo-badge">
-              Demo
+            <p class="demo-chip" title="Nothing here is real, and nothing leaves this tab.">
+              <span class="demo-chip-long">
+                Made-up space{boot ? `: ${boot.space.title}` : ''}
+              </span>
+              <span class="demo-chip-short">Made-up space</span>
               <button class="subtle" onClick={leaveDemo}>
                 leave
               </button>
-            </span>
+            </p>
           ) : (
             boot && <span class="space-name">{boot.space.title}</span>
           )}
-          <ThemeChoice />
-          <p class="disclaimer">{DISCLAIMER}</p>
+          <ThemeCycle />
         </div>
-      </aside>
+      </header>
       <div class="content">
-        {session.kind === 'demo' && (
-          <aside class="demo-banner" aria-label="Demo space">
-            <span class="demo-banner-long">
-              This is a made-up space{boot ? `, ${boot.space.title}` : ''}. Nothing
-              here is real, and nothing leaves this tab.
-            </span>
-            <span class="demo-banner-short">
-              Made-up space{boot ? `: ${boot.space.title}` : ''}
-            </span>
-          </aside>
-        )}
         <p class="sr-only" role="status" aria-live="polite">
           {status}
         </p>

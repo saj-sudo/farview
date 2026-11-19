@@ -1,7 +1,14 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseTheme, themeAttribute, THEME_COLORS, THEME_KEY } from '../../src/app/theme';
+import {
+  nextTheme,
+  parseTheme,
+  themeAttribute,
+  THEME_COLORS,
+  THEME_KEY,
+  THEME_LABELS,
+} from '../../src/app/theme';
 
 // The theme has two dark blocks, one for the system setting and one for a
 // person's own Dark choice. CSS can't share declarations between them, so
@@ -33,7 +40,7 @@ describe('the two dark blocks', () => {
   it('redefine every token the light theme sets', () => {
     const light = tokensIn(':root {');
     const colourTokens = Object.keys(light).filter((name) =>
-      /^--(bg|surface|wash|line|ink|charcoal|on-|focus|shadow|dots|blend|band|veil|g\d)/.test(name),
+      /^--(bg|surface|wash|line|field|ink|charcoal|on-|focus|shadow|dots|blend|band|veil|far-|glow|g\d)/.test(name),
     );
     for (const name of colourTokens) expect(forced, name).toHaveProperty(name);
   });
@@ -45,6 +52,13 @@ describe('theme choice', () => {
     expect(parseTheme('dark')).toBe('dark');
     expect(parseTheme('sepia')).toBe('system');
     expect(parseTheme(null)).toBe('system');
+  });
+
+  it('steps Auto, Light, Dark and back from the top bar button', () => {
+    expect(nextTheme('system')).toBe('light');
+    expect(nextTheme('light')).toBe('dark');
+    expect(nextTheme('dark')).toBe('system');
+    expect(THEME_LABELS.system).toBe('Auto');
   });
 
   it('sets data-theme only for a real choice', () => {

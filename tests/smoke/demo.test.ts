@@ -124,7 +124,7 @@ it('goes from the landing page into the demo in one click', async () => {
   await page.goto(`${base}/`, { waitUntil: 'networkidle' });
   await page.getByRole('link', { name: /Try the demo/ }).first().click();
   await timelineSettled(page);
-  expect(await page.locator('.demo-banner').isVisible()).toBe(true);
+  expect(await page.locator('.demo-chip').isVisible()).toBe(true);
   // The fragment is spent, so a reload does not depend on it.
   expect(await page.evaluate(() => location.hash)).not.toBe('#demo');
   await page.close();
@@ -270,7 +270,11 @@ it('moves the theme choice with the arrow keys and keeps one option in the tab o
   const page = await browser.newPage({ viewport: VIEWPORTS[1]! });
   await page.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await page.evaluate(() => {
+    location.hash = '#/settings';
+  });
   const radio = (name: string) => page.getByRole('radio', { name, exact: true });
+  await radio('Auto').waitFor();
   await radio('Auto').focus();
   await page.keyboard.press('ArrowRight');
   expect(await radio('Light').getAttribute('aria-checked')).toBe('true');
@@ -285,13 +289,14 @@ it('moves the theme choice with the arrow keys and keeps one option in the tab o
   await page.close();
 });
 
-it('shows one theme choice at either size, in Settings on a phone', async () => {
+it('keeps the full theme choice in Settings and a quick button in the top bar', async () => {
   const visible = (page: Page) => page.locator('.theme-choice:visible').count();
   const phone = await browser.newPage({ viewport: VIEWPORTS[0]! });
   await phone.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await phone.getByRole('button', { name: 'Try the demo', exact: true }).click();
   await phone.locator('.hz-column').first().waitFor();
-  expect(await visible(phone)).toBe(0); // no copy in the footer any more
+  expect(await visible(phone)).toBe(0);
+  expect(await phone.locator('.theme-cycle').isVisible()).toBe(false); // the phone's bar stays slim
   await phone.evaluate(() => {
     location.hash = '#/settings';
   });
@@ -311,15 +316,58 @@ it('shows one theme choice at either size, in Settings on a phone', async () => 
   await phone.close();
 
   const desk = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(desk);
   await desk.goto(`${base}/app/`, { waitUntil: 'networkidle' });
   await desk.getByRole('button', { name: 'Try the demo', exact: true }).click();
-  expect(await visible(desk)).toBe(1);
+  await timelineSettled(desk);
+  expect(await visible(desk)).toBe(0);
+  // The button names the theme and steps Auto, Light, Dark, Auto.
+  const cycle = desk.locator('.theme-cycle');
+  expect(await cycle.innerText()).toBe('Auto');
+  await cycle.click();
+  expect(await cycle.innerText()).toBe('Light');
+  expect(await desk.evaluate(() => document.documentElement.dataset['theme'])).toBe('light');
+  await cycle.click();
+  expect(await desk.evaluate(() => document.documentElement.dataset['theme'])).toBe('dark');
+  await cycle.click();
+  expect(await desk.evaluate(() => document.documentElement.dataset['theme'])).toBeUndefined();
   await desk.evaluate(() => {
     location.hash = '#/settings';
   });
   await desk.getByRole('heading', { name: 'Display', exact: true }).waitFor();
   expect(await visible(desk)).toBe(1);
   await desk.close();
+  expect(problems).toEqual([]);
+});
+
+it('puts navigation on a top bar, gives the chart the width, and lets the demo be left', async () => {
+  const desk = await browser.newPage({ viewport: VIEWPORTS[1]! });
+  const problems = await watch(desk);
+  await desk.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await desk.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await timelineSettled(desk);
+  const nav = (await desk.getByRole('navigation', { name: 'Views' }).boundingBox())!;
+  expect(nav.y + nav.height).toBeLessThan(70);
+  // No sidebar: the chart takes all but the page's gutters.
+  const chart = (await desk.locator('.tl-wrap').boundingBox())!;
+  expect(chart.width).toBeGreaterThan(VIEWPORTS[1]!.width - 80);
+  const chip = desk.locator('.demo-chip');
+  expect(await chip.innerText()).toContain('Made-up space: Saltmarsh Boatyard');
+  await chip.getByRole('button', { name: 'leave', exact: true }).click();
+  await desk.getByRole('button', { name: 'Try the demo', exact: true }).waitFor();
+  await desk.close();
+
+  // On a phone the chip shortens and the way out is still there.
+  const phone = await browser.newPage({ viewport: VIEWPORTS[0]!, hasTouch: true });
+  await phone.goto(`${base}/app/`, { waitUntil: 'networkidle' });
+  await phone.getByRole('button', { name: 'Try the demo', exact: true }).click();
+  await phone.locator('.hz-column').first().waitFor();
+  expect((await phone.locator('.demo-chip').innerText()).replace(/\s+/g, ' ')).toBe('Made-up space leave');
+  expect(await phone.evaluate(() => document.documentElement.scrollWidth)).toBe(VIEWPORTS[0]!.width);
+  await phone.locator('.demo-chip').getByRole('button', { name: 'leave', exact: true }).click();
+  await phone.getByRole('button', { name: 'Try the demo', exact: true }).waitFor();
+  await phone.close();
+  expect(problems).toEqual([]);
 });
 
 it('focuses on one pillar, remembers it and brings the others back', async () => {

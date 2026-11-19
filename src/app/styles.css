@@ -1,5 +1,5 @@
 /* Farview: Capacities-native structure with two riso inks.
-   The surfaces, sans, radii and sidebar rhythm sit comfortably next to
+   The surfaces, sans, radii and spacing rhythm sit comfortably next to
    Capacities; the colour comes from two inks, teal and sunflower, that
    overprint where they meet. Flat inks are for fills; text in an ink
    colour uses the darker --ink*-text tokens so it passes AA.
@@ -30,16 +30,16 @@
 }
 
 :root {
-  /* Surfaces and text. */
-  --bg: #ffffff;
+  /* Surfaces and text: cool neutrals, the colour of air over water. */
+  --bg: #f5f8f9;
   --surface: #ffffff;
-  --wash: #faf9f7;
-  --line: #ebe9e6;
-  --line-strong: #dcd9d4;
-  --field-border: #8a878e;
-  --ink: #1c1b20;
-  --ink-soft: #57555b;
-  --charcoal: #3f3e43;
+  --wash: #edf2f4;
+  --line: #e2e9ec;
+  --line-strong: #cfd9de;
+  --field-border: #7d8a93;
+  --ink: #14212b;
+  --ink-soft: #4d5e6a;
+  --charcoal: #2a3a45;
   --on-charcoal: #ffffff;
   --on-charcoal-ink: #ffb511;
 
@@ -54,26 +54,28 @@
   --accent: var(--ink1-text);
   --accent-soft: var(--ink1-tint);
   --focus: #006168;
-  --shadow: 0 1px 2px rgba(28, 27, 32, 0.05), 0 4px 14px rgba(28, 27, 32, 0.05);
-  --shadow-lift: 0 12px 36px rgba(28, 27, 32, 0.16);
-  --dots: radial-gradient(rgba(28, 27, 32, 0.12) 1px, transparent 1.3px) 0 0 / 6px 6px;
+  --shadow: 0 1px 2px rgba(20, 33, 43, 0.05), 0 4px 14px rgba(20, 33, 43, 0.05);
+  --shadow-lift: 0 12px 36px rgba(20, 33, 43, 0.16);
+  --dots: radial-gradient(rgba(20, 33, 43, 0.12) 1px, transparent 1.3px) 0 0 / 6px 6px;
   --blend: multiply;
 
-  /* Timeline furniture: alternating calendar bands and the past veil. */
-  --band: rgba(28, 27, 32, 0.022);
+  /* Timeline furniture: alternating calendar bands, the past veil, and the
+     far view's haze, which deepens with distance. */
+  --band: rgba(20, 33, 43, 0.022);
   --veil: rgba(255, 255, 255, 0.35);
-  --far-past: rgba(28, 27, 32, 0.035);
-  --far-mid: rgba(0, 131, 138, 0.045);
-  --far-far: rgba(0, 131, 138, 0.1);
+  --far-past: rgba(20, 33, 43, 0.04);
+  --far-mid: rgba(64, 124, 156, 0.07);
+  --far-far: rgba(64, 124, 156, 0.15);
+  --glow: rgba(255, 181, 17, 0.07);
 
   /* Lane hues, assigned to lanes by the engine (src/engine/timeline/colors.ts).
      Two inks and their overprints; no red. */
   --g1: #00838a;
   --g2: #e8a200;
   --g3: #4f8f4a;
-  --g4: #1c3a44;
+  --g4: #34506f;
   --g5: #5fb3b0;
-  --g6: #8c8a90;
+  --g6: #8a9299;
 
   /* Shared with Yesteryear. */
   --font: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -111,17 +113,17 @@
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #1b1a1e;
-  --surface: #222125;
-  --wash: #1f1e22;
-  --line: #313035;
-  --line-strong: #3d3c42;
-  --field-border: #76747c;
-  --ink: #ecebef;
-  --ink-soft: #a6a4ab;
-  --charcoal: #ecebef;
-  --on-charcoal: #1b1a1e;
-  --on-charcoal-ink: #1b1a1e;
+  --bg: #0e1920;
+  --surface: #15232c;
+  --wash: #131f27;
+  --line: #22333e;
+  --line-strong: #30444f;
+  --field-border: #6f828d;
+  --ink: #e6eef2;
+  --ink-soft: #9fb1bb;
+  --charcoal: #e6eef2;
+  --on-charcoal: #0e1920;
+  --on-charcoal-ink: #0e1920;
   --ink1: #3fc1c4;
   --ink2: #ffc845;
   --ink1-text: #6fd6d8;
@@ -133,32 +135,33 @@
   --shadow-lift: 0 12px 36px rgba(0, 0, 0, 0.5);
   --dots: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.3px) 0 0 / 6px 6px;
   --blend: screen;
-  --band: rgba(236, 235, 239, 0.03);
-  --veil: rgba(27, 26, 30, 0.45);
-  --far-past: rgba(236, 235, 239, 0.04);
-  --far-mid: rgba(63, 193, 196, 0.05);
-  --far-far: rgba(63, 193, 196, 0.11);
+  --band: rgba(230, 238, 242, 0.03);
+  --veil: rgba(14, 25, 32, 0.45);
+  --far-past: rgba(230, 238, 242, 0.04);
+  --far-mid: rgba(110, 170, 200, 0.07);
+  --far-far: rgba(110, 170, 200, 0.15);
+  --glow: rgba(255, 200, 69, 0.05);
   --g1: #3fc1c4;
   --g2: #ffc845;
   --g3: #86c27c;
-  --g4: #9fb6c0;
+  --g4: #9db7d6;
   --g5: #86d6d3;
-  --g6: #8c8a90;
+  --g6: #8a9299;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #1b1a1e;
-    --surface: #222125;
-    --wash: #1f1e22;
-    --line: #313035;
-    --line-strong: #3d3c42;
-    --field-border: #76747c;
-    --ink: #ecebef;
-    --ink-soft: #a6a4ab;
-    --charcoal: #ecebef;
-    --on-charcoal: #1b1a1e;
-    --on-charcoal-ink: #1b1a1e;
+    --bg: #0e1920;
+    --surface: #15232c;
+    --wash: #131f27;
+    --line: #22333e;
+    --line-strong: #30444f;
+    --field-border: #6f828d;
+    --ink: #e6eef2;
+    --ink-soft: #9fb1bb;
+    --charcoal: #e6eef2;
+    --on-charcoal: #0e1920;
+    --on-charcoal-ink: #0e1920;
     --ink1: #3fc1c4;
     --ink2: #ffc845;
     --ink1-text: #6fd6d8;
@@ -170,20 +173,18 @@
     --shadow-lift: 0 12px 36px rgba(0, 0, 0, 0.5);
     --dots: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1.3px) 0 0 / 6px 6px;
     --blend: screen;
-    --band: rgba(236, 235, 239, 0.03);
-    --veil: rgba(27, 26, 30, 0.45);
-    --far-past: rgba(236, 235, 239, 0.04);
-    --far-mid: rgba(63, 193, 196, 0.05);
-    --far-far: rgba(63, 193, 196, 0.11);
-  --far-past: rgba(236, 235, 239, 0.04);
-  --far-mid: rgba(63, 193, 196, 0.05);
-  --far-far: rgba(63, 193, 196, 0.11);
+    --band: rgba(230, 238, 242, 0.03);
+    --veil: rgba(14, 25, 32, 0.45);
+    --far-past: rgba(230, 238, 242, 0.04);
+    --far-mid: rgba(110, 170, 200, 0.07);
+    --far-far: rgba(110, 170, 200, 0.15);
+    --glow: rgba(255, 200, 69, 0.05);
     --g1: #3fc1c4;
     --g2: #ffc845;
     --g3: #86c27c;
-    --g4: #9fb6c0;
+    --g4: #9db7d6;
     --g5: #86d6d3;
-    --g6: #8c8a90;
+    --g6: #8a9299;
   }
 }
 
@@ -248,7 +249,7 @@ button {
   padding: 0.45rem 0.95rem;
   cursor: pointer;
   font-weight: 500;
-  box-shadow: 0 1px 1px rgba(28, 27, 32, 0.04);
+  box-shadow: 0 1px 1px rgba(20, 33, 43, 0.04);
   transition: border-color 120ms ease, background 120ms ease;
 }
 
@@ -409,35 +410,36 @@ a:hover {
   margin-top: 1.5rem;
 }
 
-/* ---------- app shell: sidebar + content ---------- */
+/* ---------- app shell: the horizon bar + content ---------- */
 
 .app {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
-.sidebar {
-  flex: 0 0 13rem;
+/* Navigation sits on one ink line, the horizon. The page below it starts
+   with a faint glow, as if the sun were just under the line. */
+.topbar {
   display: flex;
-  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-5);
-  padding: var(--space-4) var(--space-3);
-  border-right: 1px solid var(--line);
-  background: var(--wash);
+  padding: 0 var(--space-6);
+  border-bottom: 1px solid var(--ink);
+  background: var(--bg);
   position: sticky;
   top: 0;
-  height: 100vh;
+  z-index: 20;
 }
 
-.sidebar .brand {
+.topbar .brand {
   font-weight: 700;
   color: var(--ink);
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   letter-spacing: -0.01em;
-  padding: 0.2rem 0.55rem;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.6rem;
 }
 
 /* Two inks, slightly off register: the mark is the palette. */
@@ -450,69 +452,93 @@ a:hover {
   flex: 0 0 auto;
 }
 
-.sidebar nav {
+.topbar nav {
   display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  gap: var(--space-1);
 }
 
-.sidebar nav a {
-  color: var(--ink-soft);
-  padding: 0.35rem 0.55rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.93rem;
+.topbar nav a {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-}
-
-.sidebar nav a .icon {
-  flex: 0 0 auto;
-  color: var(--ink1);
-}
-
-.sidebar nav a:nth-of-type(2) .icon {
-  color: var(--ink2);
-}
-
-.sidebar nav a:nth-of-type(3) .icon {
+  padding: 0.95rem 0.8rem;
   color: var(--ink-soft);
+  font-size: 0.95rem;
 }
 
-.sidebar nav a:hover {
-  background: rgba(28, 27, 32, 0.05);
+.topbar nav a:hover {
+  color: var(--ink);
   text-decoration: none;
 }
 
-.sidebar nav a.active {
-  background: var(--ink2-tint);
+.topbar nav a.active {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.sidebar-foot {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: 0 0.55rem;
+/* Where you are: a sun sitting on the horizon. */
+.topbar nav a.active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border-radius: 50%;
+  background: var(--ink2);
 }
 
-.demo-badge {
+.topbar-end {
+  margin-left: auto;
   display: flex;
-  gap: 0.4rem;
-  align-items: baseline;
-  font-size: 0.82rem;
-  color: var(--ink1-text);
-  font-weight: 600;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .space-name {
   color: var(--ink-soft);
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Light, Dark or Auto: the same small segmented control as zoom. */
+/* The demo says so in a dashed chip, with the way out inside it. */
+.demo-chip {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  padding: 0.15rem 0.3rem 0.15rem 0.75rem;
+  border: 1px dashed var(--field-border);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.demo-chip-short {
+  display: none;
+}
+
+.demo-chip button {
+  padding: 0.1rem 0.5rem;
+  min-height: 0;
+}
+
+/* One button that steps through Auto, Light and Dark. */
+.theme-cycle {
+  font-size: var(--text-sm);
+  padding: 0.25rem 0.7rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* Light, Dark or Auto in Settings: the same small segmented control as zoom. */
 .theme-choice {
   display: flex;
   gap: 2px;
@@ -542,7 +568,7 @@ a:hover {
   background: var(--surface);
   color: var(--ink);
   font-weight: 600;
-  box-shadow: inset 0 -3px 0 var(--ink2), 0 1px 2px rgba(28, 27, 32, 0.12);
+  box-shadow: inset 0 -3px 0 var(--ink2), 0 1px 2px rgba(20, 33, 43, 0.12);
 }
 
 @media (max-width: 720px) {
@@ -561,61 +587,74 @@ a:hover {
 }
 
 .app-foot {
-  display: none;
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--line);
 }
 
 .content {
   flex: 1;
   min-width: 0;
-}
-
-.demo-banner {
-  margin: 0;
-  color: var(--ink);
-  font-size: 0.85rem;
-  text-align: center;
-  padding: 0.5rem 1.5rem;
-  background: var(--dots), var(--ink2-tint);
-  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(var(--glow), transparent 110px);
 }
 
 .app-main {
+  flex: 1;
+  width: 100%;
   padding: var(--space-5) var(--space-6);
-  max-width: 78rem;
+  max-width: 90rem;
   margin: 0 auto;
 }
 
 @media (max-width: 720px) {
-  .app {
-    flex-direction: column;
-  }
-  .sidebar {
-    flex: none;
-    height: auto;
+  .topbar {
     position: static;
-    gap: var(--space-2);
-    border-right: none;
-    border-bottom: 1px solid var(--line);
-    padding: var(--space-3) var(--space-4) var(--space-2);
+    align-items: center;
+    gap: var(--space-3);
+    padding: calc(var(--space-2) + env(safe-area-inset-top, 0px))
+      max(var(--space-4), env(safe-area-inset-right, 0px)) var(--space-2)
+      max(var(--space-4), env(safe-area-inset-left, 0px));
   }
-  .sidebar nav {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 0.2rem;
+  /* Navigation moves to the bottom, where a thumb is. */
+  .topbar nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    gap: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--ink);
+    padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
+      env(safe-area-inset-left, 0px);
   }
-  .sidebar nav a {
-    white-space: nowrap;
+  .topbar nav a {
+    flex: 1;
+    justify-content: center;
+    min-height: 60px;
+    padding: 0;
   }
-  .sidebar-foot {
+  .topbar nav a.active::after {
+    bottom: auto;
+    top: -6px;
+  }
+  .topbar .theme-cycle,
+  .topbar .space-name {
     display: none;
   }
+  .demo-chip-long {
+    display: none;
+  }
+  .demo-chip-short {
+    display: inline;
+  }
   .app-main {
-    padding: var(--space-4);
+    padding: var(--space-3) max(var(--space-4), env(safe-area-inset-right, 0px)) var(--space-4)
+      max(var(--space-4), env(safe-area-inset-left, 0px));
   }
   .app-foot {
-    display: block;
     padding: var(--space-4);
-    border-top: 1px solid var(--line);
   }
 }
 
@@ -949,7 +988,7 @@ body:has(.landing) {
   background: var(--surface);
   color: var(--ink);
   font-weight: 600;
-  box-shadow: inset 0 -3px 0 var(--ink2), 0 1px 2px rgba(28, 27, 32, 0.12);
+  box-shadow: inset 0 -3px 0 var(--ink2), 0 1px 2px rgba(20, 33, 43, 0.12);
 }
 
 .tl-zoom-chip.today {
@@ -1676,7 +1715,7 @@ body:has(.landing) {
 }
 
 .dialog::backdrop {
-  background: rgba(28, 27, 32, 0.35);
+  background: rgba(20, 33, 43, 0.35);
 }
 
 .dialog-body {
@@ -1954,10 +1993,13 @@ body:has(.landing) {
   opacity: 0.8;
 }
 
-/* Theme choice inside Settings: the phone's copy. On a wider screen the
-   sidebar shows its own, so only one is ever on screen. */
+/* The full theme choice lives in Settings on every screen; the top bar
+   has the quick button. */
 .settings-theme {
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.4rem 0 0.6rem;
 }
 
 /* Settings sections fold on a phone; the heading is the summary. */
@@ -2007,7 +2049,7 @@ body:has(.landing) {
     font-size: 14px;
   }
   button,
-  .sidebar nav a,
+  .topbar nav a,
   .tag-chip {
     min-height: var(--tap);
   }
@@ -2047,12 +2089,6 @@ body:has(.landing) {
     align-items: center;
     min-height: var(--tap);
   }
-  .settings-theme {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 0.4rem 0 0.6rem;
-  }
   .settings-section {
     margin: 0.5rem 0 0;
     border-bottom: 1px solid var(--line);
@@ -2090,10 +2126,6 @@ body:has(.landing) {
 
 /* The phone: one control row, a sheet for the rest, navigation at the bottom. */
 .phone-bar {
-  display: none;
-}
-
-.demo-banner-short {
   display: none;
 }
 
@@ -2152,43 +2184,6 @@ body:has(.landing) {
   }
   .app {
     padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
-  }
-  .sidebar {
-    padding: calc(var(--space-2) + env(safe-area-inset-top, 0px))
-      max(var(--space-4), env(safe-area-inset-right, 0px)) var(--space-2)
-      max(var(--space-4), env(safe-area-inset-left, 0px));
-  }
-  .sidebar nav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 20;
-    gap: 0;
-    overflow: visible;
-    background: var(--surface);
-    border-top: 1px solid var(--line-strong);
-    padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px)
-      env(safe-area-inset-left, 0px);
-  }
-  .sidebar nav a {
-    flex: 1;
-    justify-content: center;
-    min-height: 60px;
-    border-radius: 0;
-  }
-  .demo-banner {
-    padding-block: 0.3rem;
-  }
-  .demo-banner-long {
-    display: none;
-  }
-  .demo-banner-short {
-    display: inline;
-  }
-  .app-main {
-    padding: var(--space-3) max(var(--space-4), env(safe-area-inset-right, 0px)) var(--space-4)
-      max(var(--space-4), env(safe-area-inset-left, 0px));
   }
   .phone-bar {
     display: flex;

@@ -4,7 +4,7 @@
 
 **See your goals across time, in Capacities.**
 
-![The Farview timeline on the synthetic Saltmarsh Boatyard demo: lanes of teal and sunflower bars grouped by pillar and area, each named above its bar, a thin ink line marking today, and small flags for goals. A banner at the top says the space is made up.](docs/timeline.png)
+![The Farview timeline on the synthetic Saltmarsh Boatyard demo: lanes of teal and sunflower bars grouped by pillar and area, each named above its bar, a thin ink line marking today, and small flags for goals. A chip in the top bar says the space is made up.](docs/timeline.png)
 
 > **Disclaimer:** Farview is an independent community tool. It is not affiliated with, endorsed by, or sponsored by Capacities. Capacities is a trademark of its respective owners.
 
@@ -87,7 +87,7 @@ If your space links things together, like a project pointing at its goal or a go
 - Dragging never moves a date on a phone. Type dates on the card instead.
 - Add the site to your home screen and it opens in its own window.
 
-A switch in the sidebar (under Display in Settings on a phone) sets light, dark or automatic.
+A button in the top bar steps through automatic, light and dark. Display in Settings has all three.
 
 ## What you need in Capacities
 

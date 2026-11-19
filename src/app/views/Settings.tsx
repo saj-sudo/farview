@@ -657,6 +657,11 @@ export function Settings(props: {
             read live from “{boot.space.title}”. Nothing is written to your
             space; these settings are kept in this browser.
           </p>
+          {props.session.kind === 'demo' && (
+            <p class="fineprint">
+              This is a made-up space. Nothing here is real, and nothing leaves this tab.
+            </p>
+          )}
         </div>
       </div>
 

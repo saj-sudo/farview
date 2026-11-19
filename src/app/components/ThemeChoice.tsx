@@ -1,5 +1,5 @@
 import { useRef } from 'preact/hooks';
-import { useTheme, type ThemeChoice as Choice } from '../theme';
+import { nextTheme, THEME_LABELS, useTheme, type ThemeChoice as Choice } from '../theme';
 
 const OPTIONS: { value: Choice; label: string }[] = [
   { value: 'system', label: 'Auto' },
@@ -61,5 +61,24 @@ export function ThemeChoice() {
         </button>
       ))}
     </div>
+  );
+}
+
+/**
+ * The quick switch in the top bar: one button that names the current
+ * theme and steps to the next. The full choice is in Settings.
+ */
+export function ThemeCycle() {
+  const [choice, setTheme] = useTheme();
+  const next = nextTheme(choice);
+  return (
+    <button
+      type="button"
+      class="theme-cycle"
+      aria-label={`Colour theme: ${THEME_LABELS[choice]}. Change to ${THEME_LABELS[next]}.`}
+      onClick={() => setTheme(next)}
+    >
+      {THEME_LABELS[choice]}
+    </button>
   );
 }
